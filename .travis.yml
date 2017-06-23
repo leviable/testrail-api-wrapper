@@ -1,0 +1,31 @@
+language: python
+sudo: false
+os:
+- linux
+python:
+- '2.7'
+- '3.4'
+- '3.5'
+- '3.6'
+install:
+- pip install -U pip
+- pip install -U setuptools
+- pip install -U tox
+- pip install -U tox-travis
+- pip install python-coveralls
+- pip install coverage
+script:
+- tox -v --recreate
+after_success:
+- coveralls
+deploy:
+  provider: pypi
+  server: https://pypi.python.org/pypi
+  user: levinoecker
+  password:
+    secure: aTmM517FZgLXoGePuSaCRCWKeHJAbS72L2pNCJgeqbRz10mQq8jhMbJlBuznp0eTKUV9+AxZnG0+b0WuNXJ0Sg+9ZcTD54Da9pT/cUiAR5QSHtnET+DfGZRBLsxlaBhOSKPxX/AGN9TELC9+ml6TVEIbl8sgm56NfzYVA/nlhBxDpYwCaOANqkkA6VS3t82zv7HbN8GnkkcuG50dXq3QGm6TAyuntVupNMffhw0CxJJf3gtgidmbZ/xFohqEYCl+orQWxBjlLMJLe7zDL2AandEW4wL0zY0UoTk+wFlCmknIksXbewieNKGAlIwOnxso+O5A09ZO8is9l2jhmvLTvakqItaRiE9rMT7z7y/wLw71YuSvf1nW65Bpr6lIwctnK49e3qQppQ3/uCoCMdcP5jTjoOot17NOrc2nGtQhzMq9hWkAOXQewXxjBR9By5Bx/L+kLd55qhpVL/kJh6g20/kHypRdRklA1uRtHtsHgM/KppEwm/o6Q3OHBuz83iNwKNeh9DSCQ7U/vZg9QfMt83aCCKORx82CnY0+x/+X5KU4LrRhezqEm3+s60NKbTtmQLJ252v9zqBLJO1V6RFLQMtv5pstWQA+BRQeYzVpzWXy98BtKfpnbiwXvoLg1Ad6j/TUmvwj2fjHdAwpWH1vb2r95Ec98uPAKWwI7QTmw0A=
+  distributions: sdist bdist_wheel
+  on:
+    branch: master
+    tags: true
+    python: '3.6'
