@@ -1,6 +1,7 @@
 CHANGES
 =======
 
+* Add credential setting logic
 * Add API paths to constants file
 * Add initial project structure
 * Initial commit

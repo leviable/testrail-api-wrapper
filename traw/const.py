@@ -1,4 +1,10 @@
-BASE_API_PATH = '/index.php?/api/v2/'
+class ENVs(object):
+    """ OS Envionment variable names """
+    USER_KEY = 'TRAW_USERNAME'
+    API_KEY = 'TRAW_USER_API_KEY'
+    PASS_KEY = 'TRAW_PASSWORD'
+    URL_KEY = 'TRAW_URL'
+
 
 API_PATH = {
     'add_case': 'add_case/{seciont_id}',
@@ -67,3 +73,7 @@ API_PATH = {
     'update_section': 'update_section/{section_id}',
     'update_suite': 'update_suite/{suite_id}',
 }
+
+BASE_API_PATH = '/index.php?/api/v2/'
+
+CONFIG_FILE_NAME = '.traw_config'
