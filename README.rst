@@ -1,12 +1,10 @@
 
-TRAW
-==========
+TRAW: TestRail API Wrapper
+==========================
 
 |PyPIVersion| |TravisCI| |CoverageStatus| |CodeHealth| |PythonVersions|
 
-TestRail API Wrapper
-
-Note that is project is currently in alpha: APIs can and will change without warning
+Note that this project is currently in alpha: APIs can and will change without warning
 
 .. |TravisCI| image:: https://travis-ci.org/levi-rs/traw.svg?branch=master
     :target: https://travis-ci.org/levi-rs/traw
@@ -19,11 +17,12 @@ Note that is project is currently in alpha: APIs can and will change without war
 .. |PythonVersions| image:: https://img.shields.io/pypi/pyversions/traw.svg
     :target: https://wiki.python.org/moin/Python2orPython3
 
-Currently support functionality:
+Currently supported functionality:
 
-- <none>
+- Use credentials from Client instantiation, ENV vars, or configuration file
 
 
 Planned functionality in upcoming release(s):
 
-- <none>
+- Fully support Run related APIs
+- Fully support Run related API params: is_complete, limit, pagination, etc
