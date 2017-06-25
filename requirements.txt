@@ -1,3 +1,4 @@
 pbr>=3.0
 setuptools==35.0.2
+singledispatch>=3.4.0.0
 six

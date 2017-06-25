@@ -1,4 +1,5 @@
 from .api import API
+from .utils import dispatchmethod
 
 
 class Client(object):
@@ -33,3 +34,24 @@ class Client(object):
     def __init__(self, **credentials):
         """ Initialize the TRAW instance """
         self._api = API(**credentials)
+
+    # POST generics
+    @dispatchmethod
+    def add(self, obj):
+        # Not directly implemented. TypeError is raised if called directly
+        pass  # pragma: no cover
+
+    @dispatchmethod
+    def close(self, obj):
+        # Not directly implemented. TypeError is raised if called directly
+        pass  # pragma: no cover
+
+    @dispatchmethod
+    def delete(self, obj):
+        # Not directly implemented. TypeError is raised if called directly
+        pass  # pragma: no cover
+
+    @dispatchmethod
+    def update(self, obj):
+        # Not directly implemented. TypeError is raised if called directly
+        pass  # pragma: no cover
