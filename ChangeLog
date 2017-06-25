@@ -1,6 +1,9 @@
 CHANGES
 =======
 
+* Add method support for singledispatch
+* Update docstrings and help() messages
+* Update README copy
 * Add credential setting logic
 * Add API paths to constants file
 * Add initial project structure
