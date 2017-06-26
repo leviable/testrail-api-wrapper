@@ -5,6 +5,7 @@ TRAW is an API wrapper for Gurrock's TestRail test management suite
 The intended way to begin is to instantiate the TRAW Client:
 
 .. code-block:: python
+
     import traw
     testrail = traw.Client(username='username',
                            user_api_key='api_key',
