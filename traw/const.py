@@ -77,3 +77,5 @@ API_PATH = {
 BASE_API_PATH = '/index.php?/api/v2/'
 
 CONFIG_FILE_NAME = '.traw_config'
+
+SETTER_ERR = 'Expected {0}, found {1}'

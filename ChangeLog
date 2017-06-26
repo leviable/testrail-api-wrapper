@@ -1,6 +1,7 @@
 CHANGES
 =======
 
+* Add project model and tests
 * Add method support for singledispatch
 * Update docstrings and help() messages
 * Update README copy
