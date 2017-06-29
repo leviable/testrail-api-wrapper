@@ -1,8 +1,16 @@
 class ModelBase(object):
     """ Base class for all TRAW models """
-    def __str__(self):
+    def __init__(self, content=None):
+        self._content = content or dict()
+
+    def __repr__(self):  # pragma: no cover
+        return str(self)
+
+    def __str__(self):  # pragma: no cover
         class_name = self.__class__.__name__
         return "{0}-{1}".format(class_name, self.id)
 
-    def __repr__(self):
-        return str(self)
+    @property
+    def id(self):
+        """ The unique ID of the project """
+        return self._content.get('id', None)

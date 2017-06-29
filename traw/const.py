@@ -74,8 +74,17 @@ API_PATH = {
     'update_suite': 'update_suite/{suite_id}',
 }
 
-BASE_API_PATH = '/index.php?/api/v2/'
+BASE_API_PATH = '/index.php?/api/v2'
 
 CONFIG_FILE_NAME = '.traw_config'
 
+GET = 'get'
+
+POST = 'post'
+
+DELAY = 1
+RETRIES = 3
+
 SETTER_ERR = 'Expected {0}, found {1}'
+
+TIMEOUT = 16  # TODO: Make this configurable

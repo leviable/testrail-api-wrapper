@@ -1,4 +1,6 @@
 pbr>=3.0
+requests >=2.6.0, <3.0
+retry
 setuptools==35.0.2
 singledispatch>=3.4.0.0
 six
