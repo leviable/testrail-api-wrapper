@@ -5,8 +5,9 @@ try:
 except ImportError:
     from configparser import ConfigParser
 
-from .const import ENVs, CONFIG_FILE_NAME
+from .sessions import Session
 from .exceptions import TRAWLoginError
+from .const import ENVs, CONFIG_FILE_NAME, GET, API_PATH
 
 _USER_KEY = 'username'
 _PASS_KEY = 'password'
@@ -22,14 +23,32 @@ class API(object):
         """
         """
         config = _load_config()
-        self.username = username or _env_var(_USER_KEY) or config[_USER_KEY]
-        self.password = user_api_key or password or _env_var(_PASS_KEY) or config[_PASS_KEY]
-        self.url = url or _env_var(_URL_KEY) or config[_URL_KEY]
+        _username = username or _env_var(_USER_KEY) or config[_USER_KEY]
+        _password = user_api_key or password or _env_var(_PASS_KEY) or config[_PASS_KEY]
+        _url = url or _env_var(_URL_KEY) or config[_URL_KEY]
 
-        if self.username is None or self.password is None or self.url is None:
+        if _username is None or _password is None or _url is None:
             msg = ('You must set a username, password/api_key, and url to '
                    'use TRAW')
             raise TRAWLoginError(msg)
+
+        self._session = Session(auth=(_username, _password), url=_url)
+
+    def projects(self, is_completed=None):
+        """ Calls `projects` API endpoint with given filter
+
+        :param project_filter: Filter results by completion status: 0, 1, or None
+
+        :yields: list of project dictionaries from api
+        """
+        path = API_PATH['get_projects']
+        if is_completed is not None:
+            params = dict(is_completed=is_completed)
+        else:
+            params = None
+
+        for project in self._session.request(method=GET, path=path, params=params):
+            yield project
 
 
 def _env_var(var_name):

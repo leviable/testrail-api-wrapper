@@ -18,9 +18,6 @@ class Project(ModelBase):
         new_project.suite_mode = 1
 
     """
-    def __init__(self, content=None):
-        self._content = content or dict()
-
     @property
     def announcement(self):
         """ The description/announcement of the project
@@ -43,11 +40,6 @@ class Project(ModelBase):
         if co:
             co = dt.fromtimestamp(co)
         return co
-
-    @property
-    def id(self):
-        """ The unique ID of the project """
-        return self._content.get('id', None)
 
     @property
     def is_completed(self):

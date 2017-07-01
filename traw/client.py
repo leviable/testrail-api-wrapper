@@ -1,3 +1,4 @@
+from .import models
 from .api import API
 from .utils import dispatchmethod
 
@@ -8,6 +9,7 @@ class Client(object):
     The intended way to use this class is:
 
     .. code-block:: python
+
         import traw
         testrail = traw.Client(username='username',
                                user_api_key='api_key',
@@ -55,3 +57,26 @@ class Client(object):
     def update(self, obj):
         # Not directly implemented. TypeError is raised if called directly
         pass  # pragma: no cover
+
+    # Project related methods
+    def projects(self, active_only=False, completed_only=False):
+        """ Returns the list of available projects
+
+        Leaving both active_only and completed_only will return all projects
+
+        :param active_only: Only include currently active projects in list
+        :param completed_only: Only include completed projects in list
+
+        :yields: Project Objects
+        """
+        if active_only is True and completed_only is True:
+            raise TypeError('Either `active_only` or `completed_only` can be '
+                            'set, but not both')
+
+        elif active_only is True or completed_only is True:
+            is_completed = 1 if completed_only else 0
+        else:
+            is_completed = None
+
+        for project in self._api.projects(is_completed):
+            yield models.Project(project)

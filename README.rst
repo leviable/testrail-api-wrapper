@@ -20,9 +20,11 @@ Note that this project is currently in alpha: APIs can and will change without w
 Currently supported functionality:
 
 - Use credentials from Client instantiation, ENV vars, or configuration file
+- `get_projects` endpoint
 
 
 Planned functionality in upcoming release(s):
 
+- `get_project` endpoint
 - Fully support Run related APIs
 - Fully support Run related API params: is_complete, limit, pagination, etc

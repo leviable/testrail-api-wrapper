@@ -29,7 +29,7 @@ class Foo(object):
         self.mock_obj.method_list(var + list(args))
 
     @method_base.register(dict)
-    def method_list(self, var, **kwargs):
+    def method_dict(self, var, **kwargs):
         self.mock_obj.method_dict(dict(var, **kwargs))
 
 
