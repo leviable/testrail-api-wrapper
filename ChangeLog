@@ -1,6 +1,11 @@
 CHANGES
 =======
 
+* Update encrypted deploy password
+
+0.0.2
+-----
+
 * Add Client, API, and Sessions
 * Add project model and tests
 * Add method support for singledispatch

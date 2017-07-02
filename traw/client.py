@@ -59,6 +59,16 @@ class Client(object):
         pass  # pragma: no cover
 
     # Project related methods
+    @dispatchmethod
+    def project(self):
+        """ Return a new Project instance """
+        return models.Project()
+
+    @project.register(int)
+    def _project_by_id(self, project_id):
+        """ Returns project with ``project_id`` """
+        return models.Project(self._api.project_by_id(project_id))
+
     def projects(self, active_only=False, completed_only=False):
         """ Returns the list of available projects
 
