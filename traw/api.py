@@ -34,6 +34,16 @@ class API(object):
 
         self._session = Session(auth=(_username, _password), url=_url)
 
+    def project_by_id(self, project_id):
+        """ Calls `get_project` API endpoint with the given project_id
+
+        :param project_id: int id of project
+
+        :returns: project dict
+        """
+        path = API_PATH['get_project'].format(project_id=project_id)
+        return self._session.request(method=GET, path=path)
+
     def projects(self, is_completed=None):
         """ Calls `projects` API endpoint with given filter
 

@@ -62,6 +62,42 @@ def test_projects_exception(client):
     assert 'but not both' in str(exc)
 
 
+def test_project(client):
+    """ Verify project method returns a new project instance if called without
+        any parameters
+    """
+    proj = client.project()
+
+    assert proj.announcement is None
+    assert proj.completed_on is None
+    assert proj.is_completed is False
+    assert proj.show_announcement is False
+    assert proj.suite_mode is None
+    assert proj.url is None
+
+
+def test_project_by_id(client):
+    """ Verify project method returns a specific project instance if called with
+        an int
+    """
+    PROJ_1234 = {"announcement": "mock announcement",
+                 "completed_on": None,
+                 "id": 1234,
+                 "is_completed": False,
+                 "name": "Project 1234",
+                 "show_announcement": False,
+                 "url": "http://<server>/index.php?/projects/overview/1234",
+                 "suite_mode": 1}
+    PROJ_ID = 1234
+
+    client._api.project_by_id.return_value = PROJ_1234
+    proj = client.project(PROJ_ID)
+
+    assert isinstance(proj, Project)
+    assert proj.id == PROJ_ID
+    client._api.project_by_id.assert_called_once_with(PROJ_ID)
+
+
 def test_projects(client):
     """ Verify the Client's ``projects`` method call """
     client._api.projects.side_effect = [[PROJ1], [PROJ2], [PROJ3]]

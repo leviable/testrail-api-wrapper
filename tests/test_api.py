@@ -164,6 +164,19 @@ def test__init__no_credentials_exception(no_env_vars, no_path_mock):
         traw.api.API()
 
 
+def test_project_by_id(api):
+    """ Verify the project_by_id method can be called """
+    PROJ_ID = 1234
+    PROJ_DICT = {'proj': 'proj_info'}
+
+    api._session.request.return_value = PROJ_DICT
+
+    proj = api.project_by_id(PROJ_ID)
+
+    assert proj is PROJ_DICT
+    assert str(PROJ_ID) in str(api._session.request.call_args)
+
+
 def test_projects_no_arg(api):
     """ Verify the ``projects`` method call with no args """
     api._session.request.return_value = [PROJ1, PROJ2, PROJ3]

@@ -13,8 +13,8 @@ class Foo(object):
         self.mock_obj = mock.MagicMock()
 
     @dispatchmethod
-    def method_base(self, var):
-        self.mock_obj.method_base(var)
+    def method_base(self):
+        self.mock_obj.method_base(1)
 
     @method_base.register(int)
     def method_int(self, var):
@@ -42,15 +42,14 @@ def test_dispatchmethod_default(dm):
     """ Verify the base method gets called if you call with an
         unregistered type
     """
-    obj = mock.MagicMock()
-    dm.method_base(obj)
+    dm.method_base()
 
     assert dm.mock_obj.method_base.called
     assert not dm.mock_obj.method_int.called
     assert not dm.mock_obj.method_str.called
     assert not dm.mock_obj.method_list.called
     assert not dm.mock_obj.method_dict.called
-    dm.mock_obj.method_base.assert_called_once_with(obj)
+    dm.mock_obj.method_base.assert_called_once_with(1)
 
 
 def test_dispatchmethod_int(dm):

@@ -22,10 +22,10 @@ def dispatchmethod(func):
     def dispatch(type):  # pylint: disable=redefined-builtin
         return dispatcher.dispatch(type)
 
-    def wrapper(inst, dispatch_data, *args, **kwargs):
-        cls = type(dispatch_data)
+    def wrapper(inst, *args, **kwargs):
+        cls = args[0].__class__ if len(args) > 0 else inst.__class__
         impl = dispatch(cls)
-        return impl(inst, dispatch_data, *args, **kwargs)
+        return impl(inst, *args, **kwargs)
 
     wrapper.register = register
     wrapper.dispatch = dispatch
