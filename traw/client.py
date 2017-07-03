@@ -114,6 +114,15 @@ class Client(object):
         for project in self._api.projects(is_completed):
             yield models.Project(self, project)
 
+    # Status related methods
+    def statuses(self):
+        """ Returns the generator of statuses
+
+        :yields: Status Objects
+        """
+        for status in self._api.statuses():
+            yield models.Status(self, status)
+
     # User related methods
     @dispatchmethod
     def user(self):

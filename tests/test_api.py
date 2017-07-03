@@ -22,6 +22,9 @@ PRIO3 = {'priority': 'priority3'}
 PROJ1 = {'project': 'project1'}
 PROJ2 = {'project': 'project2'}
 PROJ3 = {'project': 'project3'}
+STAT1 = {'stat': 'stat1'}
+STAT2 = {'stat': 'stat2'}
+STAT3 = {'stat': 'stat3'}
 USER1 = {'user': 'user1'}
 USER2 = {'user': 'user2'}
 USER3 = {'user': 'user3'}
@@ -233,6 +236,18 @@ def test_projects_with_arg(api):
 
     assert all(map(lambda p: isinstance(p, dict), proj_list))
     assert len(proj_list) == 3
+    assert api._session.request.call_args == exp_call
+
+
+def test_statuses(api):
+    """ Verify the ``statuses`` method call """
+    api._session.request.return_value = [STAT1, STAT2, STAT3]
+    stat_list = list(api.statuses())
+
+    exp_call = mock.call(method=GET, path=AP['get_statuses'])
+
+    assert all(map(lambda s: isinstance(s, dict), stat_list))
+    assert len(stat_list) == 3
     assert api._session.request.call_args == exp_call
 
 

@@ -78,6 +78,15 @@ class API(object):
         for project in self._session.request(method=GET, path=path, params=params):
             yield project
 
+    def statuses(self):
+        """ Calls `get_statuses` API endpoint
+
+        :yields: status dictionaries from api
+        """
+        path = API_PATH['get_statuses']
+        for status in self._session.request(method=GET, path=path):
+            yield status
+
     def user_by_email(self, email):
         """ Calls `get_user` API endpoint with the given user email
 

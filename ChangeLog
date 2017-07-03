@@ -1,6 +1,7 @@
 CHANGES
 =======
 
+* Add statuses support
 * Add case type support
 * Add support for properties
 
