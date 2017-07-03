@@ -21,6 +21,9 @@ PRIO3 = {'name': 'priority3'}
 PROJ1 = {'name': 'project1'}
 PROJ2 = {'name': 'project2'}
 PROJ3 = {'name': 'project3'}
+STAT1 = {'name': 'status1'}
+STAT2 = {'name': 'status2'}
+STAT3 = {'name': 'status3'}
 USER1 = {'name': 'user1'}
 USER2 = {'name': 'user2'}
 USER3 = {'name': 'user3'}
@@ -160,6 +163,27 @@ def test_projects(client):
     assert isinstance(project3, models.Project)
     assert project3.name == 'project3'
     assert client._api.projects.call_args == mock.call(1)
+
+
+def test_statuses(client):
+    """ Verify the Client's ``statuses`` method call """
+    client._api.statuses.return_value = [STAT1, STAT2, STAT3]
+
+    stat_gen = client.statuses()
+    stat1 = next(stat_gen)
+    assert isinstance(stat1, models.Status)
+    assert stat1.name == 'status1'
+    assert client._api.statuses.call_args == mock.call()
+
+    stat2 = next(stat_gen)
+    assert isinstance(stat2, models.Status)
+    assert stat2.name == 'status2'
+    assert client._api.statuses.call_args == mock.call()
+
+    stat3 = next(stat_gen)
+    assert isinstance(stat3, models.Status)
+    assert stat3.name == 'status3'
+    assert client._api.statuses.call_args == mock.call()
 
 
 def test_user(client):
