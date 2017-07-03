@@ -16,6 +16,9 @@ MOCK_URL = 'mock url'
 PROJ1 = {'project': 'project1'}
 PROJ2 = {'project': 'project2'}
 PROJ3 = {'project': 'project3'}
+USER1 = {'user': 'user1'}
+USER2 = {'user': 'user2'}
+USER3 = {'user': 'user3'}
 
 
 @pytest.fixture()
@@ -200,4 +203,42 @@ def test_projects_with_arg(api):
 
     assert all(map(lambda p: isinstance(p, dict), proj_list))
     assert len(proj_list) == 3
+    assert api._session.request.call_args == exp_call
+
+
+def test_user_by_email(api):
+    """ Verify the user_by_email method can be called """
+    USER_EMAIL = 'mock.user@mock.com'
+    USER_DICT = {'email': USER_EMAIL}
+
+    api._session.request.return_value = USER_DICT
+
+    user = api.user_by_email(USER_EMAIL)
+
+    assert user is USER_DICT
+    assert USER_EMAIL in str(api._session.request.call_args)
+
+
+def test_user_by_id(api):
+    """ Verify the user_by_id method can be called """
+    USER_ID = 1234
+    USER_DICT = {'id': USER_ID}
+
+    api._session.request.return_value = USER_DICT
+
+    user = api.user_by_id(USER_ID)
+
+    assert user is USER_DICT
+    assert str(USER_ID) in str(api._session.request.call_args)
+
+
+def test_users(api):
+    """ Verify the ``users`` method call """
+    api._session.request.return_value = [USER1, USER2, USER3]
+    user_list = list(api.users())
+
+    exp_call = mock.call(method=GET, path=AP['get_users'])
+
+    assert all(map(lambda u: isinstance(u, dict), user_list))
+    assert len(user_list) == 3
     assert api._session.request.call_args == exp_call

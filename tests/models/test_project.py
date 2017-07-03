@@ -12,12 +12,12 @@ URL = 'mock url'
 
 
 @pytest.fixture()
-def empty_proj():
-    return Project()
+def empty_proj(client):
+    return Project(client)
 
 
 @pytest.fixture()
-def in_progress_proj():
+def in_progress_proj(client):
     content = {"announcement": ANNOUNCEMENT,
                "completed_on": None,
                "id": ID,
@@ -26,11 +26,11 @@ def in_progress_proj():
                "show_announcement": True,
                "suite_mode": 1,
                "url": URL}
-    return Project(content)
+    return Project(client, content)
 
 
 @pytest.fixture()
-def complete_proj():
+def complete_proj(client):
     content = {"announcement": None,
                "completed_on": COMPLETED_ON,
                "id": ID,
@@ -39,7 +39,7 @@ def complete_proj():
                "show_announcement": False,
                "suite_mode": 2,
                "url": URL}
-    return Project(content)
+    return Project(client, content)
 
 
 def test_announcement_get(empty_proj, in_progress_proj, complete_proj):

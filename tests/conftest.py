@@ -5,6 +5,14 @@ try:
 except ImportError:
     from unittest import mock
 
+import pytest
+
+import traw
+
+USER = 'mock username'
+PASS = 'mock password'
+URL = 'mock url'
+
 
 # Prevent calls to sleep
 class SleepMock(object):
@@ -16,3 +24,11 @@ class SleepMock(object):
 
 
 time.sleep = SleepMock()
+
+
+@pytest.fixture()
+def client():
+    with mock.patch('traw.client.API') as api_mock:
+        api_mock.return_value = api_mock
+
+        yield traw.Client(username=USER, password=PASS, url=URL)

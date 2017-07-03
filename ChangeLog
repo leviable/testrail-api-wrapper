@@ -1,6 +1,12 @@
 CHANGES
 =======
 
+* Add User support
+
+0.0.3
+-----
+
+* Add get\_project support and bug fixes
 * Update encrypted deploy password
 
 0.0.2
