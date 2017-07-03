@@ -1,6 +1,7 @@
 class ModelBase(object):
     """ Base class for all TRAW models """
-    def __init__(self, content=None):
+    def __init__(self, client, content=None):
+        self.client = client
         self._content = content or dict()
 
     def __repr__(self):  # pragma: no cover

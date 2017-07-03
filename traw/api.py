@@ -49,7 +49,7 @@ class API(object):
 
         :param project_filter: Filter results by completion status: 0, 1, or None
 
-        :yields: list of project dictionaries from api
+        :yields: project dictionaries from api
         """
         path = API_PATH['get_projects']
         if is_completed is not None:
@@ -59,6 +59,36 @@ class API(object):
 
         for project in self._session.request(method=GET, path=path, params=params):
             yield project
+
+    def user_by_email(self, email):
+        """ Calls `get_user` API endpoint with the given user email
+
+        :param email: str email of user
+
+        :returns: user dict
+        """
+        path = API_PATH['get_user_by_email']
+        params = {'email': email}
+        return self._session.request(method=GET, path=path, params=params)
+
+    def user_by_id(self, user_id):
+        """ Calls `get_user` API endpoint with the given user_id
+
+        :param user_id: int id of user
+
+        :returns: user dict
+        """
+        path = API_PATH['get_user'].format(user_id=user_id)
+        return self._session.request(method=GET, path=path)
+
+    def users(self):
+        """ Calls `users` API endpoint
+
+        :yields: user dictionaries from api
+        """
+        path = API_PATH['get_users']
+        for user in self._session.request(method=GET, path=path):
+            yield user
 
 
 def _env_var(var_name):

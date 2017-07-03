@@ -62,15 +62,15 @@ class Client(object):
     @dispatchmethod
     def project(self):
         """ Return a new Project instance """
-        return models.Project()
+        return models.Project(self)
 
     @project.register(int)
     def _project_by_id(self, project_id):
         """ Returns project with ``project_id`` """
-        return models.Project(self._api.project_by_id(project_id))
+        return models.Project(self, self._api.project_by_id(project_id))
 
     def projects(self, active_only=False, completed_only=False):
-        """ Returns the list of available projects
+        """ Returns the generator of available projects
 
         Leaving both active_only and completed_only will return all projects
 
@@ -89,4 +89,31 @@ class Client(object):
             is_completed = None
 
         for project in self._api.projects(is_completed):
-            yield models.Project(project)
+            yield models.Project(self, project)
+
+    # User related methods
+    @dispatchmethod
+    def user(self):
+        """ Return a new User instance """
+        return models.User(self)
+
+    @user.register(str)
+    def user_by_email(self, email):
+        """ Returns user associated with ``email`` """
+        if '@' not in email:
+            raise ValueError('"email" must be a string that includes an "@" sym')
+
+        return models.User(self, self._api.user_by_email(email))
+
+    @user.register(int)
+    def user_by_id(self, user_id):
+        """ Returns user with ``user_id`` """
+        return models.User(self, self._api.user_by_id(user_id))
+
+    def users(self):
+        """ Returns the generator of available Users
+
+        :yields: User Objects
+        """
+        for user in self._api.users():
+            yield models.User(self, user)

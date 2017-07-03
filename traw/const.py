@@ -60,7 +60,7 @@ API_PATH = {
     'get_test': 'get_test/{test_id}',
     'get_tests': 'get_tests/{run_id}',
     'get_user': 'get_user/{user_id}',
-    'get_user_by_email': 'get_user_by_email&email={email}',  # differs from other EPs
+    'get_user_by_email': 'get_user_by_email',
     'get_users': 'get_users',
     'update_case': 'update_case/{case_id}',
     'update_config': 'update_config/{config_id}',

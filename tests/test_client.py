@@ -6,7 +6,7 @@ except ImportError:
     from unittest import mock
 
 import traw
-from traw.models import Project
+from traw import models
 
 USER = 'mock username'
 PASS = 'mock password'
@@ -14,14 +14,9 @@ URL = 'mock url'
 PROJ1 = {'name': 'project1'}
 PROJ2 = {'name': 'project2'}
 PROJ3 = {'name': 'project3'}
-
-
-@pytest.fixture()
-def client():
-    with mock.patch('traw.client.API') as api_mock:
-        api_mock.return_value = api_mock
-
-        yield traw.Client(username=USER, password=PASS, url=URL)
+USER1 = {'name': 'user1'}
+USER2 = {'name': 'user2'}
+USER3 = {'name': 'user3'}
 
 
 def test___init__():
@@ -52,14 +47,6 @@ def test_update_exception(client):
     """ Verify the Client raises an exception if update is called directly """
     with pytest.raises(TypeError):
         client.update()
-
-
-def test_projects_exception(client):
-    """ Verify ``projects`` throws an exception if all args are True """
-    with pytest.raises(TypeError) as exc:
-        next(client.projects(active_only=True, completed_only=True))
-
-    assert 'but not both' in str(exc)
 
 
 def test_project(client):
@@ -93,9 +80,17 @@ def test_project_by_id(client):
     client._api.project_by_id.return_value = PROJ_1234
     proj = client.project(PROJ_ID)
 
-    assert isinstance(proj, Project)
+    assert isinstance(proj, models.Project)
     assert proj.id == PROJ_ID
     client._api.project_by_id.assert_called_once_with(PROJ_ID)
+
+
+def test_projects_exception(client):
+    """ Verify ``projects`` throws an exception if all args are True """
+    with pytest.raises(TypeError) as exc:
+        next(client.projects(active_only=True, completed_only=True))
+
+    assert 'but not both' in str(exc)
 
 
 def test_projects(client):
@@ -103,16 +98,92 @@ def test_projects(client):
     client._api.projects.side_effect = [[PROJ1], [PROJ2], [PROJ3]]
 
     project1 = next(client.projects())
-    assert isinstance(project1, Project)
+    assert isinstance(project1, models.Project)
     assert project1.name == 'project1'
     assert client._api.projects.call_args == mock.call(None)
 
     project2 = next(client.projects(active_only=True))
-    assert isinstance(project2, Project)
+    assert isinstance(project2, models.Project)
     assert project2.name == 'project2'
     assert client._api.projects.call_args == mock.call(0)
 
     project3 = next(client.projects(completed_only=True))
-    assert isinstance(project3, Project)
+    assert isinstance(project3, models.Project)
     assert project3.name == 'project3'
     assert client._api.projects.call_args == mock.call(1)
+
+
+def test_user(client):
+    """ Verify user method returns a new user instance if called without
+        any parameters
+    """
+    user = client.user()
+
+    assert user.email is None
+    assert user.id is None
+    assert user.is_active is None
+    assert user.name is None
+
+
+def test_user_by_email(client):
+    """ Verify user method returns a specific user instance if called with
+        an email address
+    """
+    USER_EMAIL = 'mock.user@mock.com'
+    USER_DICT = {"email": USER_EMAIL}
+
+    client._api.user_by_email.return_value = USER_DICT
+    user = client.user(USER_EMAIL)
+
+    assert isinstance(user, models.User)
+    assert user.email == USER_EMAIL
+    client._api.user_by_email.assert_called_once_with(USER_EMAIL)
+
+
+def test_user_by_email_exc(client):
+    """ Verify user method throws an exception if a non-email str is used """
+    USER_EMAIL = 'not valid'
+    USER_DICT = {"email": USER_EMAIL}
+
+    client._api.user_by_email.return_value = USER_DICT
+    with pytest.raises(ValueError) as exc:
+        client.user(USER_EMAIL)
+
+    assert 'must be a string that includes an "@"' in str(exc)
+    assert not client._api.user_by_email.called
+
+
+def test_user_by_id(client):
+    """ Verify user method returns a specific user instance if called with
+        an int
+    """
+    USER_ID = 1234
+    USER_1234 = {"id": USER_ID}
+
+    client._api.user_by_id.return_value = USER_1234
+    user = client.user(USER_ID)
+
+    assert isinstance(user, models.User)
+    assert user.id == USER_ID
+    client._api.user_by_id.assert_called_once_with(USER_ID)
+
+
+def test_users(client):
+    """ Verify the Client's ``users`` method call """
+    client._api.users.return_value = [USER1, USER2, USER3]
+
+    users_gen = client.users()
+    user1 = next(users_gen)
+    assert isinstance(user1, models.User)
+    assert user1.name == 'user1'
+    assert client._api.users.call_args == mock.call()
+
+    user2 = next(users_gen)
+    assert isinstance(user2, models.User)
+    assert user2.name == 'user2'
+    assert client._api.users.call_args == mock.call()
+
+    user3 = next(users_gen)
+    assert isinstance(user3, models.User)
+    assert user3.name == 'user3'
+    assert client._api.users.call_args == mock.call()
