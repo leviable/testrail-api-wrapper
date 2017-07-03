@@ -20,6 +20,7 @@ Note that this project is currently in alpha: APIs can and will change without w
 Currently supported functionality:
 
 - Use credentials from Client instantiation, ENV vars, or configuration file
+- priorities - (get all)
 - project - (get_by_id)
 - projects - (get all)
 - user - (get_by_id, get_by_email)

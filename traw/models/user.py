@@ -8,7 +8,14 @@ class User(ModelBase):
 
     .. code-block:: python
 
-        users = traw_client.users()
+        users = list(traw_client.users())
+
+    To get a specific user
+
+    .. code-block:: python
+
+        user_123 = traw_client.user(123)  # Gets user with ID 123 from API
+        user_dave = traw_client.user('dave@email.com')  # Gets user with email from API
 
     """
     @property
