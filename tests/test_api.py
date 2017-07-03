@@ -13,6 +13,9 @@ MOCK_USERNAME = 'mock username'
 MOCK_USER_API_KEY = 'mock user api key'
 MOCK_PASSWORD = 'mock password'
 MOCK_URL = 'mock url'
+PRIO1 = {'priority': 'priority1'}
+PRIO2 = {'priority': 'priority2'}
+PRIO3 = {'priority': 'priority3'}
 PROJ1 = {'project': 'project1'}
 PROJ2 = {'project': 'project2'}
 PROJ3 = {'project': 'project3'}
@@ -165,6 +168,18 @@ def test__init__no_credentials_exception(no_env_vars, no_path_mock):
     """ Verify that an exception is raised if no credentials are set """
     with pytest.raises(TRAWLoginError):
         traw.api.API()
+
+
+def test_priorities(api):
+    """ Verify the ``priorities`` method call """
+    api._session.request.return_value = [PRIO1, PRIO2, PRIO3]
+    prio_list = list(api.priorities())
+
+    exp_call = mock.call(method=GET, path=AP['get_priorities'])
+
+    assert all(map(lambda p: isinstance(p, dict), prio_list))
+    assert len(prio_list) == 3
+    assert api._session.request.call_args == exp_call
 
 
 def test_project_by_id(api):

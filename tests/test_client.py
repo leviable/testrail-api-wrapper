@@ -11,6 +11,10 @@ from traw import models
 USER = 'mock username'
 PASS = 'mock password'
 URL = 'mock url'
+
+PRIO1 = {'name': 'priority1'}
+PRIO2 = {'name': 'priority2'}
+PRIO3 = {'name': 'priority3'}
 PROJ1 = {'name': 'project1'}
 PROJ2 = {'name': 'project2'}
 PROJ3 = {'name': 'project3'}
@@ -47,6 +51,27 @@ def test_update_exception(client):
     """ Verify the Client raises an exception if update is called directly """
     with pytest.raises(TypeError):
         client.update()
+
+
+def test_priorities(client):
+    """ Verify the Client's ``priorities`` method call """
+    client._api.priorities.return_value = [PRIO1, PRIO2, PRIO3]
+
+    prio_gen = client.priorities()
+    prio1 = next(prio_gen)
+    assert isinstance(prio1, models.Priority)
+    assert prio1.name == 'priority1'
+    assert client._api.priorities.call_args == mock.call()
+
+    prio2 = next(prio_gen)
+    assert isinstance(prio2, models.Priority)
+    assert prio2.name == 'priority2'
+    assert client._api.priorities.call_args == mock.call()
+
+    prio3 = next(prio_gen)
+    assert isinstance(prio3, models.Priority)
+    assert prio3.name == 'priority3'
+    assert client._api.priorities.call_args == mock.call()
 
 
 def test_project(client):

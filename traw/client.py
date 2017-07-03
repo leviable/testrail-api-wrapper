@@ -58,15 +58,28 @@ class Client(object):
         # Not directly implemented. TypeError is raised if called directly
         pass  # pragma: no cover
 
+    def priorities(self):
+        """ Returns the generator of Priorities
+
+        :yields: Priorities Objects
+        """
+        for priority in self._api.priorities():
+            yield models.Priority(self, priority)
+
     # Project related methods
     @dispatchmethod
     def project(self):
-        """ Return a new Project instance """
+        """ Return a Project instance
+            `client.project()` returns a new Project instance (no API call)
+            `client.project(1234)` returns a Project instance with an id or 1234
+        """
         return models.Project(self)
 
     @project.register(int)
     def _project_by_id(self, project_id):
-        """ Returns project with ``project_id`` """
+        """ Do not call directly
+            Returns project with ``project_id``
+        """
         return models.Project(self, self._api.project_by_id(project_id))
 
     def projects(self, active_only=False, completed_only=False):
@@ -94,20 +107,29 @@ class Client(object):
     # User related methods
     @dispatchmethod
     def user(self):
-        """ Return a new User instance """
+        """ Return a User instance
+            `client.user()` returns a new User instance (no API call)
+            `client.user(1234)` returns a User instance with an ID of 1234
+            `client.user('user@email.com')` returns a User instance
+                with an email of user@email.com
+        """
         return models.User(self)
 
     @user.register(str)
-    def user_by_email(self, email):
-        """ Returns user associated with ``email`` """
+    def _user_by_email(self, email):
+        """ Do not call directly
+            Returns user associated with ``email``
+        """
         if '@' not in email:
             raise ValueError('"email" must be a string that includes an "@" sym')
 
         return models.User(self, self._api.user_by_email(email))
 
     @user.register(int)
-    def user_by_id(self, user_id):
-        """ Returns user with ``user_id`` """
+    def _user_by_id(self, user_id):
+        """ Do not call directly
+            Returns user with ``user_id``
+        """
         return models.User(self, self._api.user_by_id(user_id))
 
     def users(self):

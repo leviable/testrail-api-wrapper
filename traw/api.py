@@ -34,6 +34,15 @@ class API(object):
 
         self._session = Session(auth=(_username, _password), url=_url)
 
+    def priorities(self):
+        """ Calls `get_priorities` API endpoint
+
+        :yields: priority dictionaries from api
+        """
+        path = API_PATH['get_priorities']
+        for priority in self._session.request(method=GET, path=path):
+            yield priority
+
     def project_by_id(self, project_id):
         """ Calls `get_project` API endpoint with the given project_id
 
