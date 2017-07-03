@@ -24,6 +24,9 @@ PROJ3 = {'name': 'project3'}
 STAT1 = {'name': 'status1'}
 STAT2 = {'name': 'status2'}
 STAT3 = {'name': 'status3'}
+TEMP1 = {'name': 'template1'}
+TEMP2 = {'name': 'template2'}
+TEMP3 = {'name': 'template3'}
 USER1 = {'name': 'user1'}
 USER2 = {'name': 'user2'}
 USER3 = {'name': 'user3'}
@@ -184,6 +187,63 @@ def test_statuses(client):
     assert isinstance(stat3, models.Status)
     assert stat3.name == 'status3'
     assert client._api.statuses.call_args == mock.call()
+
+
+def test_templates_exception(client):
+    """ Verify an exception is thrown if templates is called with no parameters """
+    with pytest.raises(NotImplementedError) as exc:
+        client.templates()
+
+    assert 'models.Project or int' in str(exc)
+
+
+def test_templates_by_project(client):
+    """ Verify templates method returns a templates if called with
+        a models.Project object
+    """
+    PROJECT_ID = 15
+    PROJECT = models.Project({'id': PROJECT_ID})
+    client._api.templates.return_value = [TEMP1, TEMP2, TEMP3]
+
+    temp_gen = client.templates(PROJECT)
+    temp1 = next(temp_gen)
+    assert isinstance(temp1, models.Template)
+    assert temp1.name == 'template1'
+    assert client._api.templates.call_args == mock.call(PROJECT.id)
+
+    temp2 = next(temp_gen)
+    assert isinstance(temp2, models.Template)
+    assert temp2.name == 'template2'
+    assert client._api.templates.call_args == mock.call(PROJECT.id)
+
+    temp3 = next(temp_gen)
+    assert isinstance(temp3, models.Template)
+    assert temp3.name == 'template3'
+    assert client._api.templates.call_args == mock.call(PROJECT.id)
+
+
+def test_templates_by_project_id(client):
+    """ Verify templates method returns a templates if called with
+        an project ID (an int)
+    """
+    PROJECT_ID = 15
+    client._api.templates.return_value = [TEMP1, TEMP2, TEMP3]
+
+    temp_gen = client.templates(PROJECT_ID)
+    temp1 = next(temp_gen)
+    assert isinstance(temp1, models.Template)
+    assert temp1.name == 'template1'
+    assert client._api.templates.call_args == mock.call(PROJECT_ID)
+
+    temp2 = next(temp_gen)
+    assert isinstance(temp2, models.Template)
+    assert temp2.name == 'template2'
+    assert client._api.templates.call_args == mock.call(PROJECT_ID)
+
+    temp3 = next(temp_gen)
+    assert isinstance(temp3, models.Template)
+    assert temp3.name == 'template3'
+    assert client._api.templates.call_args == mock.call(PROJECT_ID)
 
 
 def test_user(client):

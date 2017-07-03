@@ -79,12 +79,14 @@ BASE_API_PATH = '/index.php?/api/v2'
 CONFIG_FILE_NAME = '.traw_config'
 
 GET = 'get'
-
 POST = 'post'
 
+# Session retry parameters
 DELAY = 1
 RETRIES = 3
 
+# Exception messages
+NOTIMP = "Not implemented directly. You must pass in {0} object"
 SETTER_ERR = 'Expected {0}, found {1}'
 
 TIMEOUT = 16  # TODO: Make this configurable
