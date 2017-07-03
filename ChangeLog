@@ -1,7 +1,12 @@
 CHANGES
 =======
 
+* Add case field support
 * Add support for properties
+
+0.0.4
+-----
+
 * Add User support
 
 0.0.3

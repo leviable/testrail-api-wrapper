@@ -58,8 +58,18 @@ class Client(object):
         # Not directly implemented. TypeError is raised if called directly
         pass  # pragma: no cover
 
+    # Case Field related methods
+    def case_fields(self):
+        """ Returns a generator of case fields
+
+        :yields: CaseField Objects
+        """
+        for case_field in self._api.case_fields():
+            yield models.CaseField(self, case_field)
+
+    # Priorities related methods
     def priorities(self):
-        """ Returns the generator of Priorities
+        """ Returns a generator of Priorities
 
         :yields: Priorities Objects
         """
@@ -83,7 +93,7 @@ class Client(object):
         return models.Project(self, self._api.project_by_id(project_id))
 
     def projects(self, active_only=False, completed_only=False):
-        """ Returns the generator of available projects
+        """ Returns a generator of available projects
 
         Leaving both active_only and completed_only will return all projects
 
@@ -133,7 +143,7 @@ class Client(object):
         return models.User(self, self._api.user_by_id(user_id))
 
     def users(self):
-        """ Returns the generator of available Users
+        """ Returns a generator of available Users
 
         :yields: User Objects
         """
