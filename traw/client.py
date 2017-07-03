@@ -58,10 +58,20 @@ class Client(object):
         # Not directly implemented. TypeError is raised if called directly
         pass  # pragma: no cover
 
+    # Case type related methods
+    def case_types(self):
+        """ Returns the generator of case types
+
+        :yields: CaseType Objects
+        """
+        for case_type in self._api.case_types():
+            yield models.CaseType(self, case_type)
+
+    # Priorities related methods
     def priorities(self):
         """ Returns the generator of Priorities
 
-        :yields: Priorities Objects
+        :yields: Priority Objects
         """
         for priority in self._api.priorities():
             yield models.Priority(self, priority)

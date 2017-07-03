@@ -34,6 +34,15 @@ class API(object):
 
         self._session = Session(auth=(_username, _password), url=_url)
 
+    def case_types(self):
+        """ Calls `get_case_types` API endpoint
+
+        :yields: case_type dictionaries from api
+        """
+        path = API_PATH['get_case_types']
+        for case_type in self._session.request(method=GET, path=path):
+            yield case_type
+
     def priorities(self):
         """ Calls `get_priorities` API endpoint
 

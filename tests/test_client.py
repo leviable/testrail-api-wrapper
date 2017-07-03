@@ -12,6 +12,9 @@ USER = 'mock username'
 PASS = 'mock password'
 URL = 'mock url'
 
+CT1 = {'name': 'casetype1'}
+CT2 = {'name': 'casetype2'}
+CT3 = {'name': 'casetype3'}
 PRIO1 = {'name': 'priority1'}
 PRIO2 = {'name': 'priority2'}
 PRIO3 = {'name': 'priority3'}
@@ -51,6 +54,27 @@ def test_update_exception(client):
     """ Verify the Client raises an exception if update is called directly """
     with pytest.raises(TypeError):
         client.update()
+
+
+def test_case_types(client):
+    """ Verify the Client's ``case_types`` method call """
+    client._api.case_types.return_value = [CT1, CT2, CT3]
+
+    ct_gen = client.case_types()
+    ct1 = next(ct_gen)
+    assert isinstance(ct1, models.CaseType)
+    assert ct1.name == 'casetype1'
+    assert client._api.case_types.call_args == mock.call()
+
+    ct2 = next(ct_gen)
+    assert isinstance(ct2, models.CaseType)
+    assert ct2.name == 'casetype2'
+    assert client._api.case_types.call_args == mock.call()
+
+    ct3 = next(ct_gen)
+    assert isinstance(ct3, models.CaseType)
+    assert ct3.name == 'casetype3'
+    assert client._api.case_types.call_args == mock.call()
 
 
 def test_priorities(client):
