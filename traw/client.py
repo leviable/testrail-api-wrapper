@@ -1,4 +1,5 @@
-from .import models
+from . import const
+from . import models
 from .api import API
 from .utils import dispatchmethod
 
@@ -62,7 +63,8 @@ class Client(object):
     def case_types(self):
         """ Returns the generator of case types
 
-        :yields: CaseType Objects
+        :yields: models.CaseType Objects
+
         """
         for case_type in self._api.case_types():
             yield models.CaseType(self, case_type)
@@ -71,7 +73,7 @@ class Client(object):
     def priorities(self):
         """ Returns the generator of Priorities
 
-        :yields: Priority Objects
+        :yields: models.Priority Objects
         """
         for priority in self._api.priorities():
             yield models.Priority(self, priority)
@@ -100,7 +102,7 @@ class Client(object):
         :param active_only: Only include currently active projects in list
         :param completed_only: Only include completed projects in list
 
-        :yields: Project Objects
+        :yields: models.Project Objects
         """
         if active_only is True and completed_only is True:
             raise TypeError('Either `active_only` or `completed_only` can be '
@@ -118,10 +120,32 @@ class Client(object):
     def statuses(self):
         """ Returns the generator of statuses
 
-        :yields: Status Objects
+        :yields: models.Status Objects
         """
         for status in self._api.statuses():
             yield models.Status(self, status)
+
+    # Template related methods
+    @dispatchmethod
+    def templates(self):
+        """ Return template instances for the given project object or project ID
+
+        :param project: models.Project object for a project that exists in TestRail
+        :param int: Project ID for a project that exists in TestRail
+
+        :yields: models.Template objects
+        """
+        raise NotImplementedError(const.NOTIMP.format("models.Project or int"))
+
+    @templates.register(int)
+    def _templates_by_project_id(self, project_id):
+        for template in self._api.templates(project_id):
+            yield models.Template(self, template)
+
+    @templates.register(models.Project)
+    def _templates_by_project(self, project):
+        for template in self._api.templates(project.id):
+            yield models.Template(self, template)
 
     # User related methods
     @dispatchmethod
@@ -154,7 +178,7 @@ class Client(object):
     def users(self):
         """ Returns the generator of available Users
 
-        :yields: User Objects
+        :yields: models.User Objects
         """
         for user in self._api.users():
             yield models.User(self, user)

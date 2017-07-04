@@ -87,6 +87,15 @@ class API(object):
         for status in self._session.request(method=GET, path=path):
             yield status
 
+    def templates(self, project_id):
+        """ Calls `get_templates` API endpoint
+
+        :yields: template dictionaries from api
+        """
+        path = API_PATH['get_templates'].format(project_id=project_id)
+        for template in self._session.request(method=GET, path=path):
+            yield template
+
     def user_by_email(self, email):
         """ Calls `get_user` API endpoint with the given user email
 

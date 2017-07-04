@@ -25,6 +25,7 @@ Currently supported functionality:
 - project - (get_by_id)
 - projects - (get all)
 - statuses - (get all)
+- templates - (get_by_project_id, get_by_project)
 - user - (get_by_id, get_by_email)
 - users - (get all)
 

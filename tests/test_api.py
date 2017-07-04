@@ -25,6 +25,9 @@ PROJ3 = {'project': 'project3'}
 STAT1 = {'stat': 'stat1'}
 STAT2 = {'stat': 'stat2'}
 STAT3 = {'stat': 'stat3'}
+TEMP1 = {'temp': 'temp1'}
+TEMP2 = {'temp': 'temp2'}
+TEMP3 = {'temp': 'temp3'}
 USER1 = {'user': 'user1'}
 USER2 = {'user': 'user2'}
 USER3 = {'user': 'user3'}
@@ -248,6 +251,19 @@ def test_statuses(api):
 
     assert all(map(lambda s: isinstance(s, dict), stat_list))
     assert len(stat_list) == 3
+    assert api._session.request.call_args == exp_call
+
+
+def test_templates(api):
+    """ Verify the ``templates`` method call """
+    PROJECT_ID = 15
+    api._session.request.return_value = [TEMP1, TEMP2, TEMP3]
+    temp_list = list(api.templates(PROJECT_ID))
+
+    exp_call = mock.call(method=GET, path=AP['get_templates'].format(project_id=PROJECT_ID))
+
+    assert all(map(lambda t: isinstance(t, dict), temp_list))
+    assert len(temp_list) == 3
     assert api._session.request.call_args == exp_call
 
 
