@@ -5,7 +5,7 @@ from .utils import dispatchmethod
 
 
 class Client(object):
-    """ The Client class is the primary access point for the Testrail API
+    """ The Client class is the primary access point to the Testrail REST API
 
     The intended way to use this class is:
 
@@ -36,6 +36,7 @@ class Client(object):
     """
     def __init__(self, **credentials):
         """ Initialize the TRAW instance """
+        # TODO: Update doc string with supported credential keywords
         self._api = API(**credentials)
 
     # POST generics
@@ -61,7 +62,7 @@ class Client(object):
 
     # Case type related methods
     def case_types(self):
-        """ Returns the generator of case types
+        """ Returns a case types generator
 
         :yields: models.CaseType Objects
 
@@ -71,7 +72,7 @@ class Client(object):
 
     # Priorities related methods
     def priorities(self):
-        """ Returns the generator of Priorities
+        """ Returns a priority generator
 
         :yields: models.Priority Objects
         """
@@ -80,33 +81,39 @@ class Client(object):
 
     # Project related methods
     @dispatchmethod
-    def project(self):
+    def project(self, *args, **kwargs):  # pylint: disable=unused-argument
         """ Return a Project instance
             `client.project()` returns a new Project instance (no API call)
-            `client.project(1234)` returns a Project instance with an id or 1234
+            `client.project(1234)` returns a Project instance with an id of 1234
+
+            :returns: models.Project
         """
         return models.Project(self)
 
     @project.register(int)
     def _project_by_id(self, project_id):
         """ Do not call directly
-            Returns project with ``project_id``
+            :param project_id: int
+
+            :returns: models.Project
         """
         return models.Project(self, self._api.project_by_id(project_id))
 
     def projects(self, active_only=False, completed_only=False):
-        """ Returns the generator of available projects
+        """ Returns models.Projects generator
 
-        Leaving both active_only and completed_only will return all projects
+        Leave both active_only and completed_only as False to return all projects
 
         :param active_only: Only include currently active projects in list
         :param completed_only: Only include completed projects in list
+
+        :raises: TypeError if both active_only and completed_only are both set to True
 
         :yields: models.Project Objects
         """
         if active_only is True and completed_only is True:
             raise TypeError('Either `active_only` or `completed_only` can be '
-                            'set, but not both')
+                            'set to True, but not both')
 
         elif active_only is True or completed_only is True:
             is_completed = 1 if completed_only else 0
@@ -118,7 +125,7 @@ class Client(object):
 
     # Status related methods
     def statuses(self):
-        """ Returns the generator of statuses
+        """ Returns models.Status generator
 
         :yields: models.Status Objects
         """
@@ -127,11 +134,16 @@ class Client(object):
 
     # Template related methods
     @dispatchmethod
-    def templates(self):
-        """ Return template instances for the given project object or project ID
+    def templates(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """ Return models.Template generator for the given models.Project object or project ID
+
+            `client.templates(project)` yields templates associated with the Project instance
+            `client.templates(1234)` yields templates associated with project id 1234
 
         :param project: models.Project object for a project that exists in TestRail
-        :param int: Project ID for a project that exists in TestRail
+        :param project_id: int, Project ID for a project that exists in TestRail
+
+        :raiess: NotImplementedError if called with no parameters (`client.templates()`)
 
         :yields: models.Template objects
         """
@@ -149,12 +161,18 @@ class Client(object):
 
     # User related methods
     @dispatchmethod
-    def user(self):
-        """ Return a User instance
+    def user(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """ Return a models.User instance
             `client.user()` returns a new User instance (no API call)
             `client.user(1234)` returns a User instance with an ID of 1234
-            `client.user('user@email.com')` returns a User instance
-                with an email of user@email.com
+            `client.user('user@email.com')` returns a User instance the user
+                who has the email user@email.com
+
+        :param: no method parameters, will return a new, uncofigured User instance
+        :param email: str, email of a user that exists in TestRail
+        :param user_id: int, User ID for a user that exists in TestRail
+
+        :returns: models.User instance
         """
         return models.User(self)
 
@@ -176,7 +194,7 @@ class Client(object):
         return models.User(self, self._api.user_by_id(user_id))
 
     def users(self):
-        """ Returns the generator of available Users
+        """ Returns a models.User generator that yields all Users
 
         :yields: models.User Objects
         """
