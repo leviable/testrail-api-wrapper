@@ -15,6 +15,9 @@ URL = 'mock url'
 CT1 = {'name': 'casetype1'}
 CT2 = {'name': 'casetype2'}
 CT3 = {'name': 'casetype3'}
+MILE1 = {'name': 'milestone1'}
+MILE2 = {'name': 'milestone2'}
+MILE3 = {'name': 'milestone3'}
 PRIO1 = {'name': 'priority1'}
 PRIO2 = {'name': 'priority2'}
 PRIO3 = {'name': 'priority3'}
@@ -70,17 +73,176 @@ def test_case_types(client):
     ct1 = next(ct_gen)
     assert isinstance(ct1, models.CaseType)
     assert ct1.name == 'casetype1'
-    assert client._api.case_types.call_args == mock.call()
 
     ct2 = next(ct_gen)
     assert isinstance(ct2, models.CaseType)
     assert ct2.name == 'casetype2'
-    assert client._api.case_types.call_args == mock.call()
 
     ct3 = next(ct_gen)
     assert isinstance(ct3, models.CaseType)
     assert ct3.name == 'casetype3'
+
     assert client._api.case_types.call_args == mock.call()
+
+
+def test_milestone(client):
+    """ Verify calling ``client.milestone()`` with no args returns an empty Milestone """
+    milestone = client.milestone()
+
+    assert isinstance(milestone, models.Milestone)
+    assert milestone._content == dict()
+
+
+def test_milestone_by_id(client):
+    """ Verify calling ``client.milestone(123)`` with an ID returns that milestone """
+    client._api.milestone_by_id.return_value = {'id': 1234}
+    milestone = client.milestone(1234)
+
+    assert isinstance(milestone, models.Milestone)
+    assert milestone.id == 1234
+    assert client._api.milestone_by_id.called_once_with(1234)
+
+
+def test_milestones_exception(client):
+    """ Verify an exception is thrown if milestones is called with no parameters """
+    with pytest.raises(NotImplementedError) as exc:
+        client.milestones()
+
+    assert 'models.Project or int' in str(exc)
+
+
+def test_milestones_by_project_w_defaults(client):
+    """ Verify milestones method returns milestones if called with
+        a models.Project object
+    """
+    PROJECT_ID = 15
+    PROJECT = models.Project(client, {'id': PROJECT_ID})
+    client._api.milestones.return_value = [MILE1, MILE2, MILE3]
+
+    mile_gen = client.milestones(PROJECT)
+
+    mile1 = next(mile_gen)
+    assert isinstance(mile1, models.Milestone)
+    assert mile1.name == 'milestone1'
+
+    mile2 = next(mile_gen)
+    assert isinstance(mile2, models.Milestone)
+    assert mile2.name == 'milestone2'
+
+    mile3 = next(mile_gen)
+    assert isinstance(mile3, models.Milestone)
+    assert mile3.name == 'milestone3'
+
+    assert client._api.milestones.call_args == mock.call(PROJECT.id, None, None)
+
+
+def test_milestones_by_project_w_params(client):
+    """ Verify milestones method returns milestones if called with
+        a models.Project object and method parameters
+    """
+    PROJECT_ID = 15
+    PROJECT = models.Project(client, {'id': PROJECT_ID})
+    client._api.milestones.return_value = [MILE1, MILE2, MILE3]
+
+    mile_gen = client.milestones(PROJECT, is_completed=False, is_started=True)
+
+    mile1 = next(mile_gen)
+    assert isinstance(mile1, models.Milestone)
+    assert mile1.name == 'milestone1'
+
+    mile2 = next(mile_gen)
+    assert isinstance(mile2, models.Milestone)
+    assert mile2.name == 'milestone2'
+
+    mile3 = next(mile_gen)
+    assert isinstance(mile3, models.Milestone)
+    assert mile3.name == 'milestone3'
+
+    assert client._api.milestones.call_args == mock.call(PROJECT.id, False, True)
+
+
+def test_milestones_by_project_id_w_defaults(client):
+    """ Verify milestones method returns milestones if called with
+        an project ID (an int)
+    """
+    PROJECT_ID = 15
+    client._api.milestones.return_value = [MILE1, MILE2, MILE3]
+
+    mile_gen = client.milestones(PROJECT_ID)
+
+    mile1 = next(mile_gen)
+    assert isinstance(mile1, models.Milestone)
+    assert mile1.name == 'milestone1'
+
+    mile2 = next(mile_gen)
+    assert isinstance(mile2, models.Milestone)
+    assert mile2.name == 'milestone2'
+
+    mile3 = next(mile_gen)
+    assert isinstance(mile3, models.Milestone)
+    assert mile3.name == 'milestone3'
+
+    assert client._api.milestones.call_args == mock.call(PROJECT_ID, None, None)
+
+
+def test_milestones_by_project_id_w_params(client):
+    """ Verify milestones method returns milestones if called with
+        an project ID (an int)
+    """
+    PROJECT_ID = 15
+    client._api.milestones.return_value = [MILE1, MILE2, MILE3]
+
+    mile_gen = client.milestones(PROJECT_ID, True, False)
+
+    mile1 = next(mile_gen)
+    assert isinstance(mile1, models.Milestone)
+    assert mile1.name == 'milestone1'
+
+    mile2 = next(mile_gen)
+    assert isinstance(mile2, models.Milestone)
+    assert mile2.name == 'milestone2'
+
+    mile3 = next(mile_gen)
+    assert isinstance(mile3, models.Milestone)
+    assert mile3.name == 'milestone3'
+
+    assert client._api.milestones.call_args == mock.call(PROJECT_ID, True, False)
+
+
+def test_milestones_by_project_id_is_completed_exception(client):
+    """ Verify milestones raises an exception if is_completed is the wrong type """
+    with pytest.raises(TypeError) as exc:
+        next(client.milestones(15, 1234, False))
+
+    assert '1234' in str(exc)
+    assert 'is_completed' in str(exc)
+
+
+def test_milestones_by_project_id_is_started_exception(client):
+    """ Verify milestones raises an exception if is_started is the wrong type """
+    with pytest.raises(TypeError) as exc:
+        next(client.milestones(15, False, 'asdf'))
+
+    assert 'asdf' in str(exc)
+    assert 'is_started' in str(exc)
+
+
+def test_milestones_by_project_is_completed_exception(client):
+    """ Verify milestones raises an exception if is_completed is the wrong type """
+    with pytest.raises(TypeError) as exc:
+        next(client.milestones(models.Project(client, {'id': 15}), 1234, False))
+
+    assert '1234' in str(exc)
+    assert 'is_completed' in str(exc)
+
+
+def test_milestones_by_project_is_started_exception(client):
+    """ Verify milestones raises an exception if is_started is the wrong type """
+    with pytest.raises(TypeError) as exc:
+        next(client.milestones(models.Project(client, {'id': 15}), False, 'asdf'))
+
+    assert 'asdf' in str(exc)
+    assert 'is_started' in str(exc)
 
 
 def test_priorities(client):
@@ -91,16 +253,15 @@ def test_priorities(client):
     prio1 = next(prio_gen)
     assert isinstance(prio1, models.Priority)
     assert prio1.name == 'priority1'
-    assert client._api.priorities.call_args == mock.call()
 
     prio2 = next(prio_gen)
     assert isinstance(prio2, models.Priority)
     assert prio2.name == 'priority2'
-    assert client._api.priorities.call_args == mock.call()
 
     prio3 = next(prio_gen)
     assert isinstance(prio3, models.Priority)
     assert prio3.name == 'priority3'
+
     assert client._api.priorities.call_args == mock.call()
 
 
@@ -176,16 +337,15 @@ def test_statuses(client):
     stat1 = next(stat_gen)
     assert isinstance(stat1, models.Status)
     assert stat1.name == 'status1'
-    assert client._api.statuses.call_args == mock.call()
 
     stat2 = next(stat_gen)
     assert isinstance(stat2, models.Status)
     assert stat2.name == 'status2'
-    assert client._api.statuses.call_args == mock.call()
 
     stat3 = next(stat_gen)
     assert isinstance(stat3, models.Status)
     assert stat3.name == 'status3'
+
     assert client._api.statuses.call_args == mock.call()
 
 
@@ -209,16 +369,15 @@ def test_templates_by_project(client):
     temp1 = next(temp_gen)
     assert isinstance(temp1, models.Template)
     assert temp1.name == 'template1'
-    assert client._api.templates.call_args == mock.call(PROJECT.id)
 
     temp2 = next(temp_gen)
     assert isinstance(temp2, models.Template)
     assert temp2.name == 'template2'
-    assert client._api.templates.call_args == mock.call(PROJECT.id)
 
     temp3 = next(temp_gen)
     assert isinstance(temp3, models.Template)
     assert temp3.name == 'template3'
+
     assert client._api.templates.call_args == mock.call(PROJECT.id)
 
 
@@ -233,16 +392,15 @@ def test_templates_by_project_id(client):
     temp1 = next(temp_gen)
     assert isinstance(temp1, models.Template)
     assert temp1.name == 'template1'
-    assert client._api.templates.call_args == mock.call(PROJECT_ID)
 
     temp2 = next(temp_gen)
     assert isinstance(temp2, models.Template)
     assert temp2.name == 'template2'
-    assert client._api.templates.call_args == mock.call(PROJECT_ID)
 
     temp3 = next(temp_gen)
     assert isinstance(temp3, models.Template)
     assert temp3.name == 'template3'
+
     assert client._api.templates.call_args == mock.call(PROJECT_ID)
 
 
@@ -309,14 +467,13 @@ def test_users(client):
     user1 = next(users_gen)
     assert isinstance(user1, models.User)
     assert user1.name == 'user1'
-    assert client._api.users.call_args == mock.call()
 
     user2 = next(users_gen)
     assert isinstance(user2, models.User)
     assert user2.name == 'user2'
-    assert client._api.users.call_args == mock.call()
 
     user3 = next(users_gen)
     assert isinstance(user3, models.User)
     assert user3.name == 'user3'
+
     assert client._api.users.call_args == mock.call()

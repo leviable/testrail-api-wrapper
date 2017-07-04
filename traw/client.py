@@ -70,6 +70,66 @@ class Client(object):
         for case_type in self._api.case_types():
             yield models.CaseType(self, case_type)
 
+    # Milestone related methods
+    @dispatchmethod
+    def milestone(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """ Return a models.Milestone instance
+            `client.milestone()` returns a new Milestone instance (no API call)
+            `client.milestone(1234)` returns a Milestone instance with an ID of 1234
+
+        :param: no method parameters, will return a new, uncofigured Milestone instance
+        :param milestone_id: int, Milestone ID for a milestone that exists in TestRail
+
+        :returns: models.Milestone instance
+        """
+        return models.Milestone(self)
+
+    @milestone.register(int)
+    def _milestone_by_id(self, milestone_id):
+        """ Do not call directly
+            Returns milestone with ``milestone_id``
+        """
+        return models.Milestone(self, self._api.milestone_by_id(milestone_id))
+
+    @dispatchmethod
+    def milestones(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """ Return models.Template generator for the given models.Project object or project ID
+
+            `client.milestones(project)` yields milestones associated with the Project instance
+            `client.milestones(1234)` yields milestones associated with project id 1234
+
+        :param project: models.Project object for a project that exists in TestRail
+        :param project_id: int, Project ID for a project that exists in TestRail
+
+        :raiess: NotImplementedError if called with no parameters or a parameter of an
+                     unsupported type(`client.milestones()`)
+
+        :yields: models.Milestone objects
+        """
+        raise NotImplementedError(const.NOTIMP.format("models.Project or int"))
+
+    @milestones.register(int)
+    def _milestones_by_project_id(self, project_id, is_completed=None, is_started=None):
+        msg = "{0} must be either None or bool, found {1}(2)"
+        if not isinstance(is_completed, (type(None), bool)):
+            raise TypeError(msg.format('is_completed', is_completed, type(is_completed)))
+        elif not isinstance(is_started, (type(None), bool)):
+            raise TypeError(msg.format('is_started', is_started, type(is_started)))
+
+        for milestone in self._api.milestones(project_id, is_completed, is_started):
+            yield models.Milestone(self, milestone)
+
+    @milestones.register(models.Project)
+    def _milestones_by_project(self, project, is_completed=None, is_started=None):
+        msg = "{0} must be either None or bool, found {1}(2)"
+        if not isinstance(is_completed, (type(None), bool)):
+            raise TypeError(msg.format('is_completed', is_completed, type(is_completed)))
+        elif not isinstance(is_started, (type(None), bool)):
+            raise TypeError(msg.format('is_started', is_started, type(is_started)))
+
+        for milestone in self._api.milestones(project.id, is_completed, is_started):
+            yield models.Milestone(self, milestone)
+
     # Priorities related methods
     def priorities(self):
         """ Returns a priority generator

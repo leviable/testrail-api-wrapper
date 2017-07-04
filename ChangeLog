@@ -1,6 +1,12 @@
 CHANGES
 =======
 
+* Add milestones
+* Fix typos and update doc strings
+
+0.0.6
+-----
+
 * Add get templates support
 
 0.0.5
