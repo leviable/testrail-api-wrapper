@@ -173,10 +173,10 @@ def test_project_get(new_milestone, milestone):
     assert new_milestone.project is None
     assert isinstance(milestone.project, Project)
 
-    milestone.client._api.project_by_id.return_value = {'id': PROJECT_ID}
+    milestone.client.api.project_by_id.return_value = {'id': PROJECT_ID}
 
     assert milestone.project.id == PROJECT_ID
-    milestone.client._api.project_by_id.assert_called_with(PROJECT_ID)
+    milestone.client.api.project_by_id.assert_called_with(PROJECT_ID)
 
 
 def test_project_set(new_milestone):
@@ -270,11 +270,11 @@ def test_add_parent_exc(new_milestone):
 
 
 def test_sub_milestone_parent_get(sub_milestone):
-    sub_milestone.client._api.milestone_by_id.return_value = {'id': PARENT_ID}
+    sub_milestone.client.api.milestone_by_id.return_value = {'id': PARENT_ID}
 
     assert isinstance(sub_milestone.parent, Milestone)
     assert sub_milestone.parent.id == PARENT_ID
-    sub_milestone.client._api.milestone_by_id.assert_called_with(PARENT_ID)
+    sub_milestone.client.api.milestone_by_id.assert_called_with(PARENT_ID)
 
 
 def test_sub_milestone_parent_set_type_error_exc(sub_milestone):
@@ -294,7 +294,7 @@ def test_sub_milestone_parent_set_value_error_exc(sub_milestone, milestone):
 
 
 def test_sub_milestone_parent_set_value_error_project_mismatch_exc(sub_milestone, milestone):
-    sub_milestone.client._api.project_by_id.side_effect = [
+    sub_milestone.client.api.project_by_id.side_effect = [
         {'id': 12345}, {'id': 12345}, {'id': PROJECT_ID}, {'id': 12345}, {'id': PROJECT_ID}]
     sub_milestone._content['project_id'] = 12345
     with pytest.raises(ValueError) as exc:
@@ -306,7 +306,7 @@ def test_sub_milestone_parent_set_value_error_project_mismatch_exc(sub_milestone
 
 def test_sub_milestone_parent_set(sub_milestone, milestone):
     milestone._content['id'] = 9876
-    sub_milestone.client._api.project_by_id.side_effect = [
+    sub_milestone.client.api.project_by_id.side_effect = [
         {'id': PROJECT_ID}, {'id': PROJECT_ID}, {'id': PROJECT_ID}]
     sub_milestone.parent = milestone
 
@@ -318,12 +318,12 @@ def test_sub_milestones_no_extra_api_call(milestone):
 
     assert all([isinstance(sub, SubMilestone) for sub in milestone.sub_milestones])
     assert len(list(milestone.sub_milestones)) == 2
-    assert not milestone.client._api.milestone_by_id.called
+    assert not milestone.client.api.milestone_by_id.called
 
 
 def test_sub_milestones_with_api_call(milestone):
-    milestone.client._api.milestone_by_id.side_effect = [{'milestones': [{'id': 333}, {'id': 444}]}]
+    milestone.client.api.milestone_by_id.side_effect = [{'milestones': [{'id': 333}, {'id': 444}]}]
 
     assert all([isinstance(sub, SubMilestone) for sub in milestone.sub_milestones])
     assert len(list(milestone.sub_milestones)) == 2
-    milestone.client._api.milestone_by_id.assert_called_once_with(milestone.id)
+    milestone.client.api.milestone_by_id.assert_called_once_with(milestone.id)

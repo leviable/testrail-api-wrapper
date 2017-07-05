@@ -8,37 +8,6 @@ from .model_base import ModelBase
 
 
 class MilestoneBase(ModelBase):
-    """ Object model for TestRail Milestones
-
-    To get all Milestones
-
-    .. code-block:: python
-
-        project = traw_client.project(1234)  # Get Project with ID 1234
-        milestones = list(traw_client.milestones(project))  # Get all milestones for project
-
-    To get a specific milestone
-
-    .. code-block:: python
-
-        milestone_123 = traw_client.milestone(123)  # Gets milestone with ID 123 from API
-
-    To create new project
-
-    .. code-block:: python
-
-        from datetime import timedelta, datetime as dt
-
-        project = traw_client.project(15)  # Get project with project_id = 15
-
-        new_milestone = traw_client.milestone()
-        new_milestone.name = "My new TestRail milestone"
-        new_milestone.description = "My new milestone description"
-        new_milestone.due_on = dt.now() + timedelta(days=14)  # Due in 14 days
-        new_milestone.is_completed = False
-        new_milestone.project = project
-
-    """
     @property
     def completed_on(self):
         """ The date/time when the milestone was marked as completed
@@ -180,6 +149,37 @@ class SubMilestone(MilestoneBase):
 
 
 class Milestone(MilestoneBase):
+    """ Object model for TestRail Milestones
+
+    To get all Milestones
+
+    .. code-block:: python
+
+        project = traw_client.project(1234)  # Get Project with ID 1234
+        milestones = list(traw_client.milestones(project))  # Get all milestones for project
+
+    To get a specific milestone
+
+    .. code-block:: python
+
+        milestone_123 = traw_client.milestone(123)  # Gets milestone with ID 123 from API
+
+    To create new project
+
+    .. code-block:: python
+
+        from datetime import timedelta, datetime as dt
+
+        project = traw_client.project(15)  # Get project with project_id = 15
+
+        new_milestone = traw_client.milestone()
+        new_milestone.name = "My new TestRail milestone"
+        new_milestone.description = "My new milestone description"
+        new_milestone.due_on = dt.now() + timedelta(days=14)  # Due in 14 days
+        new_milestone.is_completed = False
+        new_milestone.project = project
+
+    """
     def add_parent(self, milestone):
         """ Adding a parent milestone to a Milestone object transforms it into a
             SubMilestone
@@ -212,7 +212,7 @@ class Milestone(MilestoneBase):
         if sub_milestones_ is None:
             # None indicates this milestone came from somewhere other than the `get_milestone`
             # endpoint. Need to make an additional API call to get the sub milestones
-            self._content['milestones'] = self.client._api.milestone_by_id(self.id)['milestones']
+            self._content['milestones'] = self.client.api.milestone_by_id(self.id)['milestones']
 
         for sub_milestone in self._content['milestones']:
             yield SubMilestone(self.client, sub_milestone)

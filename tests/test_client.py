@@ -37,8 +37,8 @@ USER3 = {'name': 'user3'}
 
 def test___init__():
     client = traw.Client(username=USER, password=PASS, url=URL)
-    assert hasattr(client, '_api')
-    assert isinstance(client._api, traw.api.API)
+    assert hasattr(client, 'api')
+    assert isinstance(client.api, traw.api.API)
 
 
 def test_add_exception(client):
@@ -67,7 +67,7 @@ def test_update_exception(client):
 
 def test_case_types(client):
     """ Verify the Client's ``case_types`` method call """
-    client._api.case_types.return_value = [CT1, CT2, CT3]
+    client.api.case_types.return_value = [CT1, CT2, CT3]
 
     ct_gen = client.case_types()
     ct1 = next(ct_gen)
@@ -82,7 +82,7 @@ def test_case_types(client):
     assert isinstance(ct3, models.CaseType)
     assert ct3.name == 'casetype3'
 
-    assert client._api.case_types.call_args == mock.call()
+    assert client.api.case_types.call_args == mock.call()
 
 
 def test_milestone(client):
@@ -95,12 +95,12 @@ def test_milestone(client):
 
 def test_milestone_by_id(client):
     """ Verify calling ``client.milestone(123)`` with an ID returns that milestone """
-    client._api.milestone_by_id.return_value = {'id': 1234}
+    client.api.milestone_by_id.return_value = {'id': 1234}
     milestone = client.milestone(1234)
 
     assert isinstance(milestone, models.Milestone)
     assert milestone.id == 1234
-    assert client._api.milestone_by_id.called_once_with(1234)
+    assert client.api.milestone_by_id.called_once_with(1234)
 
 
 def test_milestones_exception(client):
@@ -117,7 +117,7 @@ def test_milestones_by_project_w_defaults(client):
     """
     PROJECT_ID = 15
     PROJECT = models.Project(client, {'id': PROJECT_ID})
-    client._api.milestones.return_value = [MILE1, MILE2, MILE3]
+    client.api.milestones.return_value = [MILE1, MILE2, MILE3]
 
     mile_gen = client.milestones(PROJECT)
 
@@ -133,7 +133,7 @@ def test_milestones_by_project_w_defaults(client):
     assert isinstance(mile3, models.Milestone)
     assert mile3.name == 'milestone3'
 
-    assert client._api.milestones.call_args == mock.call(PROJECT.id, None, None)
+    assert client.api.milestones.call_args == mock.call(PROJECT.id, None, None)
 
 
 def test_milestones_by_project_w_params(client):
@@ -142,7 +142,7 @@ def test_milestones_by_project_w_params(client):
     """
     PROJECT_ID = 15
     PROJECT = models.Project(client, {'id': PROJECT_ID})
-    client._api.milestones.return_value = [MILE1, MILE2, MILE3]
+    client.api.milestones.return_value = [MILE1, MILE2, MILE3]
 
     mile_gen = client.milestones(PROJECT, is_completed=False, is_started=True)
 
@@ -158,7 +158,7 @@ def test_milestones_by_project_w_params(client):
     assert isinstance(mile3, models.Milestone)
     assert mile3.name == 'milestone3'
 
-    assert client._api.milestones.call_args == mock.call(PROJECT.id, False, True)
+    assert client.api.milestones.call_args == mock.call(PROJECT.id, False, True)
 
 
 def test_milestones_by_project_id_w_defaults(client):
@@ -166,7 +166,7 @@ def test_milestones_by_project_id_w_defaults(client):
         an project ID (an int)
     """
     PROJECT_ID = 15
-    client._api.milestones.return_value = [MILE1, MILE2, MILE3]
+    client.api.milestones.return_value = [MILE1, MILE2, MILE3]
 
     mile_gen = client.milestones(PROJECT_ID)
 
@@ -182,7 +182,7 @@ def test_milestones_by_project_id_w_defaults(client):
     assert isinstance(mile3, models.Milestone)
     assert mile3.name == 'milestone3'
 
-    assert client._api.milestones.call_args == mock.call(PROJECT_ID, None, None)
+    assert client.api.milestones.call_args == mock.call(PROJECT_ID, None, None)
 
 
 def test_milestones_by_project_id_w_params(client):
@@ -190,7 +190,7 @@ def test_milestones_by_project_id_w_params(client):
         an project ID (an int)
     """
     PROJECT_ID = 15
-    client._api.milestones.return_value = [MILE1, MILE2, MILE3]
+    client.api.milestones.return_value = [MILE1, MILE2, MILE3]
 
     mile_gen = client.milestones(PROJECT_ID, True, False)
 
@@ -206,7 +206,7 @@ def test_milestones_by_project_id_w_params(client):
     assert isinstance(mile3, models.Milestone)
     assert mile3.name == 'milestone3'
 
-    assert client._api.milestones.call_args == mock.call(PROJECT_ID, True, False)
+    assert client.api.milestones.call_args == mock.call(PROJECT_ID, True, False)
 
 
 def test_milestones_by_project_id_is_completed_exception(client):
@@ -247,7 +247,7 @@ def test_milestones_by_project_is_started_exception(client):
 
 def test_priorities(client):
     """ Verify the Client's ``priorities`` method call """
-    client._api.priorities.return_value = [PRIO1, PRIO2, PRIO3]
+    client.api.priorities.return_value = [PRIO1, PRIO2, PRIO3]
 
     prio_gen = client.priorities()
     prio1 = next(prio_gen)
@@ -262,7 +262,7 @@ def test_priorities(client):
     assert isinstance(prio3, models.Priority)
     assert prio3.name == 'priority3'
 
-    assert client._api.priorities.call_args == mock.call()
+    assert client.api.priorities.call_args == mock.call()
 
 
 def test_project(client):
@@ -293,12 +293,12 @@ def test_project_by_id(client):
                  "suite_mode": 1}
     PROJ_ID = 1234
 
-    client._api.project_by_id.return_value = PROJ_1234
+    client.api.project_by_id.return_value = PROJ_1234
     proj = client.project(PROJ_ID)
 
     assert isinstance(proj, models.Project)
     assert proj.id == PROJ_ID
-    client._api.project_by_id.assert_called_once_with(PROJ_ID)
+    client.api.project_by_id.assert_called_once_with(PROJ_ID)
 
 
 def test_projects_exception(client):
@@ -311,27 +311,27 @@ def test_projects_exception(client):
 
 def test_projects(client):
     """ Verify the Client's ``projects`` method call """
-    client._api.projects.side_effect = [[PROJ1], [PROJ2], [PROJ3]]
+    client.api.projects.side_effect = [[PROJ1], [PROJ2], [PROJ3]]
 
     project1 = next(client.projects())
     assert isinstance(project1, models.Project)
     assert project1.name == 'project1'
-    assert client._api.projects.call_args == mock.call(None)
+    assert client.api.projects.call_args == mock.call(None)
 
     project2 = next(client.projects(active_only=True))
     assert isinstance(project2, models.Project)
     assert project2.name == 'project2'
-    assert client._api.projects.call_args == mock.call(0)
+    assert client.api.projects.call_args == mock.call(0)
 
     project3 = next(client.projects(completed_only=True))
     assert isinstance(project3, models.Project)
     assert project3.name == 'project3'
-    assert client._api.projects.call_args == mock.call(1)
+    assert client.api.projects.call_args == mock.call(1)
 
 
 def test_statuses(client):
     """ Verify the Client's ``statuses`` method call """
-    client._api.statuses.return_value = [STAT1, STAT2, STAT3]
+    client.api.statuses.return_value = [STAT1, STAT2, STAT3]
 
     stat_gen = client.statuses()
     stat1 = next(stat_gen)
@@ -346,7 +346,7 @@ def test_statuses(client):
     assert isinstance(stat3, models.Status)
     assert stat3.name == 'status3'
 
-    assert client._api.statuses.call_args == mock.call()
+    assert client.api.statuses.call_args == mock.call()
 
 
 def test_templates_exception(client):
@@ -363,7 +363,7 @@ def test_templates_by_project(client):
     """
     PROJECT_ID = 15
     PROJECT = models.Project({'id': PROJECT_ID})
-    client._api.templates.return_value = [TEMP1, TEMP2, TEMP3]
+    client.api.templates.return_value = [TEMP1, TEMP2, TEMP3]
 
     temp_gen = client.templates(PROJECT)
     temp1 = next(temp_gen)
@@ -378,7 +378,7 @@ def test_templates_by_project(client):
     assert isinstance(temp3, models.Template)
     assert temp3.name == 'template3'
 
-    assert client._api.templates.call_args == mock.call(PROJECT.id)
+    assert client.api.templates.call_args == mock.call(PROJECT.id)
 
 
 def test_templates_by_project_id(client):
@@ -386,7 +386,7 @@ def test_templates_by_project_id(client):
         an project ID (an int)
     """
     PROJECT_ID = 15
-    client._api.templates.return_value = [TEMP1, TEMP2, TEMP3]
+    client.api.templates.return_value = [TEMP1, TEMP2, TEMP3]
 
     temp_gen = client.templates(PROJECT_ID)
     temp1 = next(temp_gen)
@@ -401,7 +401,7 @@ def test_templates_by_project_id(client):
     assert isinstance(temp3, models.Template)
     assert temp3.name == 'template3'
 
-    assert client._api.templates.call_args == mock.call(PROJECT_ID)
+    assert client.api.templates.call_args == mock.call(PROJECT_ID)
 
 
 def test_user(client):
@@ -423,12 +423,12 @@ def test_user_by_email(client):
     USER_EMAIL = 'mock.user@mock.com'
     USER_DICT = {"email": USER_EMAIL}
 
-    client._api.user_by_email.return_value = USER_DICT
+    client.api.user_by_email.return_value = USER_DICT
     user = client.user(USER_EMAIL)
 
     assert isinstance(user, models.User)
     assert user.email == USER_EMAIL
-    client._api.user_by_email.assert_called_once_with(USER_EMAIL)
+    client.api.user_by_email.assert_called_once_with(USER_EMAIL)
 
 
 def test_user_by_email_exc(client):
@@ -436,12 +436,12 @@ def test_user_by_email_exc(client):
     USER_EMAIL = 'not valid'
     USER_DICT = {"email": USER_EMAIL}
 
-    client._api.user_by_email.return_value = USER_DICT
+    client.api.user_by_email.return_value = USER_DICT
     with pytest.raises(ValueError) as exc:
         client.user(USER_EMAIL)
 
     assert 'must be a string that includes an "@"' in str(exc)
-    assert not client._api.user_by_email.called
+    assert not client.api.user_by_email.called
 
 
 def test_user_by_id(client):
@@ -451,17 +451,17 @@ def test_user_by_id(client):
     USER_ID = 1234
     USER_1234 = {"id": USER_ID}
 
-    client._api.user_by_id.return_value = USER_1234
+    client.api.user_by_id.return_value = USER_1234
     user = client.user(USER_ID)
 
     assert isinstance(user, models.User)
     assert user.id == USER_ID
-    client._api.user_by_id.assert_called_once_with(USER_ID)
+    client.api.user_by_id.assert_called_once_with(USER_ID)
 
 
 def test_users(client):
     """ Verify the Client's ``users`` method call """
-    client._api.users.return_value = [USER1, USER2, USER3]
+    client.api.users.return_value = [USER1, USER2, USER3]
 
     users_gen = client.users()
     user1 = next(users_gen)
@@ -476,4 +476,4 @@ def test_users(client):
     assert isinstance(user3, models.User)
     assert user3.name == 'user3'
 
-    assert client._api.users.call_args == mock.call()
+    assert client.api.users.call_args == mock.call()
