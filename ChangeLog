@@ -1,6 +1,7 @@
 CHANGES
 =======
 
+* Update Milestone object model
 * Add milestones
 * Fix typos and update doc strings
 
