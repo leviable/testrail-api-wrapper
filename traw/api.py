@@ -1,13 +1,13 @@
 import os
 from os import path
 try:
-    from ConfigParser import ConfigParser
+    from ConfigParser import ConfigParser  # pragma: no cover
 except ImportError:
-    from configparser import ConfigParser
+    from configparser import ConfigParser  # pragma: no cover
 
 from .sessions import Session
 from .exceptions import TRAWLoginError
-from .const import ENVs, CONFIG_FILE_NAME, GET, API_PATH
+from .const import ENVs, CONFIG_FILE_NAME, GET, POST, API_PATH
 
 _USER_KEY = 'username'
 _PASS_KEY = 'password'
@@ -43,6 +43,10 @@ class API(object):
         for case_type in self._session.request(method=GET, path=path):
             yield case_type
 
+    def milestone_add(self, project_id, params):
+        path = API_PATH['add_milestone'].format(project_id=project_id)
+        return self._session.request(method=POST, path=path, json=params)
+
     def milestone_by_id(self, milestone_id):
         """ Calls `get_milestone` API endpoint with the given milestone_id
 
@@ -52,6 +56,14 @@ class API(object):
         """
         path = API_PATH['get_milestone'].format(milestone_id=milestone_id)
         return self._session.request(method=GET, path=path)
+
+    def milestone_delete(self, milestone_id):
+        path = API_PATH['delete_milestone'].format(milestone_id=milestone_id)
+        return self._session.request(method=POST, path=path)
+
+    def milestone_update(self, milestone_id, params):
+        path = API_PATH['update_milestone'].format(milestone_id=milestone_id)
+        return self._session.request(method=POST, path=path, json=params)
 
     def milestones(self, project_id, is_completed=None, is_started=None):
         """ Calls `get_milestones` API endpoint

@@ -1,8 +1,4 @@
-try:
-    import mock
-except ImportError:
-    from unittest import mock
-
+import mock
 import pytest
 
 from traw.utils import dispatchmethod

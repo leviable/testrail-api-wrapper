@@ -1,13 +1,9 @@
+import mock
 import pytest
-
-try:
-    import mock
-except ImportError:
-    from unittest import mock
 
 import traw
 from traw.exceptions import TRAWLoginError
-from traw.const import ENVs, GET, API_PATH as AP
+from traw.const import ENVs, GET, POST, API_PATH as AP
 
 MOCK_USERNAME = 'mock username'
 MOCK_USER_API_KEY = 'mock user api key'
@@ -191,6 +187,52 @@ def test_case_types(api):
 
     assert all(map(lambda c: isinstance(c, dict), ct_list))
     assert len(ct_list) == 3
+    assert api._session.request.call_args == exp_call
+
+
+def test_milestone_add(api):
+    """ Verify the ``milestone_add`` method call """
+    PROJECT_ID = 15
+    PARAMS = {'param_key': 'param_value'}
+    api._session.request.return_value = MILE1
+    milestone = api.milestone_add(PROJECT_ID, PARAMS)
+
+    exp_call = mock.call(method=POST,
+                         path=AP['add_milestone'].format(project_id=PROJECT_ID),
+                         json=PARAMS)
+
+    assert milestone == MILE1
+    assert isinstance(milestone, dict)
+    assert api._session.request.call_args == exp_call
+
+
+def test_milestone_delete(api):
+    """ Verify the ``milestone_delete`` method call """
+    MILESTONE_ID = 1234
+    api._session.request.return_value = {}
+    milestone = api.milestone_delete(MILESTONE_ID)
+
+    exp_call = mock.call(method=POST,
+                         path=AP['delete_milestone'].format(milestone_id=MILESTONE_ID))
+
+    assert isinstance(milestone, dict)
+    assert milestone == dict()
+    assert api._session.request.call_args == exp_call
+
+
+def test_milestone_update(api):
+    """ Verify the ``milestone_update`` method call """
+    MILESTONE_ID = 1234
+    PARAMS = {'param_key': 'param_value'}
+    api._session.request.return_value = MILE1
+    milestone = api.milestone_update(MILESTONE_ID, PARAMS)
+
+    exp_call = mock.call(method=POST,
+                         path=AP['update_milestone'].format(milestone_id=MILESTONE_ID),
+                         json=PARAMS)
+
+    assert milestone == MILE1
+    assert isinstance(milestone, dict)
     assert api._session.request.call_args == exp_call
 
 
