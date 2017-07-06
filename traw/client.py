@@ -37,7 +37,7 @@ class Client(object):
     def __init__(self, **credentials):
         """ Initialize the TRAW instance """
         # TODO: Update doc string with supported credential keywords
-        self._api = API(**credentials)
+        self.api = API(**credentials)
 
     # POST generics
     @dispatchmethod
@@ -67,8 +67,68 @@ class Client(object):
         :yields: models.CaseType Objects
 
         """
-        for case_type in self._api.case_types():
+        for case_type in self.api.case_types():
             yield models.CaseType(self, case_type)
+
+    # Milestone related methods
+    @dispatchmethod
+    def milestone(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """ Return a models.Milestone instance
+            `client.milestone()` returns a new Milestone instance (no API call)
+            `client.milestone(1234)` returns a Milestone instance with an ID of 1234
+
+        :param: no method parameters, will return a new, uncofigured Milestone instance
+        :param milestone_id: int, Milestone ID for a milestone that exists in TestRail
+
+        :returns: models.Milestone instance
+        """
+        return models.Milestone(self)
+
+    @milestone.register(int)
+    def _milestone_by_id(self, milestone_id):
+        """ Do not call directly
+            Returns milestone with ``milestone_id``
+        """
+        return models.Milestone(self, self.api.milestone_by_id(milestone_id))
+
+    @dispatchmethod
+    def milestones(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """ Return models.Template generator for the given models.Project object or project ID
+
+            `client.milestones(project)` yields milestones associated with the Project instance
+            `client.milestones(1234)` yields milestones associated with project id 1234
+
+        :param project: models.Project object for a project that exists in TestRail
+        :param project_id: int, Project ID for a project that exists in TestRail
+
+        :raiess: NotImplementedError if called with no parameters or a parameter of an
+                     unsupported type(`client.milestones()`)
+
+        :yields: models.Milestone objects
+        """
+        raise NotImplementedError(const.NOTIMP.format("models.Project or int"))
+
+    @milestones.register(int)
+    def _milestones_by_project_id(self, project_id, is_completed=None, is_started=None):
+        msg = "{0} must be either None or bool, found {1}(2)"
+        if not isinstance(is_completed, (type(None), bool)):
+            raise TypeError(msg.format('is_completed', is_completed, type(is_completed)))
+        elif not isinstance(is_started, (type(None), bool)):
+            raise TypeError(msg.format('is_started', is_started, type(is_started)))
+
+        for milestone in self.api.milestones(project_id, is_completed, is_started):
+            yield models.Milestone(self, milestone)
+
+    @milestones.register(models.Project)
+    def _milestones_by_project(self, project, is_completed=None, is_started=None):
+        msg = "{0} must be either None or bool, found {1}(2)"
+        if not isinstance(is_completed, (type(None), bool)):
+            raise TypeError(msg.format('is_completed', is_completed, type(is_completed)))
+        elif not isinstance(is_started, (type(None), bool)):
+            raise TypeError(msg.format('is_started', is_started, type(is_started)))
+
+        for milestone in self.api.milestones(project.id, is_completed, is_started):
+            yield models.Milestone(self, milestone)
 
     # Priorities related methods
     def priorities(self):
@@ -76,7 +136,7 @@ class Client(object):
 
         :yields: models.Priority Objects
         """
-        for priority in self._api.priorities():
+        for priority in self.api.priorities():
             yield models.Priority(self, priority)
 
     # Project related methods
@@ -97,7 +157,7 @@ class Client(object):
 
             :returns: models.Project
         """
-        return models.Project(self, self._api.project_by_id(project_id))
+        return models.Project(self, self.api.project_by_id(project_id))
 
     def projects(self, active_only=False, completed_only=False):
         """ Returns models.Projects generator
@@ -120,7 +180,7 @@ class Client(object):
         else:
             is_completed = None
 
-        for project in self._api.projects(is_completed):
+        for project in self.api.projects(is_completed):
             yield models.Project(self, project)
 
     # Status related methods
@@ -129,7 +189,7 @@ class Client(object):
 
         :yields: models.Status Objects
         """
-        for status in self._api.statuses():
+        for status in self.api.statuses():
             yield models.Status(self, status)
 
     # Template related methods
@@ -151,12 +211,12 @@ class Client(object):
 
     @templates.register(int)
     def _templates_by_project_id(self, project_id):
-        for template in self._api.templates(project_id):
+        for template in self.api.templates(project_id):
             yield models.Template(self, template)
 
     @templates.register(models.Project)
     def _templates_by_project(self, project):
-        for template in self._api.templates(project.id):
+        for template in self.api.templates(project.id):
             yield models.Template(self, template)
 
     # User related methods
@@ -184,19 +244,19 @@ class Client(object):
         if '@' not in email:
             raise ValueError('"email" must be a string that includes an "@" sym')
 
-        return models.User(self, self._api.user_by_email(email))
+        return models.User(self, self.api.user_by_email(email))
 
     @user.register(int)
     def _user_by_id(self, user_id):
         """ Do not call directly
             Returns user with ``user_id``
         """
-        return models.User(self, self._api.user_by_id(user_id))
+        return models.User(self, self.api.user_by_id(user_id))
 
     def users(self):
         """ Returns a models.User generator that yields all Users
 
         :yields: models.User Objects
         """
-        for user in self._api.users():
+        for user in self.api.users():
             yield models.User(self, user)

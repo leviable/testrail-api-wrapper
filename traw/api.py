@@ -43,6 +43,38 @@ class API(object):
         for case_type in self._session.request(method=GET, path=path):
             yield case_type
 
+    def milestone_by_id(self, milestone_id):
+        """ Calls `get_milestone` API endpoint with the given milestone_id
+
+        :param milestone_id: int id of milestone
+
+        :returns: milestone dict
+        """
+        path = API_PATH['get_milestone'].format(milestone_id=milestone_id)
+        return self._session.request(method=GET, path=path)
+
+    def milestones(self, project_id, is_completed=None, is_started=None):
+        """ Calls `get_milestones` API endpoint
+
+        :yields: milestone dictionaries from api
+        """
+        is_comp = int(is_completed) if is_completed is not None else None
+        is_star = int(is_started) if is_started is not None else None
+
+        path = API_PATH['get_milestones'].format(project_id=project_id)
+
+        params = dict()
+        if is_completed is not None:
+            params['is_completed'] = is_comp
+
+        if is_started is not None:
+            params['is_started'] = is_star
+
+        params = params or None
+
+        for milestone in self._session.request(method=GET, path=path, params=params):
+            yield milestone
+
     def priorities(self):
         """ Calls `get_priorities` API endpoint
 

@@ -16,6 +16,9 @@ MOCK_URL = 'mock url'
 CT1 = {'casetype': 'casetype1'}
 CT2 = {'casetype': 'casetype2'}
 CT3 = {'casetype': 'casetype3'}
+MILE1 = {'milestone': 'milestone1'}
+MILE2 = {'milestone': 'milestone2'}
+MILE3 = {'milestone': 'milestone3'}
 PRIO1 = {'priority': 'priority1'}
 PRIO2 = {'priority': 'priority2'}
 PRIO3 = {'priority': 'priority3'}
@@ -188,6 +191,50 @@ def test_case_types(api):
 
     assert all(map(lambda c: isinstance(c, dict), ct_list))
     assert len(ct_list) == 3
+    assert api._session.request.call_args == exp_call
+
+
+def test_milestone_by_id(api):
+    """ Verify the ``milestone_by_id`` method call """
+    MILESTONE_ID = 1234
+    api._session.request.return_value = MILE1
+    milestone = api.milestone_by_id(MILESTONE_ID)
+
+    exp_call = mock.call(method=GET,
+                         path=AP['get_milestone'].format(milestone_id=MILESTONE_ID))
+
+    assert milestone == MILE1
+    assert isinstance(milestone, dict)
+    assert api._session.request.call_args == exp_call
+
+
+def test_milestones_w_defaults(api):
+    """ Verify the ``milestones`` method call """
+    PROJECT_ID = 15
+    api._session.request.return_value = [MILE1, MILE2, MILE3]
+    mile_list = list(api.milestones(PROJECT_ID))
+
+    exp_call = mock.call(method=GET,
+                         path=AP['get_milestones'].format(project_id=PROJECT_ID),
+                         params=None)
+
+    assert all(map(lambda m: isinstance(m, dict), mile_list))
+    assert len(mile_list) == 3
+    assert api._session.request.call_args == exp_call
+
+
+def test_milestones_w_params(api):
+    """ Verify the ``milestones`` method call with parameters """
+    PROJECT_ID = 15
+    api._session.request.return_value = [MILE1, MILE2, MILE3]
+    mile_list = list(api.milestones(PROJECT_ID, True, False))
+
+    exp_call = mock.call(method=GET,
+                         path=AP['get_milestones'].format(project_id=PROJECT_ID),
+                         params={'is_completed': 1, 'is_started': 0})
+
+    assert all(map(lambda m: isinstance(m, dict), mile_list))
+    assert len(mile_list) == 3
     assert api._session.request.call_args == exp_call
 
 
