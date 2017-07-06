@@ -21,6 +21,8 @@ Currently supported functionality:
 
 - Use credentials from Client instantiation, ENV vars, or configuration file
 - case types - (get all)
+- milestone (get_by_id)
+- milestones (get all by project)
 - priorities - (get all)
 - project - (get_by_id)
 - projects - (get all)
