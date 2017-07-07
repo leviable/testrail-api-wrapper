@@ -90,3 +90,19 @@ NOTIMP = "Not implemented directly. You must pass in {0} object"
 SETTER_ERR = 'Expected {0}, found {1}'
 
 TIMEOUT = 16  # TODO: Make this configurable
+
+# POST param names
+DESCRIPTION = 'description'
+DUE_ON = 'due_on'
+ID = 'id'
+IS_COMPLETED = 'is_completed'
+IS_STARTED = 'is_started'
+NAME = 'name'
+PARENT_ID = 'parent_id'
+PROJECT_ID = 'project_id'
+START_ON = 'start_on'
+
+# Add/Delete/Update fields by object
+MILESTONE_ADD_FIELDS = (NAME, DESCRIPTION, DUE_ON, PARENT_ID, START_ON)
+# TODO: find out why `is_started` doesn't work, and add it back in
+MILESTONE_UPDATE_FIELDS = MILESTONE_ADD_FIELDS + (IS_COMPLETED, IS_STARTED, START_ON)

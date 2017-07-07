@@ -3,9 +3,9 @@ import sys
 
 
 if sys.version_info[0] == 2:
-    from urlparse import urlparse
+    from urlparse import urlparse  # pragma: no cover
 else:
-    from urllib.parse import urlparse
+    from urllib.parse import urlparse  # pragma: no cover
 
 
 class TRAWException(Exception):

@@ -42,23 +42,27 @@ class Client(object):
     # POST generics
     @dispatchmethod
     def add(self, obj):
-        # Not directly implemented. TypeError is raised if called directly
-        pass  # pragma: no cover
+        # Not directly implemented. TypeError is raised if called with unregistered object
+        msg = "TRAW and/or TestRail's API does not support adding objects of type {0}"
+        raise TypeError(msg.format(type(obj)))
 
     @dispatchmethod
     def close(self, obj):
-        # Not directly implemented. TypeError is raised if called directly
-        pass  # pragma: no cover
+        # Not directly implemented. TypeError is raised if called with unregistered object
+        msg = "TRAW and/or TestRail's API does not support closing objects of type {0}"
+        raise TypeError(msg.format(type(obj)))
 
     @dispatchmethod
     def delete(self, obj):
-        # Not directly implemented. TypeError is raised if called directly
-        pass  # pragma: no cover
+        # Not directly implemented. TypeError is raised if called with unregistered object
+        msg = "TRAW and/or TestRail's API does not support deleting objects of type {0}"
+        raise TypeError(msg.format(type(obj)))
 
     @dispatchmethod
     def update(self, obj):
-        # Not directly implemented. TypeError is raised if called directly
-        pass  # pragma: no cover
+        # Not directly implemented. TypeError is raised if called with unregistered object
+        msg = "TRAW and/or TestRail's API does not support updating objects of type {0}"
+        raise TypeError(msg.format(type(obj)))
 
     # Case type related methods
     def case_types(self):
@@ -129,6 +133,33 @@ class Client(object):
 
         for milestone in self.api.milestones(project.id, is_completed, is_started):
             yield models.Milestone(self, milestone)
+
+    @add.register(models.Milestone)
+    @add.register(models.SubMilestone)
+    def _milestone_add(self, milestone):
+        response = self.api.milestone_add(milestone.project.id, milestone.add_params)
+        if response.get('parent_id', None) is None:
+            added_milestone = models.Milestone(self, response)
+        else:
+            added_milestone = models.SubMilestone(self, response)
+
+        return added_milestone
+
+    @delete.register(models.Milestone)
+    @delete.register(models.SubMilestone)
+    def _milestone_delete(self, milestone):
+        self.api.milestone_delete(milestone.id)
+
+    @update.register(models.Milestone)
+    @update.register(models.SubMilestone)
+    def _milestone_update(self, milestone):
+        response = self.api.milestone_update(milestone.id, milestone.update_params)
+        if response.get('parent_id', None) is None:
+            updated_milestone = models.Milestone(self, response)
+        else:
+            updated_milestone = models.SubMilestone(self, response)
+
+        return updated_milestone
 
     # Priorities related methods
     def priorities(self):

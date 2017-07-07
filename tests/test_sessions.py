@@ -1,8 +1,4 @@
-try:
-    import mock
-except ImportError:
-    from unittest import mock
-
+import mock
 import pytest
 import requests
 from requests.status_codes import codes

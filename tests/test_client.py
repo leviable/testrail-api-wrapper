@@ -1,9 +1,7 @@
-import pytest
+import sys
 
-try:
-    import mock
-except ImportError:
-    from unittest import mock
+import mock
+import pytest
 
 import traw
 from traw import models
@@ -41,28 +39,201 @@ def test___init__():
     assert isinstance(client.api, traw.api.API)
 
 
-def test_add_exception(client):
+def test_add_exception_no_obj(client):
     """ Verify the Client raises an exception if add is called directly """
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError) as exc:
         client.add()
 
+    if sys.version_info.major == 2:
+        assert "takes exactly 2 arguments (1 given)" in str(exc)
+    else:
+        assert "required positional argument: 'obj'" in str(exc)
 
-def test_close_exception(client):
+
+def test_add_exception_w_obj(client):
+    """ Verify the Client raises an exception if add is called with unsupported type """
+    with pytest.raises(TypeError) as exc:
+        client.add(1)
+
+    assert "support adding objects of type" in str(exc)
+
+
+def test_add_milestone(client):
+    MILESTONE_ID = 111
+    PROJECT_ID = 15
+
+    milestone_config = {traw.const.NAME: 'mock name',
+                        traw.const.DESCRIPTION: 'mock description',
+                        traw.const.DUE_ON: 123456,
+                        traw.const.START_ON: 12345,
+                        traw.const.PROJECT_ID: PROJECT_ID}
+    milestone = models.Milestone(client, dict(extra='extra', **milestone_config))
+
+    client.api.milestone_add.return_value = dict(id=MILESTONE_ID, **milestone_config)
+
+    with mock.patch.object(client, 'project') as proj_mock:
+        proj_mock.return_value = models.Project(client, {'id': PROJECT_ID})
+        response = client.add(milestone)
+
+    assert isinstance(response, models.Milestone)
+    assert response.id == MILESTONE_ID
+    assert client.api.milestone_add.called
+    assert 'extra' not in str(client.api.milestone.call_args)
+
+
+def test_add_sub_milestone(client):
+    SUB_MILESTONE_ID = 111
+    PARENT_ID = 222
+    PROJECT_ID = 15
+
+    milestone_config = {traw.const.NAME: 'mock name',
+                        traw.const.DESCRIPTION: 'mock description',
+                        traw.const.DUE_ON: 123456,
+                        traw.const.START_ON: 12345,
+                        traw.const.PROJECT_ID: PROJECT_ID}
+    milestone = models.Milestone(client, dict(extra='extra', **milestone_config))
+    sub_milestone = milestone.add_parent(models.Milestone(client, {'id': PARENT_ID}))
+
+    client.api.milestone_add.return_value = dict(id=SUB_MILESTONE_ID,
+                                                 parent_id=PARENT_ID,
+                                                 **milestone_config)
+
+    with mock.patch.object(client, 'project') as proj_mock:
+        proj_mock.return_value = models.Project(client, {'id': PROJECT_ID})
+        response = client.add(sub_milestone)
+
+    assert isinstance(response, models.SubMilestone)
+    assert response.id == SUB_MILESTONE_ID
+    assert client.api.milestone_add.called
+    assert 'extra' not in str(client.api.milestone.call_args)
+
+
+def test_close_exception_no_obj(client):
     """ Verify the Client raises an exception if close is called directly """
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError) as exc:
         client.close()
 
+    if sys.version_info.major == 2:
+        assert "takes exactly 2 arguments (1 given)" in str(exc)
+    else:
+        assert "required positional argument: 'obj'" in str(exc)
 
-def test_delete_exception(client):
+
+def test_close_exception_w_obj(client):
+    """ Verify the Client raises an exception if close is called with unsupporte type """
+    with pytest.raises(TypeError) as exc:
+        client.close(1)
+
+    assert "support closing objects of type" in str(exc)
+
+
+def test_delete_exception_no_obj(client):
     """ Verify the Client raises an exception if delete is called directly """
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError) as exc:
         client.delete()
 
+    if sys.version_info.major == 2:
+        assert "takes exactly 2 arguments (1 given)" in str(exc)
+    else:
+        assert "required positional argument: 'obj'" in str(exc)
 
-def test_update_exception(client):
+
+def test_delete_exception_w_obj(client):
+    """ Verify the Client raises an exception if delete is called with unsupporte type """
+    with pytest.raises(TypeError) as exc:
+        client.delete(1)
+
+    assert "support deleting objects of type" in str(exc)
+
+
+def test_delete_milestone(client):
+    MILESTONE_ID = 111
+    PROJECT_ID = 15
+
+    milestone_config = {traw.const.NAME: 'mock name',
+                        traw.const.DESCRIPTION: 'mock description',
+                        traw.const.DUE_ON: 123456,
+                        traw.const.START_ON: 12345,
+                        traw.const.PROJECT_ID: PROJECT_ID}
+    milestone = models.Milestone(client, dict(id=MILESTONE_ID, **milestone_config))
+
+    client.api.milestone_delete.return_value = dict()
+
+    with mock.patch.object(client, 'project') as proj_mock:
+        proj_mock.return_value = models.Project(client, {'id': PROJECT_ID})
+        response = client.delete(milestone)
+
+    assert response is None
+    client.api.milestone_delete.assert_called_once_with(MILESTONE_ID)
+
+
+def test_update_exception_no_obj(client):
     """ Verify the Client raises an exception if update is called directly """
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError) as exc:
         client.update()
+
+    if sys.version_info.major == 2:
+        assert "takes exactly 2 arguments (1 given)" in str(exc)
+    else:
+        assert "required positional argument: 'obj'" in str(exc)
+
+
+def test_update_exception_w_obj(client):
+    """ Verify the Client raises an exception if update is called with unsupporte type """
+    with pytest.raises(TypeError) as exc:
+        client.update(1)
+
+    assert "support updating objects of type" in str(exc)
+
+
+def test_update_milestone(client):
+    MILESTONE_ID = 111
+    PROJECT_ID = 15
+
+    milestone_config = {traw.const.NAME: 'mock name',
+                        traw.const.DESCRIPTION: 'mock description',
+                        traw.const.DUE_ON: 123456,
+                        traw.const.START_ON: 12345,
+                        traw.const.PROJECT_ID: PROJECT_ID}
+    milestone = models.Milestone(client, dict(extra='extra', **milestone_config))
+
+    client.api.milestone_update.return_value = dict(id=MILESTONE_ID, **milestone_config)
+
+    with mock.patch.object(client, 'project') as proj_mock:
+        proj_mock.return_value = models.Project(client, {'id': PROJECT_ID})
+        response = client.update(milestone)
+
+    assert isinstance(response, models.Milestone)
+    assert response.id == MILESTONE_ID
+    assert client.api.milestone_update.called
+    assert 'extra' not in str(client.api.milestone.call_args)
+
+
+def test_update_sub_milestone(client):
+    SUB_MILESTONE_ID = 111
+    PARENT_ID = 222
+    PROJECT_ID = 15
+
+    milestone_config = {traw.const.NAME: 'mock name',
+                        traw.const.DESCRIPTION: 'mock description',
+                        traw.const.DUE_ON: 123456,
+                        traw.const.START_ON: 12345,
+                        traw.const.PROJECT_ID: PROJECT_ID}
+    milestone = models.Milestone(client, dict(extra='extra', **milestone_config))
+    sub_milestone = milestone.add_parent(models.Milestone(client, {'id': PARENT_ID}))
+
+    client.api.milestone_update.return_value = dict(id=SUB_MILESTONE_ID,
+                                                    parent_id=PARENT_ID,
+                                                    **milestone_config)
+
+    with mock.patch.object(client, 'project') as proj_mock:
+        proj_mock.return_value = models.Project(client, {'id': PROJECT_ID})
+        response = client.update(sub_milestone)
+
+    assert isinstance(response, models.SubMilestone)
+    assert response.id == SUB_MILESTONE_ID
+    assert client.api.milestone_update.called
+    assert 'extra' not in str(client.api.milestone.call_args)
 
 
 def test_case_types(client):

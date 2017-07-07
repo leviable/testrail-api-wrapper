@@ -1,6 +1,13 @@
 CHANGES
 =======
 
+* Add milestone POST support
+
+0.0.7
+-----
+
+* Update README.rst
+* Replace \`client\_api\` with \`client.api\`
 * Update Milestone object model
 * Add milestones
 * Fix typos and update doc strings

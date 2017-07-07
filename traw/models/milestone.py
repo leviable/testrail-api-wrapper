@@ -2,12 +2,18 @@ import time
 from copy import deepcopy
 from datetime import datetime as dt
 
-from .project import Project
-from ..const import SETTER_ERR
+from .. import const
 from .model_base import ModelBase
+from .posters import Addable, Updatable
+from .project import Project
+
+NAME = 'name'
 
 
-class MilestoneBase(ModelBase):
+class MilestoneBase(Addable, Updatable, ModelBase):
+    ADDABLE_FIELDS = const.MILESTONE_ADD_FIELDS
+    UPDATABLE_FIELDS = const.MILESTONE_UPDATE_FIELDS
+
     @property
     def completed_on(self):
         """ The date/time when the milestone was marked as completed
@@ -24,7 +30,7 @@ class MilestoneBase(ModelBase):
     @description.setter
     def description(self, val):
         if not isinstance(val, str):
-            raise TypeError(SETTER_ERR.format(str, type(val)))
+            raise TypeError(const.SETTER_ERR.format(str, type(val)))
         self._content['description'] = val
 
     @property
@@ -39,7 +45,7 @@ class MilestoneBase(ModelBase):
     def due_on(self, val):
         # TODO: log warning if setting due date to past
         if not isinstance(val, dt):
-            raise TypeError(SETTER_ERR.format(dt, type(val)))
+            raise TypeError(const.SETTER_ERR.format(dt, type(val)))
         self._content['due_on'] = int(time.mktime(val.timetuple()))
 
     @property
@@ -50,7 +56,7 @@ class MilestoneBase(ModelBase):
     @is_completed.setter
     def is_completed(self, val):
         if not isinstance(val, bool):
-            raise TypeError(SETTER_ERR.format(bool, type(val)))
+            raise TypeError(const.SETTER_ERR.format(bool, type(val)))
         self._content['is_completed'] = val
 
     @property
@@ -61,7 +67,7 @@ class MilestoneBase(ModelBase):
     @is_started.setter
     def is_started(self, val):
         if not isinstance(val, bool):
-            raise TypeError(SETTER_ERR.format(bool, type(val)))
+            raise TypeError(const.SETTER_ERR.format(bool, type(val)))
         self._content['is_started'] = val
 
     @property
@@ -72,7 +78,7 @@ class MilestoneBase(ModelBase):
     @name.setter
     def name(self, val):
         if not isinstance(val, str):
-            raise TypeError(SETTER_ERR.format(str, type(val)))
+            raise TypeError(const.SETTER_ERR.format(str, type(val)))
         self._content['name'] = val
 
     @property
@@ -84,7 +90,7 @@ class MilestoneBase(ModelBase):
     @project.setter
     def project(self, project):
         if not isinstance(project, Project):
-            raise TypeError(SETTER_ERR.format(Project, type(project)))
+            raise TypeError(const.SETTER_ERR.format(Project, type(project)))
         self._content['project_id'] = project.id
 
     @property
@@ -98,7 +104,7 @@ class MilestoneBase(ModelBase):
     @start_on.setter
     def start_on(self, val):
         if not isinstance(val, dt):
-            raise TypeError(SETTER_ERR.format(dt, type(val)))
+            raise TypeError(const.SETTER_ERR.format(dt, type(val)))
         self._content['start_on'] = int(time.mktime(val.timetuple()))
 
     @property
@@ -112,7 +118,7 @@ class MilestoneBase(ModelBase):
     @started_on.setter
     def started_on(self, val):
         if not isinstance(val, dt):
-            raise TypeError(SETTER_ERR.format(dt, type(val)))
+            raise TypeError(const.SETTER_ERR.format(dt, type(val)))
         self._content['started_on'] = int(time.mktime(val.timetuple()))
 
     @property
@@ -135,7 +141,7 @@ class SubMilestone(MilestoneBase):
     @parent.setter
     def parent(self, parent_ms):
         if not isinstance(parent_ms, Milestone):
-            raise TypeError(SETTER_ERR.format(Milestone, type(parent_ms)))
+            raise TypeError(const.SETTER_ERR.format(Milestone, type(parent_ms)))
         elif self.project is None:
             msg = "You must set the sub-milestone's project to an existing project first"
             raise ValueError(msg)
@@ -190,7 +196,7 @@ class Milestone(MilestoneBase):
         """
         if not isinstance(milestone, (int, Milestone)):
             exp_types = "{0} or {1}".format(int, Milestone)
-            raise TypeError(SETTER_ERR.format(exp_types, type(milestone)))
+            raise TypeError(const.SETTER_ERR.format(exp_types, type(milestone)))
 
         parent_id = milestone if isinstance(milestone, int) else milestone.id
 
