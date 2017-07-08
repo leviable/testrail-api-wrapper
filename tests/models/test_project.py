@@ -85,6 +85,30 @@ def test_is_completed(empty_proj, in_progress_proj, complete_proj):
     assert complete_proj.is_completed is True
 
 
+def test_is_completed_set(empty_proj, in_progress_proj, complete_proj):
+    assert empty_proj.is_completed is False
+    empty_proj.is_completed = False
+    assert empty_proj.is_completed is False
+    empty_proj.is_completed = True
+    assert empty_proj.is_completed is True
+
+    assert in_progress_proj.is_completed is False
+    in_progress_proj.is_completed = True
+    assert in_progress_proj.is_completed is True
+
+    assert in_progress_proj.is_completed is True
+    in_progress_proj.is_completed = False
+    assert in_progress_proj.is_completed is False
+
+
+def test_is_completed_set_exc(empty_proj):
+    with pytest.raises(TypeError) as exc:
+        empty_proj.is_completed = 1234
+
+    assert str(bool) in str(exc)
+    assert str(int) in str(exc)
+
+
 def test_name_get(empty_proj, in_progress_proj, complete_proj):
     assert empty_proj.name is None
     assert in_progress_proj.name is NAME

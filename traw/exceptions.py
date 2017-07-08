@@ -18,6 +18,11 @@ class TRAWLoginError(TRAWException):
     pass
 
 
+class TRAWClientError(TRAWException):
+    """ Used for client related errors """
+    pass
+
+
 # class RequestException(TRAWException):
 #     """Indicate that there was an error with the incomplete HTTP request."""
 #

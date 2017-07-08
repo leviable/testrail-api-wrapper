@@ -5,26 +5,27 @@ import pytest
 
 import traw
 from traw import models
+from traw.exceptions import TRAWClientError
 
 USER = 'mock username'
 PASS = 'mock password'
 URL = 'mock url'
 
-CT1 = {'name': 'casetype1'}
-CT2 = {'name': 'casetype2'}
-CT3 = {'name': 'casetype3'}
+CT1 = {'name': 'casetype1', 'id': 331}
+CT2 = {'name': 'casetype2', 'id': 332}
+CT3 = {'name': 'casetype3', 'id': 333}
 MILE1 = {'name': 'milestone1'}
 MILE2 = {'name': 'milestone2'}
 MILE3 = {'name': 'milestone3'}
-PRIO1 = {'name': 'priority1'}
-PRIO2 = {'name': 'priority2'}
-PRIO3 = {'name': 'priority3'}
+PRIO1 = {'name': 'priority1', 'id': 111}
+PRIO2 = {'name': 'priority2', 'id': 112}
+PRIO3 = {'name': 'priority3', 'id': 113}
 PROJ1 = {'name': 'project1'}
 PROJ2 = {'name': 'project2'}
 PROJ3 = {'name': 'project3'}
-STAT1 = {'name': 'status1'}
-STAT2 = {'name': 'status2'}
-STAT3 = {'name': 'status3'}
+STAT1 = {'name': 'status1', 'id': 221}
+STAT2 = {'name': 'status2', 'id': 222}
+STAT3 = {'name': 'status3', 'id': 223}
 TEMP1 = {'name': 'template1'}
 TEMP2 = {'name': 'template2'}
 TEMP3 = {'name': 'template3'}
@@ -292,6 +293,63 @@ def test_update_sub_milestone(client):
     assert 'extra' not in str(client.api.milestone.call_args)
 
 
+def test_case(client):
+    """ Verify case method returns a new models.Case instance if called without
+        any parameters
+    """
+    case = client.case()
+
+    assert isinstance(case, models.Case)
+    # TODO: Complete when Case is more than a stub
+    # assert proj.announcement is None
+    # assert proj.completed_on is None
+    # assert proj.is_completed is False
+    # assert proj.show_announcement is False
+    # assert proj.suite_mode is None
+    # assert proj.url is None
+
+
+def test_case_by_id(client):
+    """ Verify calling ``client.case(123)`` with an ID returns that case """
+    client.api.case_by_id.return_value = {'id': 1234}
+    case = client.case(1234)
+
+    assert isinstance(case, models.Case)
+    assert case.id == 1234
+    assert client.api.case_by_id.called_once_with(1234)
+
+
+def test_case_type_exc(client):
+    """ Verify the Client's ``case_type`` method throws an exception if called """
+    with pytest.raises(NotImplementedError) as exc:
+        client.case_type()
+
+    assert 'You must pass in int object' in str(exc)
+    assert not client.api.case_types.called
+
+
+def test_case_type_by_int(client):
+    """ Verify the Client's ``case_type`` method call with int"""
+    client.api.case_types.return_value = [CT1, CT2, CT3]
+
+    case_type = client.case_type(332)
+
+    assert isinstance(case_type, models.CaseType)
+    assert case_type.id == 332
+    assert client.api.case_types.called
+
+
+def test_case_type_by_int_exc(client):
+    """ Verify the Client's ``case_type`` method throws an exception if unmatched id """
+    client.api.case_types.return_value = [CT1, CT2, CT3]
+
+    with pytest.raises(TRAWClientError) as exc:
+        client.case_type(334)
+
+    assert 'id of 334' in str(exc)
+    assert client.api.case_types.called
+
+
 def test_case_types(client):
     """ Verify the Client's ``case_types`` method call """
     client.api.case_types.return_value = [CT1, CT2, CT3]
@@ -472,9 +530,40 @@ def test_milestones_by_project_is_started_exception(client):
     assert 'is_started' in str(exc)
 
 
+def test_priority_exc(client):
+    """ Verify the Client's ``priority`` method throws an exception if called """
+    with pytest.raises(NotImplementedError) as exc:
+        client.priority()
+
+    assert 'You must pass in int object' in str(exc)
+    assert not client.api.priorities.called
+
+
+def test_priority_by_int(client):
+    """ Verify the Client's ``priority`` method call with int"""
+    client.api.priorities.return_value = [PRIO1, PRIO2, PRIO3]
+
+    priority = client.priority(112)
+
+    assert isinstance(priority, models.Priority)
+    assert priority.id == 112
+    assert client.api.priorities.called
+
+
+def test_priority_by_int_exc(client):
+    """ Verify the Client's ``priority`` method throws an exception if unmatched id """
+    client.api.priorities.return_value = [PRIO1, PRIO2, PRIO3]
+
+    with pytest.raises(TRAWClientError) as exc:
+        client.priority(114)
+
+    assert 'id of 114' in str(exc)
+    assert client.api.priorities.called
+
+
 def test_priorities(client):
     """ Verify the Client's ``priorities`` method call """
-    client.api.priorities.return_value = [PRIO1, PRIO2, PRIO3]
+    client.api.priorities.return_value = (p for p in [PRIO1, PRIO2, PRIO3])
 
     prio_gen = client.priorities()
     prio1 = next(prio_gen)
@@ -498,6 +587,7 @@ def test_project(client):
     """
     proj = client.project()
 
+    assert isinstance(proj, models.Project)
     assert proj.announcement is None
     assert proj.completed_on is None
     assert proj.is_completed is False
@@ -554,6 +644,63 @@ def test_projects(client):
     assert isinstance(project3, models.Project)
     assert project3.name == 'project3'
     assert client.api.projects.call_args == mock.call(1)
+
+
+def test_run(client):
+    """ Verify run method returns a new models.Run instance if called without
+        any parameters
+    """
+    run = client.run()
+
+    assert isinstance(run, models.Run)
+    # TODO: Complete when Run is more than a stub
+    # assert proj.announcement is None
+    # assert proj.completed_on is None
+    # assert proj.is_completed is False
+    # assert proj.show_announcement is False
+    # assert proj.suite_mode is None
+    # assert proj.url is None
+
+
+def test_run_by_id(client):
+    """ Verify calling ``client.run(123)`` with an ID returns that run """
+    client.api.run_by_id.return_value = {'id': 1234}
+    run = client.run(1234)
+
+    assert isinstance(run, models.Run)
+    assert run.id == 1234
+    assert client.api.run_by_id.called_once_with(1234)
+
+
+def test_status_exc(client):
+    """ Verify the Client's ``status`` method throws an exception if called """
+    with pytest.raises(NotImplementedError) as exc:
+        client.status()
+
+    assert 'You must pass in int object' in str(exc)
+    assert not client.api.statuses.called
+
+
+def test_status_by_int(client):
+    """ Verify the Client's ``status`` method call with int"""
+    client.api.statuses.return_value = [STAT1, STAT2, STAT3]
+
+    status = client.status(222)
+
+    assert isinstance(status, models.Status)
+    assert status.id == 222
+    assert client.api.statuses.called
+
+
+def test_status_by_int_exc(client):
+    """ Verify the Client's ``status`` method throws an exception if unmatched id """
+    client.api.statuses.return_value = [STAT1, STAT2, STAT3]
+
+    with pytest.raises(TRAWClientError) as exc:
+        client.status(224)
+
+    assert 'id of 224' in str(exc)
+    assert client.api.statuses.called
 
 
 def test_statuses(client):
@@ -629,6 +776,25 @@ def test_templates_by_project_id(client):
     assert temp3.name == 'template3'
 
     assert client.api.templates.call_args == mock.call(PROJECT_ID)
+
+
+def test_test_exc(client):
+    """ Verify the Client's ``test`` method throws an exception if called """
+    with pytest.raises(NotImplementedError) as exc:
+        client.test()
+
+    assert 'You must pass in int object' in str(exc)
+    assert not client.api.test.called
+
+
+def test_test_by_id(client):
+    """ Verify calling ``client.case(123)`` with an ID returns that case """
+    client.api.test_by_id.return_value = {'id': 1234}
+    test = client.test(1234)
+
+    assert isinstance(test, models.Test)
+    assert test.id == 1234
+    assert client.api.test_by_id.called_once_with(1234)
 
 
 def test_user(client):

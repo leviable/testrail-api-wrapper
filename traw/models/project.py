@@ -50,6 +50,12 @@ class Project(Addable, Deleteable, Updatable, ModelBase):
         """ True if the project is marked as completed and false otherwise """
         return self._content.get('is_completed', False)
 
+    @is_completed.setter
+    def is_completed(self, val):
+        if not isinstance(val, bool):
+            raise TypeError(SETTER_ERR.format(bool, type(val)))
+        self._content['is_completed'] = val
+
     @property
     def name(self):
         """ The name of the project. Can be set to any string """

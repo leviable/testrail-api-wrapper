@@ -34,6 +34,16 @@ class API(object):
 
         self._session = Session(auth=(_username, _password), url=_url)
 
+    def case_by_id(self, case_id):
+        """ Calls `get_case` API endpoint with the given case_id
+
+        :param case_id: int id of case
+
+        :returns: case dict
+        """
+        path = API_PATH['get_case'].format(case_id=case_id)
+        return self._session.request(method=GET, path=path)
+
     def case_types(self):
         """ Calls `get_case_types` API endpoint
 
@@ -134,6 +144,16 @@ class API(object):
         for project in self._session.request(method=GET, path=path, params=params):
             yield project
 
+    def run_by_id(self, run_id):
+        """ Calls `get_run` API endpoint with the given run_id
+
+        :param run_id: int id of run
+
+        :returns: run dict
+        """
+        path = API_PATH['get_run'].format(run_id=run_id)
+        return self._session.request(method=GET, path=path)
+
     def statuses(self):
         """ Calls `get_statuses` API endpoint
 
@@ -151,6 +171,16 @@ class API(object):
         path = API_PATH['get_templates'].format(project_id=project_id)
         for template in self._session.request(method=GET, path=path):
             yield template
+
+    def test_by_id(self, test_id):
+        """ Calls `get_test` API endpoint with the given test_id
+
+        :param test_id: int id of test
+
+        :returns: test dict
+        """
+        path = API_PATH['get_test'].format(test_id=test_id)
+        return self._session.request(method=GET, path=path)
 
     def user_by_email(self, email):
         """ Calls `get_user` API endpoint with the given user email
