@@ -2,7 +2,7 @@ import os
 from os import path
 try:
     from ConfigParser import ConfigParser  # pragma: no cover
-except ImportError:
+except ImportError:  # pragma: no cover
     from configparser import ConfigParser  # pragma: no cover
 
 from .sessions import Session
@@ -96,6 +96,10 @@ class API(object):
         for priority in self._session.request(method=GET, path=path):
             yield priority
 
+    def project_add(self, params):
+        path = API_PATH['add_project']
+        return self._session.request(method=POST, path=path, json=params)
+
     def project_by_id(self, project_id):
         """ Calls `get_project` API endpoint with the given project_id
 
@@ -105,6 +109,14 @@ class API(object):
         """
         path = API_PATH['get_project'].format(project_id=project_id)
         return self._session.request(method=GET, path=path)
+
+    def project_delete(self, project_id):
+        path = API_PATH['delete_project'].format(project_id=project_id)
+        return self._session.request(method=POST, path=path)
+
+    def project_update(self, project_id, params):
+        path = API_PATH['update_project'].format(project_id=project_id)
+        return self._session.request(method=POST, path=path, json=params)
 
     def projects(self, is_completed=None):
         """ Calls `projects` API endpoint with given filter

@@ -181,6 +181,20 @@ class Client(object):
         """
         return models.Project(self)
 
+    @add.register(models.Project)
+    def _project_add(self, project):
+        response = self.api.project_add(project.add_params)
+        return models.Project(self, response)
+
+    @delete.register(models.Project)
+    def _project_delete(self, project):
+        self.api.project_delete(project.id)
+
+    @update.register(models.Project)
+    def _project_update(self, project):
+        response = self.api.project_update(project.id, project.update_params)
+        return models.Project(self, response)
+
     @project.register(int)
     def _project_by_id(self, project_id):
         """ Do not call directly

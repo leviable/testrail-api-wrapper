@@ -24,7 +24,7 @@ Currently supported functionality:
 - milestone (get_by_id, add, delete, update)
 - milestones (get all by project)
 - priorities - (get all)
-- project - (get_by_id)
+- project - (get_by_id, add, delete, udpate)
 - projects - (get all)
 - statuses - (get all)
 - templates - (get_by_project_id, get_by_project)

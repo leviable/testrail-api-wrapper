@@ -92,6 +92,7 @@ SETTER_ERR = 'Expected {0}, found {1}'
 TIMEOUT = 16  # TODO: Make this configurable
 
 # POST param names
+ANNOUNCEMENT = 'announcement'
 DESCRIPTION = 'description'
 DUE_ON = 'due_on'
 ID = 'id'
@@ -100,9 +101,13 @@ IS_STARTED = 'is_started'
 NAME = 'name'
 PARENT_ID = 'parent_id'
 PROJECT_ID = 'project_id'
+SHOW_ANNOUNCEMENT = 'show_announcement'
+SUITE_MODE = 'suite_mode'
 START_ON = 'start_on'
 
 # Add/Delete/Update fields by object
 MILESTONE_ADD_FIELDS = (NAME, DESCRIPTION, DUE_ON, PARENT_ID, START_ON)
 # TODO: find out why `is_started` doesn't work, and add it back in
 MILESTONE_UPDATE_FIELDS = MILESTONE_ADD_FIELDS + (IS_COMPLETED, IS_STARTED, START_ON)
+PROJECT_ADD_FIELDS = (NAME, ANNOUNCEMENT, SHOW_ANNOUNCEMENT, SUITE_MODE)
+PROJECT_UPDATE_FIELDS = PROJECT_ADD_FIELDS + (IS_COMPLETED, )
