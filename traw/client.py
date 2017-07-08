@@ -1,6 +1,7 @@
 from . import const
 from . import models
 from .api import API
+from .exceptions import TRAWClientError
 from .utils import dispatchmethod
 
 
@@ -64,7 +65,55 @@ class Client(object):
         msg = "TRAW and/or TestRail's API does not support updating objects of type {0}"
         raise TypeError(msg.format(type(obj)))
 
+    # Case related methods
+    @dispatchmethod
+    def case(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """ Return a models.Case instance
+            `client.case()` returns a new Case instance (no API call)
+            `client.case(1234)` returns a Case instance with an ID of 1234
+
+        :param: no method parameters, will return a new, uncofigured models.Case instance
+        :param case_id: int, Case ID for a case that exists in TestRail
+
+        :returns: models.Case instance
+        """
+        return models.Case(self)
+
+    @case.register(int)
+    def _case_by_id(self, case_id):
+        """ Do not call directly
+            Returns case with ``case_id``
+        """
+        return models.Case(self, self.api.case_by_id(case_id))
+
     # Case type related methods
+    @dispatchmethod
+    def case_type(self):
+        """
+            :param case_type_id: int
+
+            :returns: models.CaseType
+        """
+        raise NotImplementedError(const.NOTIMP.format("int"))
+
+    @case_type.register(int)
+    def _case_type_by_int(self, case_type_id):
+        """ Do not call directly
+            Returns a models.CaseType object with id of ``case_type_id``
+            :param case_type_id: int
+
+            :returns: models.CaseType
+        """
+        for sys_case_type in self.case_types():
+            if sys_case_type.id == case_type_id:
+                case_type = sys_case_type
+                break
+        else:
+            msg = "Could not locate a models.CaseType with id of {0}"
+            raise TRAWClientError(msg.format(case_type_id))
+
+        return case_type
+
     def case_types(self):
         """ Returns a case types generator
 
@@ -161,7 +210,34 @@ class Client(object):
 
         return updated_milestone
 
-    # Priorities related methods
+    # Priority related methods
+    @dispatchmethod
+    def priority(self):
+        """
+            :param priority_id: int
+
+            :returns: models.Priority
+        """
+        raise NotImplementedError(const.NOTIMP.format("int"))
+
+    @priority.register(int)
+    def _priority_by_int(self, priority_id):
+        """ Do not call directly
+            Returns a models.Priority object with id of ``priority_id``
+            :param priority_id: int
+
+            :returns: models.Priority
+        """
+        for sys_priority in self.priorities():
+            if sys_priority.id == priority_id:
+                priority = sys_priority
+                break
+        else:
+            msg = "Could not locate a models.Priority with id of {0}"
+            raise TRAWClientError(msg.format(priority_id))
+
+        return priority
+
     def priorities(self):
         """ Returns a priority generator
 
@@ -228,7 +304,55 @@ class Client(object):
         for project in self.api.projects(is_completed):
             yield models.Project(self, project)
 
+    # Run related methods
+    @dispatchmethod
+    def run(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """ Return a models.Run instance
+            `client.run()` returns a new Run instance (no API call)
+            `client.run(1234)` returns a Run instance with an ID of 1234
+
+        :param: no method parameters, will return a new, uncofigured models.Run instance
+        :param run_id: int, Run ID for a case that exists in TestRail
+
+        :returns: models.Run instance
+        """
+        return models.Run(self)
+
+    @run.register(int)
+    def _run_by_id(self, run_id):
+        """ Do not call directly
+            Returns run with ``run_id``
+        """
+        return models.Run(self, self.api.run_by_id(run_id))
+
     # Status related methods
+    @dispatchmethod
+    def status(self):
+        """
+            :param status_id: int
+
+            :returns: models.Status
+        """
+        raise NotImplementedError(const.NOTIMP.format("int"))
+
+    @status.register(int)
+    def _status_by_int(self, status_id):
+        """ Do not call directly
+            Returns a models.Status object with id of ``status_id``
+            :param status_id: int
+
+            :returns: models.Status
+        """
+        for sys_status in self.statuses():
+            if sys_status.id == status_id:
+                status = sys_status
+                break
+        else:
+            msg = "Could not locate a models.Status with id of {0}"
+            raise TRAWClientError(msg.format(status_id))
+
+        return status
+
     def statuses(self):
         """ Returns models.Status generator
 
@@ -263,6 +387,26 @@ class Client(object):
     def _templates_by_project(self, project):
         for template in self.api.templates(project.id):
             yield models.Template(self, template)
+
+    # Test related methods
+    @dispatchmethod
+    def test(self):
+        """
+            :param test_id: int
+
+            :returns: models.Test
+        """
+        raise NotImplementedError(const.NOTIMP.format("int"))
+
+    @test.register(int)
+    def _test_by_int(self, test_id):
+        """ Do not call directly
+            Returns a models.Test object with id of ``test_id``
+            :param test_id: int
+
+            :returns: models.Test
+        """
+        return models.Test(self, self.api.test_by_id(test_id))
 
     # User related methods
     @dispatchmethod

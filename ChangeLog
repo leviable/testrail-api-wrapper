@@ -1,6 +1,7 @@
 CHANGES
 =======
 
+* Add get test support
 * Add project POST support
 * Add milestone POST support
 

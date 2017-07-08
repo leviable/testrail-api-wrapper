@@ -1,3 +1,5 @@
+import re
+from datetime import timedelta
 from functools import update_wrapper
 
 from singledispatch import singledispatch
@@ -33,3 +35,17 @@ def dispatchmethod(func):
     wrapper._clear_cache = dispatcher._clear_cache  # pylint: disable=protected-access
     update_wrapper(wrapper, func)
     return wrapper
+
+
+def duration_to_timedelta(duration):
+    def timespan(segment):
+        return int(segment.group(0)[:-1]) if segment else 0
+
+    timedelta_map = {
+        'weeks': timespan(re.search('\d+w', duration)),
+        'days': timespan(re.search('\d+d', duration)),
+        'hours': timespan(re.search('\d+h', duration)),
+        'minutes': timespan(re.search('\d+m', duration)),
+        'seconds': timespan(re.search('\d+s', duration))
+    }
+    return timedelta(**timedelta_map)

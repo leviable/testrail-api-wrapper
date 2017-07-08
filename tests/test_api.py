@@ -9,6 +9,9 @@ MOCK_USERNAME = 'mock username'
 MOCK_USER_API_KEY = 'mock user api key'
 MOCK_PASSWORD = 'mock password'
 MOCK_URL = 'mock url'
+CASE1 = {'case': 'case1'}
+CASE2 = {'case': 'case2'}
+CASE3 = {'case': 'case3'}
 CT1 = {'casetype': 'casetype1'}
 CT2 = {'casetype': 'casetype2'}
 CT3 = {'casetype': 'casetype3'}
@@ -21,12 +24,18 @@ PRIO3 = {'priority': 'priority3'}
 PROJ1 = {'project': 'project1'}
 PROJ2 = {'project': 'project2'}
 PROJ3 = {'project': 'project3'}
+RUN1 = {'run': 'run1'}
+RUN2 = {'run': 'run2'}
+RUN3 = {'run': 'run3'}
 STAT1 = {'stat': 'stat1'}
 STAT2 = {'stat': 'stat2'}
 STAT3 = {'stat': 'stat3'}
 TEMP1 = {'temp': 'temp1'}
 TEMP2 = {'temp': 'temp2'}
 TEMP3 = {'temp': 'temp3'}
+TEST1 = {'test': 'test1'}
+TEST2 = {'test': 'test2'}
+TEST3 = {'test': 'test3'}
 USER1 = {'user': 'user1'}
 USER2 = {'user': 'user2'}
 USER3 = {'user': 'user3'}
@@ -176,6 +185,19 @@ def test__init__no_credentials_exception(no_env_vars, no_path_mock):
     """ Verify that an exception is raised if no credentials are set """
     with pytest.raises(TRAWLoginError):
         traw.api.API()
+
+
+def test_case_by_id(api):
+    """ Verify the ``case_by_id`` method call """
+    CASE_ID = 1234
+    api._session.request.return_value = CASE1
+    case = api.case_by_id(CASE_ID)
+
+    exp_call = mock.call(method=GET, path=AP['get_case'].format(case_id=CASE_ID))
+
+    assert case == CASE1
+    assert isinstance(case, dict)
+    assert api._session.request.call_args == exp_call
 
 
 def test_case_types(api):
@@ -376,6 +398,19 @@ def test_projects_with_arg(api):
     assert api._session.request.call_args == exp_call
 
 
+def test_run_by_id(api):
+    """ Verify the ``run_by_id`` method call """
+    RUN_ID = 1234
+    api._session.request.return_value = RUN1
+    run = api.run_by_id(RUN_ID)
+
+    exp_call = mock.call(method=GET, path=AP['get_run'].format(run_id=RUN_ID))
+
+    assert run == RUN1
+    assert isinstance(run, dict)
+    assert api._session.request.call_args == exp_call
+
+
 def test_statuses(api):
     """ Verify the ``statuses`` method call """
     api._session.request.return_value = [STAT1, STAT2, STAT3]
@@ -398,6 +433,19 @@ def test_templates(api):
 
     assert all(map(lambda t: isinstance(t, dict), temp_list))
     assert len(temp_list) == 3
+    assert api._session.request.call_args == exp_call
+
+
+def test_test_by_id(api):
+    """ Verify the ``test_by_id`` method call """
+    TEST_ID = 1234
+    api._session.request.return_value = TEST1
+    test = api.test_by_id(TEST_ID)
+
+    exp_call = mock.call(method=GET, path=AP['get_test'].format(test_id=TEST_ID))
+
+    assert test == TEST1
+    assert isinstance(test, dict)
     assert api._session.request.call_args == exp_call
 
 
