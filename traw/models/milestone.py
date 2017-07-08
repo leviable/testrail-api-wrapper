@@ -4,13 +4,13 @@ from datetime import datetime as dt
 
 from .. import const
 from .model_base import ModelBase
-from .posters import Addable, Updatable
+from .posters import Addable, Deleteable, Updatable
 from .project import Project
 
 NAME = 'name'
 
 
-class MilestoneBase(Addable, Updatable, ModelBase):
+class MilestoneBase(Addable, Deleteable, Updatable, ModelBase):
     ADDABLE_FIELDS = const.MILESTONE_ADD_FIELDS
     UPDATABLE_FIELDS = const.MILESTONE_UPDATE_FIELDS
 

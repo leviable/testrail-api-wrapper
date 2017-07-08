@@ -1,6 +1,7 @@
 CHANGES
 =======
 
+* Add project POST support
 * Add milestone POST support
 
 0.0.7

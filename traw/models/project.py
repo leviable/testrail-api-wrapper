@@ -1,10 +1,11 @@
 from datetime import datetime as dt
 
 from .model_base import ModelBase
-from ..const import SETTER_ERR
+from ..const import PROJECT_ADD_FIELDS, PROJECT_UPDATE_FIELDS, SETTER_ERR
+from .posters import Addable, Deleteable, Updatable
 
 
-class Project(ModelBase):
+class Project(Addable, Deleteable, Updatable, ModelBase):
     """ Object model for TestRail Projects
 
     To create new project
@@ -18,6 +19,9 @@ class Project(ModelBase):
         new_project.suite_mode = 1
 
     """
+    ADDABLE_FIELDS = PROJECT_ADD_FIELDS
+    UPDATABLE_FIELDS = PROJECT_UPDATE_FIELDS
+
     @property
     def announcement(self):
         """ The description/announcement of the project

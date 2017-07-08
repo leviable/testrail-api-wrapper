@@ -292,6 +292,21 @@ def test_priorities(api):
     assert api._session.request.call_args == exp_call
 
 
+def test_project_add(api):
+    """ Verify the ``project_add`` method call """
+    PARAMS = {'param_key': 'param_value'}
+    api._session.request.return_value = PROJ1
+    project = api.project_add(PARAMS)
+
+    exp_call = mock.call(method=POST,
+                         path=AP['add_project'],
+                         json=PARAMS)
+
+    assert project == PROJ1
+    assert isinstance(project, dict)
+    assert api._session.request.call_args == exp_call
+
+
 def test_project_by_id(api):
     """ Verify the project_by_id method can be called """
     PROJ_ID = 1234
@@ -303,6 +318,36 @@ def test_project_by_id(api):
 
     assert proj is PROJ_DICT
     assert str(PROJ_ID) in str(api._session.request.call_args)
+
+
+def test_project_delete(api):
+    """ Verify the ``project_delete`` method call """
+    PROJECT_ID = 15
+    api._session.request.return_value = {}
+    project = api.project_delete(PROJECT_ID)
+
+    exp_call = mock.call(method=POST,
+                         path=AP['delete_project'].format(project_id=PROJECT_ID))
+
+    assert isinstance(project, dict)
+    assert project == dict()
+    assert api._session.request.call_args == exp_call
+
+
+def test_project_update(api):
+    """ Verify the ``project_update`` method call """
+    PROJECT_ID = 15
+    PARAMS = {'param_key': 'param_value'}
+    api._session.request.return_value = PROJ1
+    project = api.project_update(PROJECT_ID, PARAMS)
+
+    exp_call = mock.call(method=POST,
+                         path=AP['update_project'].format(project_id=PROJECT_ID),
+                         json=PARAMS)
+
+    assert project == PROJ1
+    assert isinstance(project, dict)
+    assert api._session.request.call_args == exp_call
 
 
 def test_projects_no_arg(api):

@@ -81,6 +81,25 @@ def test_add_milestone(client):
     assert 'extra' not in str(client.api.milestone.call_args)
 
 
+def test_add_project(client):
+    PROJECT_ID = 15
+
+    project_config = {traw.const.NAME: 'mock name',
+                      traw.const.ANNOUNCEMENT: 'mock announcement',
+                      traw.const.SHOW_ANNOUNCEMENT: False,
+                      traw.const.SUITE_MODE: 1}
+    project = models.Project(client, dict(extra='extra', **project_config))
+
+    client.api.project_add.return_value = dict(id=PROJECT_ID, **project_config)
+
+    response = client.add(project)
+
+    assert isinstance(response, models.Project)
+    assert response.id == PROJECT_ID
+    assert client.api.project_add.called
+    assert 'extra' not in str(client.api.project.call_args)
+
+
 def test_add_sub_milestone(client):
     SUB_MILESTONE_ID = 111
     PARENT_ID = 222
@@ -167,6 +186,23 @@ def test_delete_milestone(client):
     client.api.milestone_delete.assert_called_once_with(MILESTONE_ID)
 
 
+def test_delete_project(client):
+    PROJECT_ID = 15
+
+    project_config = {traw.const.NAME: 'mock name',
+                      traw.const.ANNOUNCEMENT: 'mock announcement',
+                      traw.const.SHOW_ANNOUNCEMENT: False,
+                      traw.const.SUITE_MODE: 1}
+    project = models.Project(client, dict(id=PROJECT_ID, **project_config))
+
+    client.api.project_delete.return_value = dict()
+
+    response = client.delete(project)
+
+    assert response is None
+    client.api.project_delete.assert_called_once_with(PROJECT_ID)
+
+
 def test_update_exception_no_obj(client):
     """ Verify the Client raises an exception if update is called directly """
     with pytest.raises(TypeError) as exc:
@@ -207,6 +243,26 @@ def test_update_milestone(client):
     assert response.id == MILESTONE_ID
     assert client.api.milestone_update.called
     assert 'extra' not in str(client.api.milestone.call_args)
+
+
+def test_update_project(client):
+    PROJECT_ID = 15
+
+    project_config = {traw.const.NAME: 'mock name',
+                      traw.const.ANNOUNCEMENT: 'mock announcement',
+                      traw.const.SHOW_ANNOUNCEMENT: False,
+                      traw.const.SUITE_MODE: 1,
+                      traw.const.ID: PROJECT_ID}
+    project = models.Project(client, dict(extra='extra', **project_config))
+
+    client.api.project_update.return_value = project_config
+
+    response = client.update(project)
+
+    assert isinstance(response, models.Project)
+    assert response.id == PROJECT_ID
+    assert client.api.project_update.called
+    assert 'extra' not in str(client.api.project.call_args)
 
 
 def test_update_sub_milestone(client):
