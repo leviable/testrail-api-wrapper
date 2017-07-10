@@ -1,3 +1,5 @@
+from collections import Iterable
+
 from . import const
 from . import models
 from .api import API
@@ -144,45 +146,6 @@ class Client(object):
         """
         return models.Milestone(self, self.api.milestone_by_id(milestone_id))
 
-    @dispatchmethod
-    def milestones(self, *args, **kwargs):  # pylint: disable=unused-argument
-        """ Return models.Template generator for the given models.Project object or project ID
-
-            `client.milestones(project)` yields milestones associated with the Project instance
-            `client.milestones(1234)` yields milestones associated with project id 1234
-
-        :param project: models.Project object for a project that exists in TestRail
-        :param project_id: int, Project ID for a project that exists in TestRail
-
-        :raiess: NotImplementedError if called with no parameters or a parameter of an
-                     unsupported type(`client.milestones()`)
-
-        :yields: models.Milestone objects
-        """
-        raise NotImplementedError(const.NOTIMP.format("models.Project or int"))
-
-    @milestones.register(int)
-    def _milestones_by_project_id(self, project_id, is_completed=None, is_started=None):
-        msg = "{0} must be either None or bool, found {1}(2)"
-        if not isinstance(is_completed, (type(None), bool)):
-            raise TypeError(msg.format('is_completed', is_completed, type(is_completed)))
-        elif not isinstance(is_started, (type(None), bool)):
-            raise TypeError(msg.format('is_started', is_started, type(is_started)))
-
-        for milestone in self.api.milestones(project_id, is_completed, is_started):
-            yield models.Milestone(self, milestone)
-
-    @milestones.register(models.Project)
-    def _milestones_by_project(self, project, is_completed=None, is_started=None):
-        msg = "{0} must be either None or bool, found {1}(2)"
-        if not isinstance(is_completed, (type(None), bool)):
-            raise TypeError(msg.format('is_completed', is_completed, type(is_completed)))
-        elif not isinstance(is_started, (type(None), bool)):
-            raise TypeError(msg.format('is_started', is_started, type(is_started)))
-
-        for milestone in self.api.milestones(project.id, is_completed, is_started):
-            yield models.Milestone(self, milestone)
-
     @add.register(models.Milestone)
     @add.register(models.SubMilestone)
     def _milestone_add(self, milestone):
@@ -209,6 +172,39 @@ class Client(object):
             updated_milestone = models.SubMilestone(self, response)
 
         return updated_milestone
+
+    @dispatchmethod
+    def milestones(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """ Return models.Milestone generator for the given models.Project object or project ID
+
+            `client.milestones(project)` yields milestones associated with the Project instance
+            `client.milestones(1234)` yields milestones associated with project id 1234
+
+        :param project: models.Project object for a project that exists in TestRail
+        :param project_id: int, Project ID for a project that exists in TestRail
+
+        :raiess: NotImplementedError if called with no parameters or a parameter of an
+                     unsupported type(`client.milestones()`)
+
+        :yields: models.Milestone objects
+        """
+        raise NotImplementedError(const.NOTIMP.format("models.Project or int"))
+
+    @milestones.register(int)
+    def _milestones_by_project_id(self, project_id, is_completed=None, is_started=None):
+        msg = "{0} must be either None or bool, found {1}"
+        if not isinstance(is_completed, (type(None), bool)):
+            raise TypeError(msg.format('is_completed', is_completed, type(is_completed)))
+        elif not isinstance(is_started, (type(None), bool)):
+            raise TypeError(msg.format('is_started', is_started, type(is_started)))
+
+        for milestone in self.api.milestones(project_id, is_completed, is_started):
+            yield models.Milestone(self, milestone)
+
+    @milestones.register(models.Project)
+    def _milestones_by_project(self, project, is_completed=None, is_started=None):
+        for milestone in self.milestones(project.id, is_completed, is_started):
+            yield milestone
 
     # Priority related methods
     @dispatchmethod
@@ -262,15 +258,6 @@ class Client(object):
         response = self.api.project_add(project.add_params)
         return models.Project(self, response)
 
-    @delete.register(models.Project)
-    def _project_delete(self, project):
-        self.api.project_delete(project.id)
-
-    @update.register(models.Project)
-    def _project_update(self, project):
-        response = self.api.project_update(project.id, project.update_params)
-        return models.Project(self, response)
-
     @project.register(int)
     def _project_by_id(self, project_id):
         """ Do not call directly
@@ -279,6 +266,15 @@ class Client(object):
             :returns: models.Project
         """
         return models.Project(self, self.api.project_by_id(project_id))
+
+    @delete.register(models.Project)
+    def _project_delete(self, project):
+        self.api.project_delete(project.id)
+
+    @update.register(models.Project)
+    def _project_update(self, project):
+        response = self.api.project_update(project.id, project.update_params)
+        return models.Project(self, response)
 
     def projects(self, active_only=False, completed_only=False):
         """ Returns models.Projects generator
@@ -353,6 +349,28 @@ class Client(object):
 
         return status
 
+    @status.register(str)
+    def _status_by_label(self, label, strict=False):
+        """ Do not call directly
+            Returns a models.Status object with label of ``label``
+            :param label: str
+            :param strict: bool, matches case if true, ignores case if false
+
+            :returns: models.Status
+        """
+        for sys_status in self.statuses():
+            if strict and label == sys_status.label:
+                status = sys_status
+                break
+            elif label.lower() == sys_status.label.lower():
+                status = sys_status
+                break
+        else:
+            msg = "Could not locate a models.Status with label of {0}"
+            raise TRAWClientError(msg.format(label))
+
+        return status
+
     def statuses(self):
         """ Returns models.Status generator
 
@@ -385,8 +403,8 @@ class Client(object):
 
     @templates.register(models.Project)
     def _templates_by_project(self, project):
-        for template in self.api.templates(project.id):
-            yield models.Template(self, template)
+        for template in self.templates(project.id):
+            yield template
 
     # Test related methods
     @dispatchmethod
@@ -407,6 +425,47 @@ class Client(object):
             :returns: models.Test
         """
         return models.Test(self, self.api.test_by_id(test_id))
+
+    @dispatchmethod
+    def tests(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """ Return models.Test generator for the given models.Run object or run ID
+
+            `client.tests(run)` yields tests associated with the Run instance
+            `client.tests(1234)` yields tests associated with run id 1234
+
+        :param run: models.Run object for a run that exists in TestRail
+        :param run_id: int, Run ID for a run that exists in TestRail
+
+        :raiess: NotImplementedError if called with no parameters (`client.tests()`) or
+                 a parameter of an unsupported type (`client.tests(True)`)
+
+        :yields: models.Test objects
+        """
+        raise NotImplementedError(const.NOTIMP.format("models.Run or int"))
+
+    @tests.register(int)
+    def _tests_by_run_id(self, run_id, with_status=None):
+        msg = ("`with_status` must be either None, models.Status or an iterable of "
+               "models.Status objects. Found {0}")
+        if with_status is None:
+            pass
+        elif not isinstance(with_status, (models.Status, Iterable)):
+            raise TypeError(msg.format(type(with_status)))
+        elif (isinstance(with_status, Iterable) and
+                not all([isinstance(s, models.Status) for s in with_status])):
+            raise TypeError(msg.format([type(s) for s in with_status]))
+
+        if with_status is not None:
+            with_status = with_status if isinstance(with_status, Iterable) else (with_status, )
+            with_status = ','.join([str(s.id) for s in with_status])
+
+        for test in self.api.tests_by_run_id(run_id, with_status):
+            yield models.Test(self, test)
+
+    @tests.register(models.Run)
+    def _tests_by_run(self, run, with_status=None):
+        for test in self.tests(run.id, with_status):
+            yield test
 
     # User related methods
     @dispatchmethod
@@ -431,7 +490,7 @@ class Client(object):
             Returns user associated with ``email``
         """
         if '@' not in email:
-            raise ValueError('"email" must be a string that includes an "@" sym')
+            raise ValueError('"email" must be a string that includes an "@" symbol')
 
         return models.User(self, self.api.user_by_email(email))
 

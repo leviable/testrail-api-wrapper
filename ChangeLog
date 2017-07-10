@@ -1,6 +1,10 @@
 CHANGES
 =======
 
+0.0.8
+-----
+
+* Add project add-update-delete example
 * Add get test support
 * Add project POST support
 * Add milestone POST support
