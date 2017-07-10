@@ -23,12 +23,15 @@ PRIO3 = {'name': 'priority3', 'id': 113}
 PROJ1 = {'name': 'project1'}
 PROJ2 = {'name': 'project2'}
 PROJ3 = {'name': 'project3'}
-STAT1 = {'name': 'status1', 'id': 221}
-STAT2 = {'name': 'status2', 'id': 222}
-STAT3 = {'name': 'status3', 'id': 223}
+STAT1 = {'name': 'status1', 'id': 221, 'label': 'Passed'}
+STAT2 = {'name': 'status2', 'id': 222, 'label': 'Failed'}
+STAT3 = {'name': 'status3', 'id': 223, 'label': 'Blocked'}
 TEMP1 = {'name': 'template1'}
 TEMP2 = {'name': 'template2'}
 TEMP3 = {'name': 'template3'}
+TEST1 = {'name': 'test1', 'id': 441}
+TEST2 = {'name': 'test2', 'id': 442}
+TEST3 = {'name': 'test3', 'id': 443}
 USER1 = {'name': 'user1'}
 USER2 = {'name': 'user2'}
 USER3 = {'name': 'user3'}
@@ -316,7 +319,7 @@ def test_case_by_id(client):
 
     assert isinstance(case, models.Case)
     assert case.id == 1234
-    assert client.api.case_by_id.called_once_with(1234)
+    client.api.case_by_id.assert_called_once_with(1234)
 
 
 def test_case_type_exc(client):
@@ -385,7 +388,7 @@ def test_milestone_by_id(client):
 
     assert isinstance(milestone, models.Milestone)
     assert milestone.id == 1234
-    assert client.api.milestone_by_id.called_once_with(1234)
+    client.api.milestone_by_id.assert_called_once_with(1234)
 
 
 def test_milestones_exception(client):
@@ -669,7 +672,7 @@ def test_run_by_id(client):
 
     assert isinstance(run, models.Run)
     assert run.id == 1234
-    assert client.api.run_by_id.called_once_with(1234)
+    client.api.run_by_id.assert_called_once_with(1234)
 
 
 def test_status_exc(client):
@@ -700,6 +703,42 @@ def test_status_by_int_exc(client):
         client.status(224)
 
     assert 'id of 224' in str(exc)
+    assert client.api.statuses.called
+
+
+def test_status_by_label_not_strict(client):
+    """ Verify the Client's ``status`` method call with a label """
+    client.api.statuses.return_value = [STAT1, STAT2, STAT3]
+
+    status = client.status('failed')
+
+    assert isinstance(status, models.Status)
+    assert status.id == STAT2['id']
+    assert status.label != 'failed'
+    assert status.label.lower() == 'failed'
+    assert client.api.statuses.called
+
+
+def test_status_by_label_exc(client):
+    """ Verify the Client's ``status`` method throws an exception if unmatched label """
+    client.api.statuses.return_value = [STAT1, STAT2, STAT3]
+
+    with pytest.raises(TRAWClientError) as exc:
+        client.status('bad status')
+
+    assert 'label of bad status' in str(exc)
+    assert client.api.statuses.called
+
+
+def test_status_by_label_strict(client):
+    """ Verify the Client's ``status`` method call with a label """
+    client.api.statuses.return_value = [STAT1, STAT2, STAT3]
+
+    status = client.status('Failed', strict=True)
+
+    assert isinstance(status, models.Status)
+    assert status.id == STAT2['id']
+    assert status.label == 'Failed'
     assert client.api.statuses.called
 
 
@@ -736,7 +775,7 @@ def test_templates_by_project(client):
         a models.Project object
     """
     PROJECT_ID = 15
-    PROJECT = models.Project({'id': PROJECT_ID})
+    PROJECT = models.Project(client, {'id': PROJECT_ID})
     client.api.templates.return_value = [TEMP1, TEMP2, TEMP3]
 
     temp_gen = client.templates(PROJECT)
@@ -788,13 +827,171 @@ def test_test_exc(client):
 
 
 def test_test_by_id(client):
-    """ Verify calling ``client.case(123)`` with an ID returns that case """
+    """ Verify calling ``client.test(123)`` with an ID returns that test """
     client.api.test_by_id.return_value = {'id': 1234}
     test = client.test(1234)
 
     assert isinstance(test, models.Test)
     assert test.id == 1234
-    assert client.api.test_by_id.called_once_with(1234)
+    client.api.test_by_id.assert_called_once_with(1234)
+
+
+def test_tests_exc(client):
+    """ Verify the Client's ``tests`` method throws an exception if called """
+    with pytest.raises(NotImplementedError) as exc:
+        client.tests()
+
+    assert 'You must pass in models.Run or int object' in str(exc)
+    assert not client.api.tests_by_run_id.called
+
+
+def test_tests_by_run_id(client):
+    """ Verify calling ``client.tests(123)`` with an ID returns test generator """
+    client.api.tests_by_run_id.return_value = [TEST1, TEST2, TEST3]
+    tests = client.tests(1234)
+
+    test1 = next(tests)
+    assert isinstance(test1, models.Test)
+    assert test1.id == 441
+
+    test2 = next(tests)
+    assert isinstance(test2, models.Test)
+    assert test2.id == 442
+
+    test3 = next(tests)
+    assert isinstance(test3, models.Test)
+    assert test3.id == 443
+
+    client.api.tests_by_run_id.assert_called_once_with(1234, None)
+
+
+def test_tests_by_run_id_with_status(client):
+    """ Verify calling ``client.tests(123)`` with an ID returns test generator """
+    client.api.tests_by_run_id.return_value = [TEST1, ]
+    status = models.Status(client, {'id': 234})
+
+    tests = client.tests(1234, with_status=status)
+
+    test1 = next(tests)
+    assert isinstance(test1, models.Test)
+    assert test1.id == 441
+
+    client.api.tests_by_run_id.assert_called_once_with(1234, '234')
+
+
+def test_tests_by_run_id_with_2_status(client):
+    """ Verify calling ``client.tests(123)`` with an ID returns test generator """
+    client.api.tests_by_run_id.return_value = [TEST1, ]
+    status1 = models.Status(client, {'id': 234})
+    status2 = models.Status(client, {'id': 345})
+
+    tests = client.tests(1234, with_status=(status1, status2))
+
+    test1 = next(tests)
+    assert isinstance(test1, models.Test)
+    assert test1.id == 441
+
+    client.api.tests_by_run_id.assert_called_once_with(1234, '234,345')
+
+
+def test_tests_by_run_id_exc_1(client):
+    """ Verify calling ``client.tests(123, status)`` throws an exception """
+    with pytest.raises(TypeError) as exc:
+        next(client.tests(1234, with_status=111))
+
+    assert "None, models.Status" in str(exc)
+    assert "iterable of models.Status objects" in str(exc)
+    assert str(int) in str(exc)
+    assert not client.api.tests_by_run_id.called
+
+
+def test_tests_by_run_id_exc_2(client):
+    """ Verify calling ``client.tests(123, status)`` throws an exception """
+    status1 = models.Status(client, {'id': 234})
+    status2 = models.Status(client, {'id': 345})
+
+    with pytest.raises(TypeError) as exc:
+        next(client.tests(1234, with_status=(status1, 111, status2)))
+
+    assert "None, models.Status" in str(exc)
+    assert "iterable of models.Status objects" in str(exc)
+    assert str(int) in str(exc)
+    assert not client.api.tests_by_run_id.called
+
+
+def test_tests_by_run(client):
+    """ Verify calling ``client.tests(Run)`` with an ID returns test generator """
+    client.api.tests_by_run_id.return_value = [TEST1, TEST2, TEST3]
+    tests = client.tests(models.Run(client, {'id': 1234}))
+
+    test1 = next(tests)
+    assert isinstance(test1, models.Test)
+    assert test1.id == 441
+
+    test2 = next(tests)
+    assert isinstance(test2, models.Test)
+    assert test2.id == 442
+
+    test3 = next(tests)
+    assert isinstance(test3, models.Test)
+    assert test3.id == 443
+
+    client.api.tests_by_run_id.assert_called_once_with(1234, None)
+
+
+def test_tests_by_run_with_status(client):
+    """ Verify calling ``client.tests(123)`` with an ID returns test generator """
+    client.api.tests_by_run_id.return_value = [TEST1, ]
+    status = models.Status(client, {'id': 234})
+
+    tests = client.tests(models.Run(client, {'id': 1234}), with_status=status)
+
+    test1 = next(tests)
+    assert isinstance(test1, models.Test)
+    assert test1.id == 441
+
+    client.api.tests_by_run_id.assert_called_once_with(1234, '234')
+
+
+def test_tests_by_run_with_2_status(client):
+    """ Verify calling ``client.tests(123)`` with an ID returns test generator """
+    client.api.tests_by_run_id.return_value = [TEST1, ]
+    status1 = models.Status(client, {'id': 234})
+    status2 = models.Status(client, {'id': 345})
+
+    tests = client.tests(models.Run(client, {'id': 1234}), with_status=(status1, status2))
+
+    test1 = next(tests)
+    assert isinstance(test1, models.Test)
+    assert test1.id == 441
+
+    client.api.tests_by_run_id.assert_called_once_with(1234, '234,345')
+
+
+def test_tests_by_run_exc_1(client):
+    """ Verify calling ``client.tests(123, status)`` throws an exception """
+    with pytest.raises(TypeError) as exc:
+        next(client.tests(models.Run(client, {'id': 1234}), with_status=111))
+
+    assert "None, models.Status" in str(exc)
+    assert "iterable of models.Status objects" in str(exc)
+    assert str(int) in str(exc)
+    assert not client.api.tests_by_run_id.called
+
+
+def test_tests_by_run_exc_2(client):
+    """ Verify calling ``client.tests(123, status)`` throws an exception """
+    status1 = models.Status(client, {'id': 234})
+    status2 = models.Status(client, {'id': 345})
+    run = models.Run(client, {'id': 1234})
+
+    with pytest.raises(TypeError) as exc:
+        next(client.tests(run, with_status=(status1, 111, status2)))
+
+    assert "None, models.Status" in str(exc)
+    assert "iterable of models.Status objects" in str(exc)
+    assert str(int) in str(exc)
+    assert not client.api.tests_by_run_id.called
 
 
 def test_user(client):

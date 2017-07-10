@@ -182,6 +182,16 @@ class API(object):
         path = API_PATH['get_test'].format(test_id=test_id)
         return self._session.request(method=GET, path=path)
 
+    def tests_by_run_id(self, run_id, status_id=None):
+        """ Calls `get_tests` API endpoint
+
+        :yields: template dictionaries from api
+        """
+        path = API_PATH['get_tests'].format(run_id=run_id)
+        params = {'status_id': status_id} if status_id else None
+        for test in self._session.request(method=GET, path=path, params=params):
+            yield test
+
     def user_by_email(self, email):
         """ Calls `get_user` API endpoint with the given user email
 

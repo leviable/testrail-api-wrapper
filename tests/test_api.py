@@ -449,6 +449,37 @@ def test_test_by_id(api):
     assert api._session.request.call_args == exp_call
 
 
+def test_tests_by_run_id_no_status_id(api):
+    """ Verify the ``tests_by_run_id`` method call with no status_id"""
+    RUN_ID = 1234
+    api._session.request.return_value = [TEST1, TEST2]
+
+    test = next(api.tests_by_run_id(RUN_ID))
+
+    exp_call = mock.call(
+        method=GET, path=AP['get_tests'].format(run_id=RUN_ID), params=None)
+
+    assert test == TEST1
+    assert isinstance(test, dict)
+    assert api._session.request.call_args == exp_call
+
+
+def test_tests_by_run_id_w_status_id(api):
+    """ Verify the ``tests_by_run_id`` method call with status_id"""
+    RUN_ID = 1234
+    api._session.request.return_value = [TEST1, TEST2]
+
+    test = next(api.tests_by_run_id(RUN_ID, "111,222"))
+
+    exp_call = mock.call(method=GET,
+                         path=AP['get_tests'].format(run_id=RUN_ID),
+                         params={'status_id': '111,222'})
+
+    assert test == TEST1
+    assert isinstance(test, dict)
+    assert api._session.request.call_args == exp_call
+
+
 def test_user_by_email(api):
     """ Verify the user_by_email method can be called """
     USER_EMAIL = 'mock.user@mock.com'
