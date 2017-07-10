@@ -39,13 +39,6 @@ class Suite(Addable, Deleteable, Updatable, ModelBase):
         """ True if the test suite is marked as completed and false otherwise """
         return self._content.get('is_completed', False)
 
-    @is_completed.setter
-    def is_completed(self, val):
-        # Not sure this is actually setable on the client side
-        if not isinstance(val, bool):
-            raise TypeError(const.SETTER_ERR.format(bool, type(val)))
-        self._content['is_completed'] = val
-
     @property
     def is_master(self):
         """ True if the test suite is a master test suite and false otherwise """

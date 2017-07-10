@@ -426,6 +426,22 @@ def test_statuses(api):
     assert api._session.request.call_args == exp_call
 
 
+def test_suite_add(api):
+    """ Verify the ``suite_add`` method call """
+    PROJECT_ID = 15
+    PARAMS = {'param_key': 'param_value'}
+    api._session.request.return_value = SUIT1
+    suite = api.suite_add(PROJECT_ID, PARAMS)
+
+    exp_call = mock.call(method=POST,
+                         path=AP['add_suite'].format(project_id=PROJECT_ID),
+                         json=PARAMS)
+
+    assert suite == SUIT1
+    assert isinstance(suite, dict)
+    assert api._session.request.call_args == exp_call
+
+
 def test_suite_by_id(api):
     """ Verify the ``suite_by_id`` method call """
     SUITE_ID = 1234
@@ -447,6 +463,36 @@ def test_suites_by_project_id(api):
     suite = next(api.suites_by_project_id(PROJECT_ID))
 
     exp_call = mock.call(method=GET, path=AP['get_suites'].format(project_id=PROJECT_ID))
+
+    assert suite == SUIT1
+    assert isinstance(suite, dict)
+    assert api._session.request.call_args == exp_call
+
+
+def test_suite_delete(api):
+    """ Verify the ``suite_delete`` method call """
+    SUITE_ID = 1234
+    api._session.request.return_value = {}
+    suite = api.suite_delete(SUITE_ID)
+
+    exp_call = mock.call(method=POST,
+                         path=AP['delete_suite'].format(suite_id=SUITE_ID))
+
+    assert isinstance(suite, dict)
+    assert suite == dict()
+    assert api._session.request.call_args == exp_call
+
+
+def test_suite_update(api):
+    """ Verify the ``suite_update`` method call """
+    SUITE_ID = 1234
+    PARAMS = {'param_key': 'param_value'}
+    api._session.request.return_value = SUIT1
+    suite = api.suite_update(SUITE_ID, PARAMS)
+
+    exp_call = mock.call(method=POST,
+                         path=AP['update_suite'].format(suite_id=SUITE_ID),
+                         json=PARAMS)
 
     assert suite == SUIT1
     assert isinstance(suite, dict)

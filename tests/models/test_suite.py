@@ -63,25 +63,9 @@ def test_is_baseline(new_suite, suite):
     assert suite.is_baseline is False
 
 
-def test_is_completed_get(new_suite, suite):
+def test_is_completed(new_suite, suite):
     assert new_suite.is_completed is False
     assert suite.is_completed is False
-
-
-def test_is_completed_set(suite):
-    assert suite.is_completed is False
-
-    suite.is_completed = True
-
-    assert suite.is_completed is True
-
-
-def test_is_completed_set_exc(new_suite):
-    with pytest.raises(TypeError) as exc:
-        new_suite.is_completed = 1234
-
-    assert str(bool) in str(exc)
-    assert str(int) in str(exc)
 
 
 def test_is_master(new_suite, suite):

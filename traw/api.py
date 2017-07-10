@@ -163,6 +163,10 @@ class API(object):
         for status in self._session.request(method=GET, path=path):
             yield status
 
+    def suite_add(self, project_id, params):
+        path = API_PATH['add_suite'].format(project_id=project_id)
+        return self._session.request(method=POST, path=path, json=params)
+
     def suite_by_id(self, suite_id):
         """ Calls `get_suite` API endpoint with the given suite_id
 
@@ -172,6 +176,14 @@ class API(object):
         """
         path = API_PATH['get_suite'].format(suite_id=suite_id)
         return self._session.request(method=GET, path=path)
+
+    def suite_delete(self, suite_id):
+        path = API_PATH['delete_suite'].format(suite_id=suite_id)
+        return self._session.request(method=POST, path=path)
+
+    def suite_update(self, suite_id, params):
+        path = API_PATH['update_suite'].format(suite_id=suite_id)
+        return self._session.request(method=POST, path=path, json=params)
 
     def suites_by_project_id(self, project_id):
         """ Calls `get_suites` API endpoint

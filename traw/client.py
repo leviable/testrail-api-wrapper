@@ -387,7 +387,12 @@ class Client(object):
 
             :returns: models.Suite
         """
-        raise NotImplementedError(const.NOTIMP.format("int"))
+        return models.Suite(self)
+
+    @add.register(models.Suite)
+    def _suite_add(self, suite):
+        response = self.api.suite_add(suite.project.id, suite.add_params)
+        return models.Suite(self, response)
 
     @suite.register(int)
     def _suite_by_int(self, suite_id):
@@ -398,6 +403,15 @@ class Client(object):
             :returns: models.Suite
         """
         return models.Suite(self, self.api.suite_by_id(suite_id))
+
+    @delete.register(models.Suite)
+    def _suite_delete(self, suite):
+        self.api.suite_delete(suite.id)
+
+    @update.register(models.Suite)
+    def _suite_update(self, suite):
+        response = self.api.suite_update(suite.id, suite.update_params)
+        return models.Suite(self, response)
 
     @dispatchmethod
     def suites(self, *args, **kwargs):  # pylint: disable=unused-argument
