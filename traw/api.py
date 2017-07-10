@@ -163,6 +163,37 @@ class API(object):
         for status in self._session.request(method=GET, path=path):
             yield status
 
+    def suite_add(self, project_id, params):
+        path = API_PATH['add_suite'].format(project_id=project_id)
+        return self._session.request(method=POST, path=path, json=params)
+
+    def suite_by_id(self, suite_id):
+        """ Calls `get_suite` API endpoint with the given suite_id
+
+        :param suite_id: int id of suite
+
+        :returns: suite dict
+        """
+        path = API_PATH['get_suite'].format(suite_id=suite_id)
+        return self._session.request(method=GET, path=path)
+
+    def suite_delete(self, suite_id):
+        path = API_PATH['delete_suite'].format(suite_id=suite_id)
+        return self._session.request(method=POST, path=path)
+
+    def suite_update(self, suite_id, params):
+        path = API_PATH['update_suite'].format(suite_id=suite_id)
+        return self._session.request(method=POST, path=path, json=params)
+
+    def suites_by_project_id(self, project_id):
+        """ Calls `get_suites` API endpoint
+
+        :yields: suite dictionaries from api
+        """
+        path = API_PATH['get_suites'].format(project_id=project_id)
+        for suite in self._session.request(method=GET, path=path):
+            yield suite
+
     def templates(self, project_id):
         """ Calls `get_templates` API endpoint
 
@@ -185,7 +216,7 @@ class API(object):
     def tests_by_run_id(self, run_id, status_id=None):
         """ Calls `get_tests` API endpoint
 
-        :yields: template dictionaries from api
+        :yields: test dictionaries from api
         """
         path = API_PATH['get_tests'].format(run_id=run_id)
         params = {'status_id': status_id} if status_id else None
