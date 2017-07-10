@@ -29,7 +29,6 @@ def milestone(client):
                "id": ID,
                "is_completed": False,
                "is_started": False,
-               "is_completed": False,
                "name": NAME,
                "project_id": PROJECT_ID,
                "start_on": START_ON,
@@ -157,8 +156,8 @@ def test_name_set(new_milestone, milestone):
     new_milestone.name = NAME
     assert new_milestone.name == NAME
 
-    milestone.name == NAME
-    assert milestone.name is NAME
+    milestone.name = NAME
+    assert milestone.name == NAME
 
 
 def test_name_set_exc(new_milestone):

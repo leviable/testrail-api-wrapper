@@ -379,6 +379,53 @@ class Client(object):
         for status in self.api.statuses():
             yield models.Status(self, status)
 
+    # Suite related methods
+    @dispatchmethod
+    def suite(self):
+        """
+            :param suite_id: int
+
+            :returns: models.Suite
+        """
+        raise NotImplementedError(const.NOTIMP.format("int"))
+
+    @suite.register(int)
+    def _suite_by_int(self, suite_id):
+        """ Do not call directly
+            Returns a models.Suite object with id of ``suite_id``
+            :param suite_id: int
+
+            :returns: models.Suite
+        """
+        return models.Suite(self, self.api.suite_by_id(suite_id))
+
+    @dispatchmethod
+    def suites(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """ Return models.Suite generator for the given models.Project object or run ID
+
+            `client.suites(project)` yields suites associated with the Project instance
+            `client.suites(1234)` yields suites associated with project id 1234
+
+        :param project: models.Run object for a run that exists in TestRail
+        :param project_id: int, Run ID for a run that exists in TestRail
+
+        :raiess: NotImplementedError if called with no parameters (`client.suites()`) or
+                 a parameter of an unsupported type (`client.suites(True)`)
+
+        :yields: models.Suite objects
+        """
+        raise NotImplementedError(const.NOTIMP.format("models.Project or int"))
+
+    @suites.register(int)
+    def _suites_by_project_id(self, project_id):
+        for suite in self.api.suites_by_project_id(project_id):
+            yield models.Suite(self, suite)
+
+    @suites.register(models.Project)
+    def _suites_by_project(self, project):
+        for suite in self.suites(project.id):
+            yield suite
+
     # Template related methods
     @dispatchmethod
     def templates(self, *args, **kwargs):  # pylint: disable=unused-argument

@@ -26,6 +26,9 @@ PROJ3 = {'name': 'project3'}
 STAT1 = {'name': 'status1', 'id': 221, 'label': 'Passed'}
 STAT2 = {'name': 'status2', 'id': 222, 'label': 'Failed'}
 STAT3 = {'name': 'status3', 'id': 223, 'label': 'Blocked'}
+SUIT1 = {'name': 'suite1', 'id': 551}
+SUIT2 = {'name': 'suite2', 'id': 552}
+SUIT3 = {'name': 'suite3', 'id': 553}
 TEMP1 = {'name': 'template1'}
 TEMP2 = {'name': 'template2'}
 TEMP3 = {'name': 'template3'}
@@ -760,6 +763,74 @@ def test_statuses(client):
     assert stat3.name == 'status3'
 
     assert client.api.statuses.call_args == mock.call()
+
+
+def test_suite_exc(client):
+    """ Verify the Client's ``suite`` method throws an exception if called """
+    with pytest.raises(NotImplementedError) as exc:
+        client.suite()
+
+    assert 'You must pass in int object' in str(exc)
+    assert not client.api.suite_by_id.called
+
+
+def test_suite_by_id(client):
+    """ Verify calling ``client.suite(123)`` with an ID returns that suite """
+    client.api.suite_by_id.return_value = {'id': 1234}
+    suite = client.suite(1234)
+
+    assert isinstance(suite, models.Suite)
+    assert suite.id == 1234
+    client.api.suite_by_id.assert_called_once_with(1234)
+
+
+def test_suites_exc(client):
+    """ Verify the Client's ``suites`` method throws an exception if called """
+    with pytest.raises(NotImplementedError) as exc:
+        client.suites()
+
+    assert 'You must pass in models.Project or int object' in str(exc)
+    assert not client.api.suites_by_project_id.called
+
+
+def test_suites_by_project_id(client):
+    """ Verify calling ``client.suites(123)`` with an ID returns suite generator """
+    client.api.suites_by_project_id.return_value = [SUIT1, SUIT2, SUIT3]
+    suites = client.suites(1234)
+
+    suite1 = next(suites)
+    assert isinstance(suite1, models.Suite)
+    assert suite1.id == 551
+
+    suite2 = next(suites)
+    assert isinstance(suite2, models.Suite)
+    assert suite2.id == 552
+
+    suite3 = next(suites)
+    assert isinstance(suite3, models.Suite)
+    assert suite3.id == 553
+
+    client.api.suites_by_project_id.assert_called_once_with(1234)
+
+
+def test_suites_by_project(client):
+    """ Verify calling ``client.suites(Project)`` with an ID returns suite generator """
+    client.api.suites_by_project_id.return_value = [SUIT1, SUIT2, SUIT3]
+    suites = client.suites(models.Project(client, {'id': 1234}))
+
+    suite1 = next(suites)
+    assert isinstance(suite1, models.Suite)
+    assert suite1.id == 551
+
+    suite2 = next(suites)
+    assert isinstance(suite2, models.Suite)
+    assert suite2.id == 552
+
+    suite3 = next(suites)
+    assert isinstance(suite3, models.Suite)
+    assert suite3.id == 553
+
+    client.api.suites_by_project_id.assert_called_once_with(1234)
 
 
 def test_templates_exception(client):

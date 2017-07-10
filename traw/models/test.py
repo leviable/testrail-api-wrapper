@@ -1,8 +1,6 @@
 from .model_base import ModelBase
 from ..utils import duration_to_timedelta as dur_to_td
 
-NAME = 'name'
-
 
 class Test(ModelBase):
     """ Object model for TestRail Tests

@@ -1,6 +1,9 @@
 CHANGES
 =======
 
+* Add Suite model and get suite(s) support
+* Add get tests support
+
 0.0.8
 -----
 

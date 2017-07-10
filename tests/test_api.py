@@ -30,6 +30,9 @@ RUN3 = {'run': 'run3'}
 STAT1 = {'stat': 'stat1'}
 STAT2 = {'stat': 'stat2'}
 STAT3 = {'stat': 'stat3'}
+SUIT1 = {'suite': 'suite1'}
+SUIT2 = {'suite': 'suite2'}
+SUIT3 = {'suite': 'suite3'}
 TEMP1 = {'temp': 'temp1'}
 TEMP2 = {'temp': 'temp2'}
 TEMP3 = {'temp': 'temp3'}
@@ -420,6 +423,33 @@ def test_statuses(api):
 
     assert all(map(lambda s: isinstance(s, dict), stat_list))
     assert len(stat_list) == 3
+    assert api._session.request.call_args == exp_call
+
+
+def test_suite_by_id(api):
+    """ Verify the ``suite_by_id`` method call """
+    SUITE_ID = 1234
+    api._session.request.return_value = SUIT1
+    suite = api.suite_by_id(SUITE_ID)
+
+    exp_call = mock.call(method=GET, path=AP['get_suite'].format(suite_id=SUITE_ID))
+
+    assert suite == SUIT1
+    assert isinstance(suite, dict)
+    assert api._session.request.call_args == exp_call
+
+
+def test_suites_by_project_id(api):
+    """ Verify the ``suites_by_project_id`` method call """
+    PROJECT_ID = 1234
+    api._session.request.return_value = [SUIT1, SUIT2]
+
+    suite = next(api.suites_by_project_id(PROJECT_ID))
+
+    exp_call = mock.call(method=GET, path=AP['get_suites'].format(project_id=PROJECT_ID))
+
+    assert suite == SUIT1
+    assert isinstance(suite, dict)
     assert api._session.request.call_args == exp_call
 
 
