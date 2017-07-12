@@ -99,7 +99,7 @@ class Client(object):
         raise NotImplementedError(const.NOTIMP.format("int"))
 
     @case_type.register(int)
-    def _case_type_by_int(self, case_type_id):
+    def _case_type_by_id(self, case_type_id):
         """ Do not call directly
             Returns a models.CaseType object with id of ``case_type_id``
             :param case_type_id: int
@@ -124,6 +124,114 @@ class Client(object):
         """
         for case_type in self.api.case_types():
             yield models.CaseType(self, case_type)
+
+    # Config related methods
+    @dispatchmethod
+    def config(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """ Return new models.Config object
+
+            `client.config()` returns a new Config instance (no API call)
+
+        :returns: models.Config object
+        """
+        return models.Config(self)
+
+    @add.register(models.Config)
+    def _config_add(self, config):
+        response = self.api.config_add(config.config_group.id, config.add_params)
+        return models.Config(self, response)
+
+    @delete.register(models.Config)
+    def _config_delete(self, config):
+        self.api.config_delete(config.id)
+
+    @update.register(models.Config)
+    def _config_update(self, config):
+        response = self.api.config_update(config.id, config.update_params)
+        return models.Config(self, response)
+
+    @dispatchmethod
+    def config_group(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """ Return models.ConfigGroup for the given models.Project or project ID
+            and config_group ID
+
+            `client.config_group()` returns a new ConfigGroup instance (no API call)
+            `client.config_group(project, 5678)` yields config group associated
+                with the Project instance and config group id 5678
+            `client.config_group(1234, 5678)` yields config groups associated with
+                project id 1234 and config group 5678
+
+        :param project: models.Project object for a project that exists in TestRail
+        :param project_id: int, Project ID for a project that exists in TestRail
+        :param config_group_id: the ID of the target config group
+
+        :raiess: NotImplementedError if called with no parameters or a parameter of an
+                     unsupported type(`client.config_group()`)
+
+        :returns: models.ConfigGroup object
+        """
+        return models.ConfigGroup(self)
+
+    @add.register(models.ConfigGroup)
+    def _config_group_add(self, config_group):
+        response = self.api.config_group_add(config_group.project.id, config_group.add_params)
+        return models.ConfigGroup(self, response)
+
+    @config_group.register(int)
+    def _config_group_by_project_id(self, project_id, config_group_id):
+        for sys_config_group in self.config_groups(project_id):
+            if sys_config_group.id == config_group_id:
+                config_group = sys_config_group
+                break
+        else:
+            msg = ("Could not locate a models.ConfigGroup with id of {0}"
+                   "for project with ID {1}")
+            raise TRAWClientError(msg.format(config_group_id, project_id))
+
+        return config_group
+
+    @config_group.register(models.Project)
+    def _config_group_by_project(self, project, config_group_id):
+        return self.config_group(project.id, config_group_id)
+
+    @delete.register(models.ConfigGroup)
+    def _config_group_delete(self, config_group):
+        self.api.config_group_delete(config_group.id)
+
+    @update.register(models.ConfigGroup)
+    def _config_group_update(self, config_group):
+        response = self.api.config_group_update(config_group.id, config_group.update_params)
+        return models.ConfigGroup(self, response)
+
+    @dispatchmethod
+    def config_groups(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """ Return models.ConfigGroup generator for the given models.Project
+            object or project ID
+
+            `client.config_groups(project)` yields config groups associated with
+                the Project instance
+            `client.config_groups(1234)` yields config groups associated with
+                project id 1234
+
+        :param project: models.Project object for a project that exists in TestRail
+        :param project_id: int, Project ID for a project that exists in TestRail
+
+        :raiess: NotImplementedError if called with no parameters or a parameter of an
+                     unsupported type(`client.config_groups()`)
+
+        :yields: models.ConfigGroup objects
+        """
+        raise NotImplementedError(const.NOTIMP.format("models.Project or int"))
+
+    @config_groups.register(int)
+    def _config_groups_by_project_id(self, project_id):
+        for config_group in self.api.config_groups(project_id):
+            yield models.ConfigGroup(self, config_group)
+
+    @config_groups.register(models.Project)
+    def _config_groups_by_project(self, project):
+        for config_group in self.config_groups(project.id):
+            yield config_group
 
     # Milestone related methods
     @dispatchmethod
@@ -217,7 +325,7 @@ class Client(object):
         raise NotImplementedError(const.NOTIMP.format("int"))
 
     @priority.register(int)
-    def _priority_by_int(self, priority_id):
+    def _priority_by_id(self, priority_id):
         """ Do not call directly
             Returns a models.Priority object with id of ``priority_id``
             :param priority_id: int
@@ -332,7 +440,7 @@ class Client(object):
         raise NotImplementedError(const.NOTIMP.format("int"))
 
     @status.register(int)
-    def _status_by_int(self, status_id):
+    def _status_by_id(self, status_id):
         """ Do not call directly
             Returns a models.Status object with id of ``status_id``
             :param status_id: int
@@ -395,7 +503,7 @@ class Client(object):
         return models.Suite(self, response)
 
     @suite.register(int)
-    def _suite_by_int(self, suite_id):
+    def _suite_by_id(self, suite_id):
         """ Do not call directly
             Returns a models.Suite object with id of ``suite_id``
             :param suite_id: int
@@ -478,7 +586,7 @@ class Client(object):
         raise NotImplementedError(const.NOTIMP.format("int"))
 
     @test.register(int)
-    def _test_by_int(self, test_id):
+    def _test_by_id(self, test_id):
         """ Do not call directly
             Returns a models.Test object with id of ``test_id``
             :param test_id: int

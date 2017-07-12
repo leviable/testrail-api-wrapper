@@ -75,13 +75,15 @@ def test_is_master(new_suite, suite):
 
 def test_name_get(new_suite, suite):
     assert new_suite.name is None
-    assert suite.name is NAME
+    assert suite.name == NAME
 
 
 def test_name_set(new_suite, suite):
+    assert new_suite.name is None
     new_suite.name = "New Suite Name"
     assert new_suite.name == "New Suite Name"
 
+    assert suite.name == NAME
     suite.name = "New Suite Name"
     assert suite.name == "New Suite Name"
 

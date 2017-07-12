@@ -12,6 +12,12 @@ MOCK_URL = 'mock url'
 CASE1 = {'case': 'case1'}
 CASE2 = {'case': 'case2'}
 CASE3 = {'case': 'case3'}
+CG1 = {'config_group': 'config_group1'}
+CG2 = {'config_group': 'config_group2'}
+CG3 = {'config_group': 'config_group3'}
+CONF1 = {'config': 'config1'}
+CONF2 = {'config': 'config2'}
+CONF3 = {'config': 'config3'}
 CT1 = {'casetype': 'casetype1'}
 CT2 = {'casetype': 'casetype2'}
 CT3 = {'casetype': 'casetype3'}
@@ -212,6 +218,111 @@ def test_case_types(api):
 
     assert all(map(lambda c: isinstance(c, dict), ct_list))
     assert len(ct_list) == 3
+    assert api._session.request.call_args == exp_call
+
+
+def test_config_add(api):
+    """ Verify the ``config_add`` method call """
+    CONFIG_GROUP_ID = 15
+    PARAMS = {'param_key': 'param_value'}
+    api._session.request.return_value = CONF1
+    config = api.config_add(CONFIG_GROUP_ID, params=PARAMS)
+
+    exp_call = mock.call(method=POST,
+                         path=AP['add_config'].format(config_group_id=CONFIG_GROUP_ID),
+                         json=PARAMS)
+
+    assert config == CONF1
+    assert isinstance(config, dict)
+    assert api._session.request.call_args == exp_call
+
+
+def test_config_delete(api):
+    """ Verify the ``config_delete`` method call """
+    CONFIG_ID = 15
+    api._session.request.return_value = {}
+    config = api.config_delete(CONFIG_ID)
+
+    exp_call = mock.call(method=POST,
+                         path=AP['delete_config'].format(config_id=CONFIG_ID))
+
+    assert isinstance(config, dict)
+    assert config == dict()
+    assert api._session.request.call_args == exp_call
+
+
+def test_config_update(api):
+    """ Verify the ``config_update`` method call """
+    CONFIG_ID = 15
+    PARAMS = {'param_key': 'param_value'}
+    api._session.request.return_value = CONF1
+    config = api.config_update(CONFIG_ID, PARAMS)
+
+    exp_call = mock.call(method=POST,
+                         path=AP['update_config'].format(config_id=CONFIG_ID),
+                         json=PARAMS)
+
+    assert config == CONF1
+    assert isinstance(config, dict)
+    assert api._session.request.call_args == exp_call
+
+
+def test_config_group_add(api):
+    """ Verify the ``config_group_add`` method call """
+    PROJECT_ID = 15
+    PARAMS = {'param_key': 'param_value'}
+    api._session.request.return_value = CG1
+    con_grp = api.config_group_add(PROJECT_ID, params=PARAMS)
+
+    exp_call = mock.call(method=POST,
+                         path=AP['add_config_group'].format(project_id=PROJECT_ID),
+                         json=PARAMS)
+
+    assert con_grp == CG1
+    assert isinstance(con_grp, dict)
+    assert api._session.request.call_args == exp_call
+
+
+def test_config_group_delete(api):
+    """ Verify the ``config_group_delete`` method call """
+    CONFIG_GROUP_ID = 15
+    api._session.request.return_value = {}
+    con_grp = api.config_group_delete(CONFIG_GROUP_ID)
+
+    exp_call = mock.call(method=POST,
+                         path=AP['delete_config_group'].format(config_group_id=CONFIG_GROUP_ID))
+
+    assert isinstance(con_grp, dict)
+    assert con_grp == dict()
+    assert api._session.request.call_args == exp_call
+
+
+def test_config_group_update(api):
+    """ Verify the ``config_group_update`` method call """
+    CONFIG_GROUP_ID = 15
+    PARAMS = {'param_key': 'param_value'}
+    api._session.request.return_value = CG1
+    con_grp = api.config_group_update(CONFIG_GROUP_ID, PARAMS)
+
+    exp_call = mock.call(method=POST,
+                         path=AP['update_config_group'].format(config_group_id=CONFIG_GROUP_ID),
+                         json=PARAMS)
+
+    assert con_grp == CG1
+    assert isinstance(con_grp, dict)
+    assert api._session.request.call_args == exp_call
+
+
+def test_config_groups(api):
+    """ Verify the ``config_groups`` method call """
+    PROJECT_ID = 15
+    api._session.request.return_value = [CG1, CG2, CG3]
+    cg_list = list(api.config_groups(PROJECT_ID))
+
+    exp_call = mock.call(method=GET, path=AP['get_configs'].format(project_id=PROJECT_ID))
+
+    assert all(map(lambda c: isinstance(c, dict), cg_list))
+    assert len(cg_list) == 3
     assert api._session.request.call_args == exp_call
 
 

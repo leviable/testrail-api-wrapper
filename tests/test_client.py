@@ -11,6 +11,9 @@ USER = 'mock username'
 PASS = 'mock password'
 URL = 'mock url'
 
+CG1 = {'name': 'configgroup1', 'id': 661, 'project_id': 15}
+CG2 = {'name': 'configgroup2', 'id': 662, 'project_id': 15}
+CG3 = {'name': 'configgroup3', 'id': 663, 'project_id': 15}
 CT1 = {'name': 'casetype1', 'id': 331}
 CT2 = {'name': 'casetype2', 'id': 332}
 CT3 = {'name': 'casetype3', 'id': 333}
@@ -63,6 +66,46 @@ def test_add_exception_w_obj(client):
         client.add(1)
 
     assert "support adding objects of type" in str(exc)
+
+
+def test_add_config(client):
+    CONFIG_ID = 15
+    CONFIG_GROUP_ID = 15
+
+    config_config = {traw.const.NAME: 'mock name',
+                     'group_id': CONFIG_GROUP_ID}
+
+    config = models.Config(client, dict(extra='extra', **config_config))
+
+    client.api.config_add.return_value = dict(id=CONFIG_ID, **config_config)
+
+    response = client.add(config)
+
+    assert isinstance(response, models.Config)
+    assert response.id == CONFIG_ID
+    assert client.api.config_add.called
+    assert 'mock name' in str(client.api.config_add.call_args)
+    assert 'extra' not in str(client.api.config_add.call_args)
+
+
+def test_add_config_group(client):
+    CONFIG_GROUP_ID = 15
+    PROJECT_ID = 15
+
+    config_group_config = {traw.const.NAME: 'mock name',
+                           'project_id': PROJECT_ID}
+
+    con_grp = models.ConfigGroup(client, dict(extra='extra', **config_group_config))
+
+    client.api.config_group_add.return_value = dict(id=CONFIG_GROUP_ID, **config_group_config)
+
+    response = client.add(con_grp)
+
+    assert isinstance(response, models.ConfigGroup)
+    assert response.id == CONFIG_GROUP_ID
+    assert client.api.config_group_add.called
+    assert 'mock name' in str(client.api.config_group_add.call_args)
+    assert 'extra' not in str(client.api.config_group_add.call_args)
 
 
 def test_add_milestone(client):
@@ -197,6 +240,40 @@ def test_delete_exception_w_obj(client):
     assert "support deleting objects of type" in str(exc)
 
 
+def test_delete_config(client):
+    CONFIG_GROUP_ID = 456
+    CONFIG_ID = 123
+    PROJECT_ID = 15
+
+    config_config = {traw.const.NAME: 'mock name',
+                     traw.const.PROJECT_ID: PROJECT_ID,
+                     'group_id': CONFIG_GROUP_ID}
+    config = models.Config(client, dict(id=CONFIG_ID, **config_config))
+
+    client.api.project_delete.return_value = dict()
+
+    response = client.delete(config)
+
+    assert response is None
+    client.api.config_delete.assert_called_once_with(CONFIG_ID)
+
+
+def test_delete_config_group(client):
+    CONFIG_GROUP_ID = 456
+    PROJECT_ID = 15
+
+    config_group_config = {traw.const.NAME: 'mock name',
+                           traw.const.PROJECT_ID: PROJECT_ID}
+    con_grp = models.ConfigGroup(client, dict(id=CONFIG_GROUP_ID, **config_group_config))
+
+    client.api.config_group_delete.return_value = dict()
+
+    response = client.delete(con_grp)
+
+    assert response is None
+    client.api.config_group_delete.assert_called_once_with(CONFIG_GROUP_ID)
+
+
 def test_delete_milestone(client):
     MILESTONE_ID = 111
     PROJECT_ID = 15
@@ -271,6 +348,44 @@ def test_update_exception_w_obj(client):
         client.update(1)
 
     assert "support updating objects of type" in str(exc)
+
+
+def test_update_config(client):
+    CONFIG_ID = 16
+    CONFIG_GROUP_ID = 17
+
+    config_config = {traw.const.NAME: 'mock name',
+                     'group_id': CONFIG_GROUP_ID}
+
+    config = models.Config(client, dict(extra='extra', **config_config))
+
+    client.api.config_update.return_value = dict(id=CONFIG_ID, **config_config)
+
+    response = client.update(config)
+
+    assert isinstance(response, models.Config)
+    assert response.id == CONFIG_ID
+    assert client.api.config_update.called
+    assert 'mock name' in str(client.api.config_update.call_args)
+    assert 'extra' not in str(client.api.config_update.call_args)
+
+
+def test_update_config_group(client):
+    CONFIG_GROUP_ID = 17
+
+    config_group_config = {traw.const.NAME: 'mock name'}
+
+    con_grp = models.ConfigGroup(client, dict(extra='extra', **config_group_config))
+
+    client.api.config_group_update.return_value = dict(id=CONFIG_GROUP_ID, **config_group_config)
+
+    response = client.update(con_grp)
+
+    assert isinstance(response, models.ConfigGroup)
+    assert response.id == CONFIG_GROUP_ID
+    assert client.api.config_group_update.called
+    assert 'mock name' in str(client.api.config_group_update.call_args)
+    assert 'extra' not in str(client.api.config_group_update.call_args)
 
 
 def test_update_milestone(client):
@@ -443,6 +558,147 @@ def test_case_types(client):
     assert ct3.name == 'casetype3'
 
     assert client.api.case_types.call_args == mock.call()
+
+
+def test_config(client):
+    """ Verify config method returns a new models.Config instance if
+        called without any parameters
+    """
+    config = client.config()
+
+    assert isinstance(config, models.Config)
+    assert config.name is None
+    assert config.id is None
+    assert config.config_group is None
+
+
+def test_config_group(client):
+    """ Verify config group method returns a new models.ConfigGroup instance if
+        called without any parameters
+    """
+    cg = client.config_group()
+
+    assert isinstance(cg, models.ConfigGroup)
+    assert cg.name is None
+    assert cg.id is None
+    assert cg.project is None
+    assert list(cg.configs) == list()
+
+
+def test_config_group_by_project(client):
+    """ Verify calling ``client.config_group(123)`` with an ID returns
+        a config group object
+    """
+    PROJECT_ID = 15
+    PROJECT = models.Project(client, {'id': PROJECT_ID})
+    CONFIG_GROUP_ID = 662
+
+    client.api.config_groups.return_value = [CG1, CG2, CG3]
+    client.api.project_by_id.return_value = {'id': PROJECT_ID}
+
+    config_group = client.config_group(PROJECT, CONFIG_GROUP_ID)
+
+    assert isinstance(config_group, models.ConfigGroup)
+    assert config_group.id == CONFIG_GROUP_ID
+    assert config_group.name == 'configgroup2'
+    assert config_group.project.id == PROJECT_ID
+
+    client.api.config_groups.assert_called_once_with(PROJECT_ID)
+
+
+def test_config_group_by_project_id(client):
+    """ Verify calling ``client.config_group(123)`` with an ID returns
+        a config group object
+    """
+    PROJECT_ID = 15
+    CONFIG_GROUP_ID = 662
+
+    client.api.config_groups.return_value = [CG1, CG2, CG3]
+    client.api.project_by_id.return_value = {'id': PROJECT_ID}
+
+    config_group = client.config_group(PROJECT_ID, CONFIG_GROUP_ID)
+
+    assert isinstance(config_group, models.ConfigGroup)
+    assert config_group.id == CONFIG_GROUP_ID
+    assert config_group.name == 'configgroup2'
+    assert config_group.project.id == PROJECT_ID
+
+    client.api.config_groups.assert_called_once_with(PROJECT_ID)
+
+
+def test_config_group_exc(client):
+    """ Verify calling ``client.config_group(123)`` with an ID throws an
+        exception if called with an recognized Config Group ID
+    """
+    PROJECT_ID = 15
+    CONFIG_GROUP_ID = 666
+
+    client.api.config_groups.return_value = [CG1, CG2, CG3]
+    client.api.project_by_id.return_value = {'id': PROJECT_ID}
+
+    with pytest.raises(TRAWClientError) as exc:
+        client.config_group(PROJECT_ID, CONFIG_GROUP_ID)
+
+    assert "models.ConfigGroup" in str(exc)
+    assert "id of 666" in str(exc)
+
+    client.api.config_groups.assert_called_once_with(PROJECT_ID)
+
+
+def test_config_groups_by_project(client):
+    """ Verify calling ``client.config_groups(project)`` with an ID returns
+        a config group generator
+    """
+    PROJECT_ID = 15
+    PROJECT = models.Project(client, {'id': PROJECT_ID})
+    client.api.config_groups.return_value = [CG1, CG2, CG3]
+    config_groups = client.config_groups(PROJECT)
+
+    cg1 = next(config_groups)
+    assert isinstance(cg1, models.ConfigGroup)
+    assert cg1.id == 661
+
+    cg2 = next(config_groups)
+    assert isinstance(cg2, models.ConfigGroup)
+    assert cg2.id == 662
+
+    cg3 = next(config_groups)
+    assert isinstance(cg3, models.ConfigGroup)
+    assert cg3.id == 663
+
+    client.api.config_groups.assert_called_once_with(PROJECT_ID)
+
+
+def test_config_groups_by_project_id(client):
+    """ Verify calling ``client.config_groups(123)`` with an ID returns
+        a config group generator
+    """
+    client.api.config_groups.return_value = [CG1, CG2, CG3]
+    config_groups = client.config_groups(1234)
+
+    cg1 = next(config_groups)
+    assert isinstance(cg1, models.ConfigGroup)
+    assert cg1.id == 661
+
+    cg2 = next(config_groups)
+    assert isinstance(cg2, models.ConfigGroup)
+    assert cg2.id == 662
+
+    cg3 = next(config_groups)
+    assert isinstance(cg3, models.ConfigGroup)
+    assert cg3.id == 663
+
+    client.api.config_groups.assert_called_once_with(1234)
+
+
+def test_config_groups(client):
+    """ Verify an exception is thrown if config_groups is called with no
+        parameters
+    """
+    with pytest.raises(NotImplementedError) as exc:
+        client.config_groups()
+
+    assert 'models.Project or int' in str(exc)
 
 
 def test_milestone(client):
