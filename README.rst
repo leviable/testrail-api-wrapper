@@ -21,6 +21,8 @@ Currently supported endpoints:
 
 - case type      - get by case type id
 - case types     - get all
+- configs        - get by project or project id, add, delete, update
+- config groups  - add, delete, update
 - milestone      - get by milestone id, add, delete, update
 - milestones     - get all by project or project id
 - priority       - get by priority id
@@ -44,19 +46,16 @@ Not yet supported:
 - case           - get by case id, add, delete, update
 - cases          - get by project or project id (* plus suite and section)
 - case fields    - get all
-- configs        - get by project or project id, add, delete, update
-- config groups  - add, delete, update
 - plan           - get by plan id, add, close, delete, update
 - plan entry     - add, delete, update
 - plans          - get by project or project id
 - result         - add by test id, add by run and case
-- results        - get by test or test id, get by run or run id, get by run and
-                   case, get by run id and case id, add by run, add by cases
+- results        - get by test or test id, get by run or run id, get by run and case, get by run id and case id, add by run, add by cases
 - result fields  - get all
 - run            - add, close, delete, update
 - runs           - get by project or project id
 - section        - get by section id, add, delete, update
 - sections       - get by project or project id (* and suite or suite id)
 
-* Denotes endpoint variations dependent on if the project is or is not
+Note: * Denotes endpoint variations dependent on if the project is or is not
   operating in single suite mode

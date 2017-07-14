@@ -53,6 +53,40 @@ class API(object):
         for case_type in self._session.request(method=GET, path=path):
             yield case_type
 
+    def config_add(self, config_group_id, params):
+        path = API_PATH['add_config'].format(config_group_id=config_group_id)
+        return self._session.request(method=POST, path=path, json=params)
+
+    def config_delete(self, config_id):
+        path = API_PATH['delete_config'].format(config_id=config_id)
+        return self._session.request(method=POST, path=path)
+
+    def config_update(self, config_id, params):
+        path = API_PATH['update_config'].format(config_id=config_id)
+        return self._session.request(method=POST, path=path, json=params)
+
+    def config_group_add(self, project_id, params):
+        path = API_PATH['add_config_group'].format(project_id=project_id)
+        return self._session.request(method=POST, path=path, json=params)
+
+    def config_group_delete(self, config_group_id):
+        path = API_PATH['delete_config_group'].format(config_group_id=config_group_id)
+        return self._session.request(method=POST, path=path)
+
+    def config_group_update(self, config_group_id, params):
+        path = API_PATH['update_config_group'].format(config_group_id=config_group_id)
+        return self._session.request(method=POST, path=path, json=params)
+
+    def config_groups(self, project_id):
+        """ Calls `get_configs` API endpoint
+
+        :yields: config_group dictionaries from api
+        """
+        path = API_PATH['get_configs'].format(project_id=project_id)
+
+        for config_group in self._session.request(method=GET, path=path):
+            yield config_group
+
     def milestone_add(self, project_id, params):
         path = API_PATH['add_milestone'].format(project_id=project_id)
         return self._session.request(method=POST, path=path, json=params)
