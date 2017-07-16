@@ -4,8 +4,6 @@ TRAW: TestRail API Wrapper
 
 |PyPIVersion| |TravisCI| |CoverageStatus| |CodeHealth| |PythonVersions|
 
-Note that this project is currently in alpha: APIs can and will change without warning
-
 .. |TravisCI| image:: https://travis-ci.org/levi-rs/traw.svg?branch=master
     :target: https://travis-ci.org/levi-rs/traw
 .. |CoverageStatus| image:: https://coveralls.io/repos/github/levi-rs/traw/badge.svg
@@ -16,6 +14,59 @@ Note that this project is currently in alpha: APIs can and will change without w
     :target: https://badge.fury.io/py/traw
 .. |PythonVersions| image:: https://img.shields.io/pypi/pyversions/traw.svg
     :target: https://wiki.python.org/moin/Python2orPython3
+    
+Note that this project is currently in alpha: APIs can and will change without warning
+
+TRAW is availiable on PyPI and can be pip installed
+
+.. code-block:: bash
+
+    $ pip install traw
+    
+Using TRAW:
+
+.. code-block:: python
+
+    import traw
+
+    # Instantiate the TRAW client
+    # Note that you can use also specify credentials using environment vars
+    # or a configuration file
+    client = traw.Client(username='<username>', password='<password>', url='<url')
+    
+    # Locate the target project by project ID
+    automation_project = client.project(15)  # This makes a call to the TestRail API and returns
+                                             # project with ID 15
+
+    # Add a new suite to this project
+    # Only Projects configured for multi suite mode can have new suites added
+    assert automation_project.suite_mode == 3
+    
+    # First create a new suite object
+    new_suite = client.suite()  # Parameterless calls to most non-plural client methods will return a
+                                # new instance of that type. A new Suite instance in this case.
+                                
+    # The suite name and description and associated project must be set
+    new_suite.name = "My new Automation suite"
+    new_suite.description "This new suite was added via the TRAW client"
+    new_suite.project = automation_project
+    
+    # Note that new_suite doesn't have an ID, as it hasn't been added to TestRail yet
+    assert new_suite.id is None
+
+    # Use the client to add the suite to testrail
+    suite = client.add(new_suite)  # TRAW returns an updated Suite instance with additional parameters
+                                   # that were returned from TestRail after the suite was added
+                                   
+    # Now our suite matches new_suite, but has an ID
+    assert suit.name == new_suite.name
+    assert suite.description == new_suite.description
+    assert suite.id is not None
+    
+Additional, more comprehensive examples are available in the `examples folder`_.
+
+.. _examples folder: examples/
+   
 
 Currently supported endpoints:
 
