@@ -48,7 +48,7 @@ Using TRAW:
                                 
     # The suite name and description and associated project must be set
     new_suite.name = "My new Automation suite"
-    new_suite.description "This new suite was added via the TRAW client"
+    new_suite.description = "This new suite was added via the TRAW client"
     new_suite.project = automation_project
     
     # Note that new_suite doesn't have an ID, as it hasn't been added to TestRail yet
