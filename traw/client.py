@@ -184,7 +184,7 @@ class Client(object):
                 config_group = sys_config_group
                 break
         else:
-            msg = ("Could not locate a models.ConfigGroup with id of {0}"
+            msg = ("Could not locate a models.ConfigGroup with id of {0} "
                    "for project with ID {1}")
             raise TRAWClientError(msg.format(config_group_id, project_id))
 
@@ -467,9 +467,12 @@ class Client(object):
             :returns: models.Status
         """
         for sys_status in self.statuses():
-            if strict and label == sys_status.label:
-                status = sys_status
-                break
+            if strict:
+                if label == sys_status.label:
+                    status = sys_status
+                    break
+                else:
+                    continue  # pragma: no cover
             elif label.lower() == sys_status.label.lower():
                 status = sys_status
                 break

@@ -1,3 +1,5 @@
 pylint:
   disable:
     - too-many-arguments
+ignore-paths:
+  - examples

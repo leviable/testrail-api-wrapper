@@ -28,7 +28,7 @@ PROJ2 = {'name': 'project2'}
 PROJ3 = {'name': 'project3'}
 STAT1 = {'name': 'status1', 'id': 221, 'label': 'Passed'}
 STAT2 = {'name': 'status2', 'id': 222, 'label': 'Failed'}
-STAT3 = {'name': 'status3', 'id': 223, 'label': 'Blocked'}
+STAT3 = {'name': 'status3', 'id': 223, 'label': 'failed'}
 SUIT1 = {'name': 'suite1', 'id': 551}
 SUIT2 = {'name': 'suite2', 'id': 552}
 SUIT3 = {'name': 'suite3', 'id': 553}
@@ -1062,11 +1062,11 @@ def test_status_by_label_strict(client):
     """ Verify the Client's ``status`` method call with a label """
     client.api.statuses.return_value = [STAT1, STAT2, STAT3]
 
-    status = client.status('Failed', strict=True)
+    status = client.status('failed', strict=True)
 
     assert isinstance(status, models.Status)
-    assert status.id == STAT2['id']
-    assert status.label == 'Failed'
+    assert status.id == STAT3['id']
+    assert status.label == 'failed'
     assert client.api.statuses.called
 
 

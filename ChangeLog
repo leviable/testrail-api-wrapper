@@ -1,6 +1,14 @@
 CHANGES
 =======
 
+* Add additional examples
+* Update README.rst
+* Update README.rst
+* Fix example name
+
+0.0.9
+-----
+
 * Add Config and ConfigGroup support
 * Add suite add, update, and delete support
 * Add Suite model and get suite(s) support
