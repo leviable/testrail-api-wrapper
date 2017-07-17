@@ -23,6 +23,11 @@ class TRAWClientError(TRAWException):
     pass
 
 
+class UnknownCustomStatusError(TRAWClientError):
+    """ Raised when an unknown custom status is encountered (e.g. 'custom_status9' """
+    pass
+
+
 # class RequestException(TRAWException):
 #     """Indicate that there was an error with the incomplete HTTP request."""
 #

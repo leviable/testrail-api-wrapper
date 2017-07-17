@@ -1,3 +1,4 @@
+from copy import deepcopy
 import pytest
 
 from traw.models import CaseType
@@ -11,7 +12,7 @@ def case_type(client):
     content = {"id": ID,
                "is_default": True,
                "name": NAME}
-    return CaseType(client, content)
+    return CaseType(client, deepcopy(content))
 
 
 def test_id(case_type):

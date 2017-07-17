@@ -3,7 +3,7 @@ from collections import Iterable
 from . import const
 from . import models
 from .api import API
-from .exceptions import TRAWClientError
+from .exceptions import TRAWClientError, UnknownCustomStatusError
 from .utils import dispatchmethod
 
 
@@ -140,6 +140,27 @@ class Client(object):
     def _config_add(self, config):
         response = self.api.config_add(config.config_group.id, config.add_params)
         return models.Config(self, response)
+
+    @config.register(models.Project)
+    def _config_by_project(self, project, config_id):
+        return self.config(project.id, config_id)
+
+    @config.register(int)
+    def _config_by_project_id(self, project_id, config_id):
+        for config_group in self.config_groups(project_id):
+            for sys_config in config_group.configs:
+                if sys_config.id == config_id:
+                    config = sys_config
+                    break
+            else:  # Necessary to break out of both for loops
+                continue
+            break
+        else:
+            msg = ("Could not locate a models.Config with id of {0} "
+                   "for project with ID {1}")
+            raise TRAWClientError(msg.format(config_id, project_id))
+
+        return config
 
     @delete.register(models.Config)
     def _config_delete(self, config):
@@ -314,6 +335,27 @@ class Client(object):
         for milestone in self.milestones(project.id, is_completed, is_started):
             yield milestone
 
+    # Plan related methods
+    @dispatchmethod
+    def plan(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """ Return a models.Plan instance
+            `client.plan()` returns a new Plan instance (no API call)
+            `client.plan(1234)` returns a Plan instance with an ID of 1234
+
+        :param: no method parameters, will return a new, uncofigured models.Plan instance
+        :param plan_id: int, Plan ID for a plan that exists in TestRail
+
+        :returns: models.Plan instance
+        """
+        return models.Plan(self)
+
+    @plan.register(int)
+    def _plan_by_id(self, plan_id):
+        """ Do not call directly
+            Returns plan with ``plan_id``
+        """
+        return models.Plan(self, self.api.plan_by_id(plan_id))
+
     # Priority related methods
     @dispatchmethod
     def priority(self):
@@ -416,7 +458,7 @@ class Client(object):
             `client.run(1234)` returns a Run instance with an ID of 1234
 
         :param: no method parameters, will return a new, uncofigured models.Run instance
-        :param run_id: int, Run ID for a case that exists in TestRail
+        :param run_id: int, Run ID for a run that exists in TestRail
 
         :returns: models.Run instance
         """
@@ -430,6 +472,59 @@ class Client(object):
         return models.Run(self, self.api.run_by_id(run_id))
 
     # Status related methods
+    @dispatchmethod
+    def custom_status(self):
+        """
+            :param custom_status_id: int, from 1 to 7
+
+            :returns: models.Status
+        """
+        raise NotImplementedError(const.NOTIMP.format("int"))
+
+    @custom_status.register(int)
+    def _custom_status_by_id(self, custom_status_id):
+        """ Do not call directly
+            Returns a models.Status object with id of ``custom_status_id`` + 5
+            :param status_id: int, from 1 to 7
+
+            :returns: models.Status
+
+            :raises: TRAWClientError if no matching status is found
+        """
+        for sys_status in self.statuses():
+            if sys_status.id == 5 + custom_status_id:
+                status = sys_status
+                break
+        else:
+            msg = "There is no active custom status associated with custom status ID {0}"
+            raise UnknownCustomStatusError(msg.format(custom_status_id))
+
+        return status
+
+    @custom_status.register(str)
+    def _custom_status_by_name(self, custom_status_str):
+        """ Do not call directly
+            Returns a models.Status object with name of ``custom_status_str``
+            ``custom_status_str`` must have format of `custom_statusX`, where X is
+                between 1 and 7
+
+            :param custom_status_str: str
+
+            :returns: models.Status
+
+            :raises: TRAWClientError if custom_status_str is isnt formated correctly
+            :raises: TRAWClientError if no matching status is found
+        """
+        if (not custom_status_str.startswith('custom_status') or
+                custom_status_str[-1] not in '1234567'):
+            msg = ("custom_status_str must be of format 'custom_statusX', where X "
+                   "is between 1 and 7. Found {0}")
+            raise UnknownCustomStatusError(msg.format(custom_status_str))
+
+        # str: custom_status6 -> int: 6
+        custom_status_id = int(custom_status_str.split('custom_status')[1])
+        return self.custom_status(custom_status_id)
+
     @dispatchmethod
     def status(self):
         """

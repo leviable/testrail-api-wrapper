@@ -1,3 +1,4 @@
+from copy import deepcopy
 from datetime import datetime as dt
 
 import pytest
@@ -28,7 +29,7 @@ def suite(client):
                "name": NAME,
                "project_id": PROJECT_ID,
                "url": URL}
-    return Suite(client, content)
+    return Suite(client, deepcopy(content))
 
 
 def test_completed_on(new_suite, suite):

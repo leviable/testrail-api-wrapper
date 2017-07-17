@@ -24,6 +24,9 @@ CT3 = {'casetype': 'casetype3'}
 MILE1 = {'milestone': 'milestone1'}
 MILE2 = {'milestone': 'milestone2'}
 MILE3 = {'milestone': 'milestone3'}
+PLAN1 = {'plan': 'plan1'}
+PLAN2 = {'plan': 'plan2'}
+PLAN3 = {'plan': 'plan3'}
 PRIO1 = {'priority': 'priority1'}
 PRIO2 = {'priority': 'priority2'}
 PRIO3 = {'priority': 'priority3'}
@@ -413,6 +416,19 @@ def test_milestones_w_params(api):
 
     assert all(map(lambda m: isinstance(m, dict), mile_list))
     assert len(mile_list) == 3
+    assert api._session.request.call_args == exp_call
+
+
+def test_plan_by_id(api):
+    """ Verify the ``plan_by_id`` method call """
+    PLAN_ID = 1234
+    api._session.request.return_value = PLAN1
+    plan = api.plan_by_id(PLAN_ID)
+
+    exp_call = mock.call(method=GET, path=AP['get_plan'].format(plan_id=PLAN_ID))
+
+    assert plan == PLAN1
+    assert isinstance(plan, dict)
     assert api._session.request.call_args == exp_call
 
 

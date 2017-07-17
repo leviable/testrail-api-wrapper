@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import pytest
 
 from traw.models import User
@@ -13,7 +15,7 @@ def user(client):
                "id": ID,
                "is_active": True,
                "name": NAME}
-    return User(client, content)
+    return User(client, deepcopy(content))
 
 
 def test_email(user):

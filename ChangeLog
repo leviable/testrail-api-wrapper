@@ -1,6 +1,8 @@
 CHANGES
 =======
 
+* Add run support
+* Update tests\_get.py
 * Add additional examples
 * Update README.rst
 * Update README.rst
