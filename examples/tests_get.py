@@ -6,7 +6,7 @@ import traw
 def main():
     client = traw.Client()  # Credentials loaded through ENV vars
 
-    # Templates are retrieved by the run they are associated with
+    # Tests are retrieved by the run they are associated with
     # Get an example run using the Run ID
     auto_run = client.run(72215)
 
