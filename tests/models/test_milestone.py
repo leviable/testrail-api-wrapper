@@ -1,3 +1,4 @@
+from copy import deepcopy
 from datetime import datetime as dt
 
 import pytest
@@ -34,7 +35,7 @@ def milestone(client):
                "start_on": START_ON,
                "started_on": STARTED_ON,
                "url": URL}
-    return Milestone(client, content)
+    return Milestone(client, deepcopy(content))
 
 
 @pytest.fixture()
@@ -52,7 +53,7 @@ def sub_milestone(client):
                "start_on": START_ON,
                "started_on": STARTED_ON,
                "url": URL}
-    return SubMilestone(client, content)
+    return SubMilestone(client, deepcopy(content))
 
 
 def test_completed_on(new_milestone, milestone):

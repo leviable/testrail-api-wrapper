@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import pytest
 
 from traw.models import Status
@@ -21,7 +23,7 @@ def status(client):
                "is_untested": False,
                "label": LABEL,
                "name": NAME}
-    return Status(client, content)
+    return Status(client, deepcopy(content))
 
 
 def test_color_bright(status):

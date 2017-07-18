@@ -30,7 +30,7 @@ def main():
     print(len(failed_and_retest))  # 10
 
     # Get a test from its test id
-    example_test= client.test(5792090)
+    example_test = client.test(5792090)
     print(example_test.id)  # 5792090
     print(example_test.status.label)  # Failed
     print(example_test.type.name)  # Regression

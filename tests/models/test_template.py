@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import pytest
 
 from traw.models import Template
@@ -11,7 +13,7 @@ def template(client):
     content = {"id": ID,
                "is_default": True,
                "name": NAME}
-    return Template(client, content)
+    return Template(client, deepcopy(content))
 
 
 def test_id(template):

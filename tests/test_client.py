@@ -5,15 +5,24 @@ import pytest
 
 import traw
 from traw import models
-from traw.exceptions import TRAWClientError
+from traw.exceptions import TRAWClientError, UnknownCustomStatusError
 
 USER = 'mock username'
 PASS = 'mock password'
 URL = 'mock url'
 
-CG1 = {'name': 'configgroup1', 'id': 661, 'project_id': 15}
-CG2 = {'name': 'configgroup2', 'id': 662, 'project_id': 15}
-CG3 = {'name': 'configgroup3', 'id': 663, 'project_id': 15}
+CONF1 = {'group_id': 1, 'id': 1, 'name': 'config 1 name'}
+CONF2 = {'group_id': 1, 'id': 2, 'name': 'config 2 name'}
+CONF3 = {'group_id': 2, 'id': 3, 'name': 'config 3 name'}
+CONF4 = {'group_id': 2, 'id': 4, 'name': 'config 4 name'}
+CONF5 = {'group_id': 3, 'id': 5, 'name': 'config 5 name'}
+CONF6 = {'group_id': 3, 'id': 6, 'name': 'config 6 name'}
+CG1 = {'name': 'configgroup1', 'id': 661, 'project_id': 15,
+       'configs': [CONF1, CONF2]}
+CG2 = {'name': 'configgroup2', 'id': 662, 'project_id': 15,
+       'configs': [CONF3, CONF4]}
+CG3 = {'name': 'configgroup3', 'id': 663, 'project_id': 15,
+       'configs': [CONF5, CONF6]}
 CT1 = {'name': 'casetype1', 'id': 331}
 CT2 = {'name': 'casetype2', 'id': 332}
 CT3 = {'name': 'casetype3', 'id': 333}
@@ -29,6 +38,7 @@ PROJ3 = {'name': 'project3'}
 STAT1 = {'name': 'status1', 'id': 221, 'label': 'Passed'}
 STAT2 = {'name': 'status2', 'id': 222, 'label': 'Failed'}
 STAT3 = {'name': 'status3', 'id': 223, 'label': 'failed'}
+STAT4 = {'name': 'status4', 'id': 8, 'label': 'custom-failed'}
 SUIT1 = {'name': 'suite1', 'id': 551}
 SUIT2 = {'name': 'suite2', 'id': 552}
 SUIT3 = {'name': 'suite3', 'id': 553}
@@ -572,6 +582,68 @@ def test_config(client):
     assert config.config_group is None
 
 
+def test_config_by_project(client):
+    """ Verify calling ``client.config(project, 456)`` with a project with ID
+        of 123 and config ID of 456 returns a config object
+    """
+    PROJECT_ID = 15
+    PROJECT = models.Project(client, {'id': PROJECT_ID})
+    CONFIG_ID = 4
+
+    client.api.config_groups.return_value = [CG1, CG2, CG3]
+    client.api.project_by_id.return_value = {'id': PROJECT_ID}
+
+    config = client.config(PROJECT, CONFIG_ID)
+
+    assert isinstance(config, models.Config)
+    assert config.id == CONFIG_ID
+    assert config.id == CONF4['id']
+    assert config.name == CONF4['name']
+    assert config.project.id == PROJECT_ID
+
+    client.api.config_groups.assert_called_once_with(PROJECT_ID)
+
+
+def test_config_by_project_id(client):
+    """ Verify calling ``client.config(123, 456)`` with a project ID of 123
+        and config ID of 456 returns a config object
+    """
+    PROJECT_ID = 15
+    CONFIG_ID = 4
+
+    client.api.config_groups.return_value = [CG1, CG2, CG3]
+    client.api.project_by_id.return_value = {'id': PROJECT_ID}
+
+    config = client.config(PROJECT_ID, CONFIG_ID)
+
+    assert isinstance(config, models.Config)
+    assert config.id == CONFIG_ID
+    assert config.id == CONF4['id']
+    assert config.name == CONF4['name']
+    assert config.project.id == PROJECT_ID
+
+    client.api.config_groups.assert_called_once_with(PROJECT_ID)
+
+
+def test_config_by_project_exc(client):
+    """ Verify calling ``client.config(project, 456)`` raises an exception
+        if nothing matching the params is found
+    """
+    PROJECT_ID = 15
+    PROJECT = models.Project(client, {'id': PROJECT_ID})
+    CONFIG_ID = 444
+
+    client.api.config_groups.return_value = [CG1, CG2, CG3]
+    client.api.project_by_id.return_value = {'id': PROJECT_ID}
+
+    with pytest.raises(TRAWClientError) as exc:
+        client.config(PROJECT, CONFIG_ID)
+
+    assert 'with id of 444' in str(exc)
+
+    client.api.config_groups.assert_called_once_with(PROJECT_ID)
+
+
 def test_config_group(client):
     """ Verify config group method returns a new models.ConfigGroup instance if
         called without any parameters
@@ -861,6 +933,32 @@ def test_milestones_by_project_is_started_exception(client):
     assert 'is_started' in str(exc)
 
 
+def test_plan(client):
+    """ Verify plan method returns a new models.Plan instance if called without
+        any parameters
+    """
+    plan = client.plan()
+
+    assert isinstance(plan, models.Plan)
+    # TODO: Complete when Run is more than a stub
+    # assert proj.announcement is None
+    # assert proj.completed_on is None
+    # assert proj.is_completed is False
+    # assert proj.show_announcement is False
+    # assert proj.suite_mode is None
+    # assert proj.url is None
+
+
+def test_plan_by_id(client):
+    """ Verify calling ``client.plan(123)`` with an ID returns that plan """
+    client.api.plan_by_id.return_value = {'id': 1234}
+    plan = client.plan(1234)
+
+    assert isinstance(plan, models.Plan)
+    assert plan.id == 1234
+    client.api.plan_by_id.assert_called_once_with(1234)
+
+
 def test_priority_exc(client):
     """ Verify the Client's ``priority`` method throws an exception if called """
     with pytest.raises(NotImplementedError) as exc:
@@ -1001,6 +1099,69 @@ def test_run_by_id(client):
     assert isinstance(run, models.Run)
     assert run.id == 1234
     client.api.run_by_id.assert_called_once_with(1234)
+
+
+def test_custom_status_exc(client):
+    """ Verify the Client's ``custom_status`` method throws an exception
+        if called
+    """
+    with pytest.raises(NotImplementedError) as exc:
+        client.custom_status()
+
+    assert 'You must pass in int object' in str(exc)
+    assert not client.api.statuses.called
+
+
+def test_custom_status_by_int(client):
+    """ Verify the Client's ``custom_status`` method call with int"""
+    client.api.statuses.return_value = [STAT1, STAT2, STAT3, STAT4]
+
+    status = client.custom_status(3)
+
+    assert isinstance(status, models.Status)
+    assert status.id == 8
+    assert client.api.statuses.called
+
+
+def test_custom_status_by_int_exc(client):
+    """ Verify the Client's ``custom_status`` method call with int"""
+    client.api.statuses.return_value = [STAT1, STAT2, STAT3, STAT4]
+
+    with pytest.raises(UnknownCustomStatusError) as exc:
+        client.custom_status(30)
+
+    assert 'with custom status ID 3' in str(exc)
+
+
+def test_custom_status_by_name(client):
+    """ Verify the Client's ``custom_status`` method call with a name """
+    client.api.statuses.return_value = [STAT1, STAT2, STAT3, STAT4]
+
+    status = client.custom_status('custom_status3')
+
+    assert isinstance(status, models.Status)
+    assert status.id == 8
+    assert client.api.statuses.called
+
+
+def test_custom_status_by_name_exc_1(client):
+    """ Verify the Client's ``custom_status`` raises an exception """
+
+    with pytest.raises(UnknownCustomStatusError) as exc:
+        client.custom_status('bogus_custom_status3')
+
+    assert "be of format 'custom_statusX'" in str(exc)
+    assert not client.api.statuses.called
+
+
+def test_custom_status_by_name_exc_2(client):
+    """ Verify the Client's ``custom_status`` raises an exception """
+
+    with pytest.raises(UnknownCustomStatusError) as exc:
+        client.custom_status('custom_status9')
+
+    assert "is between 1 and 7" in str(exc)
+    assert not client.api.statuses.called
 
 
 def test_status_exc(client):

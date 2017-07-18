@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import pytest
 
 from traw.models import Priority
@@ -16,7 +18,7 @@ def priority(client):
                "name": NAME,
                'priority': PRIORITY,
                'short_name': SHORT_NAME}
-    return Priority(client, content)
+    return Priority(client, deepcopy(content))
 
 
 def test_id(priority):

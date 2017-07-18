@@ -1,8 +1,10 @@
+from copy import deepcopy
 from datetime import timedelta
 
 import pytest
 
-from traw.models import Case, CaseType, Milestone, Priority, Run, Status, Test, User
+from traw.models import Test as _Test  # To avoid tox test collection warning
+from traw.models import Case, CaseType, Milestone, Priority, Run, Status, User
 
 CASE_ID = 11
 CUSTOM_EXP_COND = "mock custom expected condition"
@@ -23,7 +25,7 @@ USER_ID = 99
 
 @pytest.fixture()
 def empty_test(client):
-    return Test(client)
+    return _Test(client)
 
 
 @pytest.fixture()
@@ -52,7 +54,7 @@ def test(client):
                "status_id": STATUS_ID,
                "title": TITLE,
                "type_id": TYPE_ID}
-    return Test(client, content)
+    return _Test(client, deepcopy(content))
 
 
 def test_assigned_to(empty_test, test):

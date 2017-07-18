@@ -131,6 +131,16 @@ class API(object):
         for milestone in self._session.request(method=GET, path=path, params=params):
             yield milestone
 
+    def plan_by_id(self, plan_id):
+        """ Calls `get_plan` API endpoint with the given plan_id
+
+        :param plan_id: int id of plan
+
+        :returns: plan dict
+        """
+        path = API_PATH['get_plan'].format(plan_id=plan_id)
+        return self._session.request(method=GET, path=path)
+
     def priorities(self):
         """ Calls `get_priorities` API endpoint
 

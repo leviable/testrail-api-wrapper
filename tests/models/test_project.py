@@ -1,4 +1,5 @@
 import datetime
+from copy import deepcopy
 
 import pytest
 
@@ -26,7 +27,7 @@ def in_progress_proj(client):
                "show_announcement": True,
                "suite_mode": 1,
                "url": URL}
-    return Project(client, content)
+    return Project(client, deepcopy(content))
 
 
 @pytest.fixture()
