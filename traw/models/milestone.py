@@ -9,8 +9,8 @@ from .project import Project
 
 
 class MilestoneBase(Addable, Deleteable, Updatable, ModelBase):
-    ADDABLE_FIELDS = const.MILESTONE_ADD_FIELDS
-    UPDATABLE_FIELDS = const.MILESTONE_UPDATE_FIELDS
+    _ADDABLE_FIELDS = const.MILESTONE_ADD_FIELDS
+    _UPDATABLE_FIELDS = const.MILESTONE_UPDATE_FIELDS
 
     @property
     def completed_on(self):

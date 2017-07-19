@@ -1,6 +1,11 @@
 CHANGES
 =======
 
+* Add run add-close-delete-update support
+
+0.0.10
+------
+
 * Add run support
 * Update tests\_get.py
 * Add additional examples

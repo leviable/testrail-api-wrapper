@@ -162,6 +162,59 @@ def test_add_project(client):
     assert 'extra' not in str(client.api.project_add.call_args)
 
 
+def test_add_run_no_case_ids(client):
+    RUN_ID = 111
+    PROJECT_ID = 15
+
+    run_config = {traw.const.NAME: 'mock name',
+                  traw.const.DESCRIPTION: 'mock description',
+                  traw.const.MILESTONE_ID: '22',
+                  traw.const.ASSIGNEDTO_ID: '33',
+                  traw.const.INCLUDE_ALL: True,
+                  traw.const.CASE_IDS: list(),
+                  traw.const.PROJECT_ID: PROJECT_ID}
+    run = models.Run(client, dict(extra='extra', **run_config))
+
+    client.api.run_add.return_value = dict(id=RUN_ID, **run_config)
+
+    with mock.patch.object(client, 'project') as proj_mock:
+        proj_mock.return_value = models.Project(client, {'id': PROJECT_ID})
+        response = client.add(run)
+
+    assert isinstance(response, models.Run)
+    assert response.id == RUN_ID
+    assert client.api.run_add.called
+    assert 'mock name' in str(client.api.run_add.call_args)
+    assert 'extra' not in str(client.api.run_add.call_args)
+
+
+def test_add_run_with_case_ids(client):
+    RUN_ID = 111
+    PROJECT_ID = 15
+
+    run_config = {traw.const.NAME: 'mock name',
+                  traw.const.DESCRIPTION: 'mock description',
+                  traw.const.MILESTONE_ID: '22',
+                  traw.const.ASSIGNEDTO_ID: '33',
+                  traw.const.INCLUDE_ALL: True,
+                  traw.const.CASE_IDS: [1,2,3,4],
+                  traw.const.PROJECT_ID: PROJECT_ID}
+    run = models.Run(client, dict(extra='extra', **run_config))
+
+    client.api.run_add.return_value = dict(id=RUN_ID, **run_config)
+
+    with mock.patch.object(client, 'project') as proj_mock:
+        proj_mock.return_value = models.Project(client, {'id': PROJECT_ID})
+        response = client.add(run)
+
+    assert isinstance(response, models.Run)
+    assert response.id == RUN_ID
+    assert client.api.run_add.called
+    assert 'mock name' in str(client.api.run_add.call_args)
+    assert '1,2,3,4' in str(client.api.run_add.call_args)
+    assert 'extra' not in str(client.api.run_add.call_args)
+
+
 def test_add_sub_milestone(client):
     SUB_MILESTONE_ID = 111
     PARENT_ID = 222
@@ -229,6 +282,32 @@ def test_close_exception_w_obj(client):
         client.close(1)
 
     assert "support closing objects of type" in str(exc)
+
+
+def test_close_run(client):
+    RUN_ID = 111
+    PROJECT_ID = 15
+
+    run_config = {traw.const.NAME: 'mock name',
+                  traw.const.DESCRIPTION: 'mock description',
+                  traw.const.MILESTONE_ID: '22',
+                  traw.const.ASSIGNEDTO_ID: '33',
+                  traw.const.INCLUDE_ALL: True,
+                  traw.const.CASE_IDS: list(),
+                  traw.const.PROJECT_ID: PROJECT_ID}
+    run = models.Run(client, dict(extra='extra', **run_config))
+
+    client.api.run_close.return_value = dict(id=RUN_ID, **run_config)
+
+    with mock.patch.object(client, 'project') as proj_mock:
+        proj_mock.return_value = models.Project(client, {'id': PROJECT_ID})
+        response = client.close(run)
+
+    assert isinstance(response, models.Run)
+    assert response.id == RUN_ID
+    assert client.api.run_close.called
+    assert 'mock name' not in str(client.api.run_close.call_args)
+    assert 'extra' not in str(client.api.run_close.call_args)
 
 
 def test_delete_exception_no_obj(client):
@@ -320,6 +399,29 @@ def test_delete_project(client):
 
     assert response is None
     client.api.project_delete.assert_called_once_with(PROJECT_ID)
+
+
+def test_delete_run(client):
+    RUN_ID = 111
+    PROJECT_ID = 15
+
+    run_config = {traw.const.NAME: 'mock name',
+                  traw.const.DESCRIPTION: 'mock description',
+                  traw.const.MILESTONE_ID: '22',
+                  traw.const.ASSIGNEDTO_ID: '33',
+                  traw.const.INCLUDE_ALL: True,
+                  traw.const.CASE_IDS: list(),
+                  traw.const.PROJECT_ID: PROJECT_ID}
+    run = models.Run(client, dict(id=RUN_ID, **run_config))
+
+    client.api.run_delete.return_value = dict()
+
+    with mock.patch.object(client, 'project') as proj_mock:
+        proj_mock.return_value = models.Project(client, {'id': PROJECT_ID})
+        response = client.delete(run)
+
+    assert response is None
+    client.api.run_delete.assert_called_once_with(RUN_ID)
 
 
 def test_delete_suite(client):
@@ -441,6 +543,59 @@ def test_update_project(client):
     assert client.api.project_update.called
     assert 'mock name' in str(client.api.project_update.call_args)
     assert 'extra' not in str(client.api.project_update.call_args)
+
+
+def test_update_run_include_all(client):
+    RUN_ID = 111
+    PROJECT_ID = 15
+
+    run_config = {traw.const.NAME: 'mock name',
+                  traw.const.DESCRIPTION: 'mock description',
+                  traw.const.MILESTONE_ID: '22',
+                  traw.const.ASSIGNEDTO_ID: '33',
+                  traw.const.INCLUDE_ALL: True,
+                  traw.const.CASE_IDS: list(),
+                  traw.const.PROJECT_ID: PROJECT_ID}
+    run = models.Run(client, dict(extra='extra', **run_config))
+
+    client.api.run_update.return_value = dict(id=RUN_ID, **run_config)
+
+    with mock.patch.object(client, 'project') as proj_mock:
+        proj_mock.return_value = models.Project(client, {'id': PROJECT_ID})
+        response = client.update(run)
+
+    assert isinstance(response, models.Run)
+    assert response.id == RUN_ID
+    assert client.api.run_update.called
+    assert 'mock name' in str(client.api.run_update.call_args)
+    assert 'extra' not in str(client.api.run_update.call_args)
+
+
+def test_update_run_w_case_ids(client):
+    RUN_ID = 111
+    PROJECT_ID = 15
+
+    run_config = {traw.const.NAME: 'mock name',
+                  traw.const.DESCRIPTION: 'mock description',
+                  traw.const.MILESTONE_ID: '22',
+                  traw.const.ASSIGNEDTO_ID: '33',
+                  traw.const.INCLUDE_ALL: True,
+                  traw.const.CASE_IDS: [1,2,3],
+                  traw.const.PROJECT_ID: PROJECT_ID}
+    run = models.Run(client, dict(extra='extra', **run_config))
+
+    client.api.run_update.return_value = dict(id=RUN_ID, **run_config)
+
+    with mock.patch.object(client, 'project') as proj_mock:
+        proj_mock.return_value = models.Project(client, {'id': PROJECT_ID})
+        response = client.update(run)
+
+    assert isinstance(response, models.Run)
+    assert response.id == RUN_ID
+    assert client.api.run_update.called
+    assert 'mock name' in str(client.api.run_update.call_args)
+    assert '1,2,3' in str(client.api.run_update.call_args)
+    assert 'extra' not in str(client.api.run_update.call_args)
 
 
 def test_update_sub_milestone(client):
