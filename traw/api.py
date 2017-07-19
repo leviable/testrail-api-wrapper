@@ -188,6 +188,10 @@ class API(object):
         for project in self._session.request(method=GET, path=path, params=params):
             yield project
 
+    def run_add(self, project_id, params):
+        path = API_PATH['add_run'].format(project_id=project_id)
+        return self._session.request(method=POST, path=path, json=params)
+
     def run_by_id(self, run_id):
         """ Calls `get_run` API endpoint with the given run_id
 
@@ -197,6 +201,18 @@ class API(object):
         """
         path = API_PATH['get_run'].format(run_id=run_id)
         return self._session.request(method=GET, path=path)
+
+    def run_close(self, run_id):
+        path = API_PATH['close_run'].format(run_id=run_id)
+        return self._session.request(method=POST, path=path)
+
+    def run_delete(self, run_id):
+        path = API_PATH['delete_run'].format(run_id=run_id)
+        return self._session.request(method=POST, path=path)
+
+    def run_update(self, run_id, params):
+        path = API_PATH['update_run'].format(run_id=run_id)
+        return self._session.request(method=POST, path=path, json=params)
 
     def statuses(self):
         """ Calls `get_statuses` API endpoint

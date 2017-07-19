@@ -5,13 +5,13 @@ from .case import Case
 from .. import const
 from .milestone import Milestone
 from .model_base import ModelBase
-from .plan import Plan
+from .posters import Addable, Closeable, Deleteable, Updatable
 from .project import Project
 from .suite import Suite
 from .user import User
 
 
-class Run(ModelBase):
+class Run(Addable, Closeable, Deleteable, Updatable, ModelBase):
     """ Object model for TestRail Runs
 
     To create new run
@@ -23,6 +23,20 @@ class Run(ModelBase):
         new_run.description = "My new run description"
 
     """
+    _ADDABLE_FIELDS = const.RUN_ADD_FIELDS
+    _UPDATABLE_FIELDS = const.RUN_UPDATE_FIELDS
+    @property
+    def add_params(self):
+        """ Returns params necessary to add the subclass object to TestRail """
+        fields = {field: self._content.get(field, None) for field in self._ADDABLE_FIELDS}
+
+        if fields['case_ids'] is None or fields['case_ids'] == list():
+            fields.pop('case_ids')
+        else:
+            fields['case_ids'] = ','.join(map(str, fields['case_ids']))
+
+        return fields
+
     @property
     def assigned_to(self):
         """ The user the entire test run is assigned to """
@@ -200,6 +214,17 @@ class Run(ModelBase):
     def untested_count(self):
         """ The amount of tests in the test run marked as untested """
         return self._content.get('untested_count', None)
+
+    @property
+    def update_params(self):
+        """ Returns params necessary to update the subclass object in TestRail """
+        fields = {field: self._content.get(field, None) for field in self._UPDATABLE_FIELDS}
+        if fields['case_ids'] is None or fields['case_ids'] == list():
+            fields.pop('case_ids')
+        else:
+            fields['case_ids'] = ','.join(map(str, fields['case_ids']))
+
+        return fields
 
     @property
     def url(self):

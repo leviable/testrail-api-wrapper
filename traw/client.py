@@ -464,6 +464,11 @@ class Client(object):
         """
         return models.Run(self)
 
+    @add.register(models.Run)
+    def _run_add(self, run):
+        response = self.api.run_add(run.project.id, run.add_params)
+        return models.Run(self, response)
+
     @run.register(int)
     def _run_by_id(self, run_id):
         """ Do not call directly
@@ -471,9 +476,22 @@ class Client(object):
         """
         return models.Run(self, self.api.run_by_id(run_id))
 
+    @close.register(models.Run)
+    def _run_close(self, run):
+        return models.Run(self, self.api.run_close(run.id))
+
+    @delete.register(models.Run)
+    def _run_delete(self, run):
+        self.api.run_delete(run.id)
+
+    @update.register(models.Run)
+    def _run_update(self, run):
+        response = self.api.run_update(run.id, run.update_params)
+        return models.Run(self, response)
+
     # Status related methods
     @dispatchmethod
-    def custom_status(self):
+    def custom_status(self, *args, **kwargs):
         """
             :param custom_status_id: int, from 1 to 7
 

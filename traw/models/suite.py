@@ -7,8 +7,8 @@ from .project import Project
 
 
 class Suite(Addable, Deleteable, Updatable, ModelBase):
-    ADDABLE_FIELDS = const.SUITE_ADD_FIELDS
-    UPDATABLE_FIELDS = const.SUITE_UPDATE_FIELDS
+    _ADDABLE_FIELDS = const.SUITE_ADD_FIELDS
+    _UPDATABLE_FIELDS = const.SUITE_UPDATE_FIELDS
 
     @property
     def completed_on(self):

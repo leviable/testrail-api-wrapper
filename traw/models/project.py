@@ -19,8 +19,8 @@ class Project(Addable, Deleteable, Updatable, ModelBase):
         new_project.suite_mode = 1
 
     """
-    ADDABLE_FIELDS = PROJECT_ADD_FIELDS
-    UPDATABLE_FIELDS = PROJECT_UPDATE_FIELDS
+    _ADDABLE_FIELDS = PROJECT_ADD_FIELDS
+    _UPDATABLE_FIELDS = PROJECT_UPDATE_FIELDS
 
     @property
     def announcement(self):

@@ -50,8 +50,8 @@ class ConfigGroup(Addable, Deleteable, Updatable, ConfigBase):
         con_grps = traw_client.config_groups(project)
 
     """
-    ADDABLE_FIELDS = CONFIG_GROUP_ADD_FIELDS
-    UPDATABLE_FIELDS = CONFIG_GROUP_UPDATE_FIELDS
+    _ADDABLE_FIELDS = CONFIG_GROUP_ADD_FIELDS
+    _UPDATABLE_FIELDS = CONFIG_GROUP_UPDATE_FIELDS
 
     @property
     def configs(self):
@@ -73,8 +73,8 @@ class Config(Addable, Deleteable, Updatable, ConfigBase):
         configs = list(con_grp.configs)
 
     """
-    ADDABLE_FIELDS = CONFIG_ADD_FIELDS
-    UPDATABLE_FIELDS = CONFIG_UPDATE_FIELDS
+    _ADDABLE_FIELDS = CONFIG_ADD_FIELDS
+    _UPDATABLE_FIELDS = CONFIG_UPDATE_FIELDS
 
     def __init__(self, client, content=None, project=None):
         super(Config, self).__init__(client, content)

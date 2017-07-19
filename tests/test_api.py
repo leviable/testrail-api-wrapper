@@ -528,6 +528,22 @@ def test_projects_with_arg(api):
     assert api._session.request.call_args == exp_call
 
 
+def test_run_add(api):
+    """ Verify the ``run_add`` method call """
+    PROJECT_ID = 15
+    PARAMS = {'param_key': 'param_value'}
+    api._session.request.return_value = RUN1
+    run = api.run_add(PROJECT_ID, PARAMS)
+
+    exp_call = mock.call(method=POST,
+                         path=AP['add_run'].format(project_id=PROJECT_ID),
+                         json=PARAMS)
+
+    assert run == RUN1
+    assert isinstance(run, dict)
+    assert api._session.request.call_args == exp_call
+
+
 def test_run_by_id(api):
     """ Verify the ``run_by_id`` method call """
     RUN_ID = 1234
@@ -535,6 +551,50 @@ def test_run_by_id(api):
     run = api.run_by_id(RUN_ID)
 
     exp_call = mock.call(method=GET, path=AP['get_run'].format(run_id=RUN_ID))
+
+    assert run == RUN1
+    assert isinstance(run, dict)
+    assert api._session.request.call_args == exp_call
+
+
+def test_run_close(api):
+    """ Verify the ``run_close`` method call """
+    RUN_ID = 1234
+    PARAMS = {'param_key': 'param_value'}
+    api._session.request.return_value = RUN1
+    run = api.run_close(RUN_ID)
+
+    exp_call = mock.call(method=POST,
+                         path=AP['close_run'].format(run_id=RUN_ID))
+
+    assert run == RUN1
+    assert isinstance(run, dict)
+    assert api._session.request.call_args == exp_call
+
+
+def test_run_delete(api):
+    """ Verify the ``milestone_delete`` method call """
+    RUN_ID = 1234
+    api._session.request.return_value = {}
+    run = api.run_delete(RUN_ID)
+
+    exp_call = mock.call(method=POST, path=AP['delete_run'].format(run_id=RUN_ID))
+
+    assert isinstance(run, dict)
+    assert run == dict()
+    assert api._session.request.call_args == exp_call
+
+
+def test_run_update(api):
+    """ Verify the ``run_update`` method call """
+    RUN_ID = 1234
+    PARAMS = {'param_key': 'param_value'}
+    api._session.request.return_value = RUN1
+    run = api.run_update(RUN_ID, PARAMS)
+
+    exp_call = mock.call(method=POST,
+                         path=AP['update_run'].format(run_id=RUN_ID),
+                         json=PARAMS)
 
     assert run == RUN1
     assert isinstance(run, dict)
