@@ -1785,3 +1785,62 @@ def test_users(client):
     assert user3.name == 'user3'
 
     assert client.api.users.call_args == mock.call()
+
+
+def test_change_cache_timeout_single_change(client):
+    """ Verify change_cache_timeout works for a single object type """
+    client.api.cache_timeouts = dict()
+    client.api.cache_timeouts[client.api] = dict()
+
+    assert client.api.cache_timeouts[client.api] == dict()
+
+    client.change_cache_timeout(30, models.Project)
+
+    assert client.api.cache_timeouts[client.api][models.Project] == 30
+
+
+def test_change_cache_timeout_change_all(client):
+    """ Verify change_cache_timeout works for all object types """
+    client.api.cache_timeouts = dict()
+    client.api.cache_timeouts[client.api] = dict()
+
+    assert client.api.cache_timeouts[client.api] == dict()
+
+    client.change_cache_timeout(30)
+
+    for cls_name in models.__all__:
+        cls = getattr(models, cls_name)
+        assert client.api.cache_timeouts[client.api][cls] == 30
+
+
+def test_change_cache_timeout_exc(client):
+    """ Verify change_cache_timeout raises an exception """
+    with pytest.raises(TypeError) as exc:
+        client.change_cache_timeout(30, type(1234))
+
+    assert "found class of type {0}".format(type(1234)) in str(exc)
+
+
+def test_clear_cache(client):
+    """ Verify the Client's ``clear_cache`` method call """
+    client.clear_cache()
+
+    assert client.api.case_by_id.cache.clear.called
+    assert client.api.case_types.cache.clear.called
+    assert client.api.config_groups.cache.clear.called
+    assert client.api.milestone_by_id.cache.clear.called
+    assert client.api.milestones.cache.clear.called
+    assert client.api.plan_by_id.cache.clear.called
+    assert client.api.priorities.cache.clear.called
+    assert client.api.project_by_id.cache.clear.called
+    assert client.api.projects.cache.clear.called
+    assert client.api.run_by_id.cache.clear.called
+    assert client.api.statuses.cache.clear.called
+    assert client.api.suite_by_id.cache.clear.called
+    assert client.api.suites_by_project_id.cache.clear.called
+    assert client.api.templates.cache.clear.called
+    assert client.api.test_by_id.cache.clear.called
+    assert client.api.tests_by_run_id.cache.clear.called
+    assert client.api.user_by_email.cache.clear.called
+    assert client.api.user_by_id.cache.clear.called
+    assert client.api.users.cache.clear.called

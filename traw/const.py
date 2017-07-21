@@ -78,7 +78,7 @@ BASE_API_PATH = '/index.php?/api/v2'
 
 CONFIG_FILE_NAME = '.traw_config'
 
-DEFAULT_CACHE_TIMEOUT = 300
+DEFAULT_CACHE_TIMEOUT = 300  # Seconds
 
 GET = 'get'
 POST = 'post'

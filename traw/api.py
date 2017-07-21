@@ -22,7 +22,7 @@ class API(object):
 
     The API class is not meant to be accessed directly, rather, use the traw.Client
     """
-    _CACHE_TIMEOUTS = defaultdict(lambda: defaultdict(lambda: DEFAULT_CACHE_TIMEOUT))
+    cache_timeouts = defaultdict(lambda: defaultdict(lambda: DEFAULT_CACHE_TIMEOUT))
 
     def __init__(self, username=None, user_api_key=None, password=None, url=None):
         """
@@ -153,6 +153,7 @@ class API(object):
         path = API_PATH['update_milestone'].format(milestone_id=milestone_id)
         return self._session.request(method=POST, path=path, json=params)
 
+    @cacheable(models.Plan)
     def plan_by_id(self, plan_id):
         """ Calls `get_plan` API endpoint with the given plan_id
 

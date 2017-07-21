@@ -4,6 +4,7 @@ from . import const
 from . import models
 from .api import API
 from .exceptions import TRAWClientError, UnknownCustomStatusError
+from .models.model_base import ModelBase
 from .utils import dispatchmethod
 
 
@@ -793,3 +794,128 @@ class Client(object):
         """
         for user in self.api.users():
             yield models.User(self, user)
+
+    # Cache control related methods
+    def change_cache_timeout(self, new_timeout, model_cls=None):
+        """ Change the cache invalidation timeout for `model_cls` to
+            ``new_timeout``. If ``model_cls`` is not specified, the cache
+            invalidation timeout for ALL TRAW models will be changed to
+            ``new_timeout``.
+
+        .. code-block:: python
+
+            # Change all caches timeouts to 30 seconds
+            client.change_cache_timeout(30)
+
+            # Change Project related cache timeouts to 30 seonds, leaving others untouched
+            client.change_cache_timeout(30, models.Project)
+
+        """
+        if model_cls:
+            if not issubclass(model_cls, ModelBase):
+                msg = ("Expected model_cls to be a subclass of "
+                       "traw.models.model_base.ModelBase, found class of type {0}")
+                raise TypeError(msg.format(model_cls))
+
+            self.api.cache_timeouts[self.api][model_cls] = int(new_timeout)
+        else:
+            for cls_name in models.__all__:
+                cls = getattr(models, cls_name)
+                self.api.cache_timeouts[self.api][cls] = int(new_timeout)
+
+    @dispatchmethod
+    def clear_cache(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """ Clear object caches
+
+        Clear client side caching for a specific object type, or for all caches:
+
+        .. code-block:: python
+
+            client.clear_cache()  # Clears all caches
+            client.clear_cache(models.Project)  # Clears all Project related caches
+
+        """
+        self._clear_cache_case(None)
+        self._clear_cache_case_types(None)
+        self._clear_cache_config_groups(None)
+        self._clear_cache_milestone(None)
+        self._clear_cache_plan(None)
+        self._clear_cache_priority(None)
+        self._clear_cache_project(None)
+        self._clear_cache_run(None)
+        self._clear_cache_status(None)
+        self._clear_cache_suite(None)
+        self._clear_cache_template(None)
+        self._clear_cache_test(None)
+        self._clear_cache_user(None)
+
+    @clear_cache.register(models.Case)
+    def _clear_cache_case(self, _):
+        """ Clear cache for models.Case related API methods """
+        self.api.case_by_id.cache.clear()
+
+    @clear_cache.register(models.CaseType)
+    def _clear_cache_case_types(self, _):
+        """ Clear cache for models.CaseType related API methods """
+        self.api.case_types.cache.clear()
+
+    @clear_cache.register(models.ConfigGroup)
+    def _clear_cache_config_groups(self, _):
+        """ Clear cache for models.ConfigGroup related API methods """
+        self.api.config_groups.cache.clear()
+
+    @clear_cache.register(models.Milestone)
+    def _clear_cache_milestone(self, _):
+        """ Clear cache for models.Milestone related API methods """
+        self.api.milestone_by_id.cache.clear()
+        self.api.milestones.cache.clear()
+
+    @clear_cache.register(models.Plan)
+    def _clear_cache_plan(self, _):
+        """ Clear cache for models.Plan related API methods """
+        self.api.plan_by_id.cache.clear()
+
+    @clear_cache.register(models.Priority)
+    def _clear_cache_priority(self, _):
+        """ Clear cache for models.Priority related API methods """
+        self.api.priorities.cache.clear()
+
+    @clear_cache.register(models.Project)
+    def _clear_cache_project(self, _):
+        """ Clear cache for models.Project related API methods """
+        self.api.project_by_id.cache.clear()
+        self.api.projects.cache.clear()
+
+    @clear_cache.register(models.Run)
+    def _clear_cache_run(self, _):
+        """ Clear cache for models.Run related API methods """
+        self.api.run_by_id.cache.clear()
+
+    @clear_cache.register(models.Status)
+    def _clear_cache_status(self, _):
+        """ Clear cache for models.Status related API methods """
+        self.api.statuses.cache.clear()
+
+    @clear_cache.register(models.Suite)
+    def _clear_cache_suite(self, _):
+        """ Clear cache for models.Suite related API methods """
+        self.api.suite_by_id.cache.clear()
+        self.api.suites_by_project_id.cache.clear()
+
+    @clear_cache.register(models.Template)
+    def _clear_cache_template(self, _):
+        """ Clear cache for models.Template related API methods """
+        self.api.templates.cache.clear()
+
+    @clear_cache.register(models.Test)
+    def _clear_cache_test(self, _):
+        """ Clear cache for models.Test related API methods """
+        self.api.test_by_id.cache.clear()
+        self.api.tests_by_run_id.cache.clear()
+
+    @clear_cache.register(models.User)
+    def _clear_cache_user(self, _):
+        """ Clear cache for models.User related API methods """
+        self.api.user_by_email.cache.clear()
+        self.api.user_by_id.cache.clear()
+        self.api.users.cache.clear()

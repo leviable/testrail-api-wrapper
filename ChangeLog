@@ -1,6 +1,8 @@
 CHANGES
 =======
 
+* Add caching controls and documentation
+* Add client side caching
 * Add run add-close-delete-update support
 
 0.0.10
