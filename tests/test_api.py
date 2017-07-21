@@ -560,7 +560,6 @@ def test_run_by_id(api):
 def test_run_close(api):
     """ Verify the ``run_close`` method call """
     RUN_ID = 1234
-    PARAMS = {'param_key': 'param_value'}
     api._session.request.return_value = RUN1
     run = api.run_close(RUN_ID)
 

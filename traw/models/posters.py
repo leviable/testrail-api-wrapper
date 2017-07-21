@@ -10,6 +10,7 @@ class Closeable(object):
     """  """
     pass
 
+
 class Deleteable(object):
     """  """
     pass

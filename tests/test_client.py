@@ -197,7 +197,7 @@ def test_add_run_with_case_ids(client):
                   traw.const.MILESTONE_ID: '22',
                   traw.const.ASSIGNEDTO_ID: '33',
                   traw.const.INCLUDE_ALL: True,
-                  traw.const.CASE_IDS: [1,2,3,4],
+                  traw.const.CASE_IDS: [1, 2, 3, 4],
                   traw.const.PROJECT_ID: PROJECT_ID}
     run = models.Run(client, dict(extra='extra', **run_config))
 
@@ -580,7 +580,7 @@ def test_update_run_w_case_ids(client):
                   traw.const.MILESTONE_ID: '22',
                   traw.const.ASSIGNEDTO_ID: '33',
                   traw.const.INCLUDE_ALL: True,
-                  traw.const.CASE_IDS: [1,2,3],
+                  traw.const.CASE_IDS: [1, 2, 3],
                   traw.const.PROJECT_ID: PROJECT_ID}
     run = models.Run(client, dict(extra='extra', **run_config))
 

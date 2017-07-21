@@ -1,8 +1,63 @@
 import re
-from datetime import timedelta
-from functools import update_wrapper
+from datetime import datetime as dt, timedelta
+from functools import update_wrapper, wraps
 
 from singledispatch import singledispatch
+
+
+def cacheable_generator(obj_type):
+    def _cacheable_generator(func):
+        """ """
+        cache = func.cache = {}
+
+        @wraps(func)
+        def cacheable_func(inst, *args, **kwargs):
+            key = str(args) + str(kwargs)
+            if key not in cache or cache[key]['expires'] < dt.now():
+                timeout = inst._CACHE_TIMEOUTS[inst][obj_type]  # pylint: disable=protected-access
+                cache[key] = dict()
+                cache[key]['value'] = list()
+                cache[key]['expires'] = dt.now() + timedelta(seconds=timeout)
+                for val in func(inst, *args, **kwargs):
+                    cache[key]['value'].append(val)
+                    yield val
+            else:
+                for val in cache[key]['value']:
+                    yield val
+
+        return cacheable_func
+    return _cacheable_generator
+
+
+def cacheable(obj_type):
+    def cacheable_func(func):
+        """ """
+        cache = func.cache = {}
+
+        @wraps(func)
+        def _cacheable_func(inst, *args, **kwargs):
+            key = str(args) + str(kwargs)
+            if key not in cache or cache[key]['expires'] < dt.now():
+                timeout = inst._CACHE_TIMEOUTS[inst][obj_type]  # pylint: disable=protected-access
+                cache[key] = dict()
+                cache[key]['value'] = func(inst, *args, **kwargs)
+                cache[key]['expires'] = dt.now() + timedelta(seconds=timeout)
+
+            return cache[key]['value']
+
+        return _cacheable_func
+    return cacheable_func
+
+
+def clear_cache(method):
+    def target(func):
+        @wraps(func)
+        def _func(*args, **kwargs):
+            response = func(*args, **kwargs)
+            method.cache.clear()
+            return response
+        return _func
+    return target
 
 
 def dispatchmethod(func):

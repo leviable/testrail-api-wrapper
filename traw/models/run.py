@@ -25,6 +25,7 @@ class Run(Addable, Closeable, Deleteable, Updatable, ModelBase):
     """
     _ADDABLE_FIELDS = const.RUN_ADD_FIELDS
     _UPDATABLE_FIELDS = const.RUN_UPDATE_FIELDS
+
     @property
     def add_params(self):
         """ Returns params necessary to add the subclass object to TestRail """
