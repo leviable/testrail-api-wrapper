@@ -18,5 +18,5 @@ from pbr.version import VersionInfo
 from .client import Client  # NOQA
 
 
-__version__ = VersionInfo('instabrade').semantic_version().release_string()
+__version__ = VersionInfo('traw').semantic_version().release_string()
 __all__ = ('__version__', 'Client')
