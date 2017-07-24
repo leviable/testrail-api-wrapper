@@ -220,6 +220,17 @@ class API(object):
         path = API_PATH['update_project'].format(project_id=project_id)
         return self._session.request(method=POST, path=path, json=params)
 
+    @cacheable_generator(models.Test)
+    def results_by_test_id(self, test_id, status_id=None):
+        """ Calls `get_results` API endpoint
+
+        :yields: result dictionaries from api
+        """
+        path = API_PATH['get_results'].format(test_id=test_id)
+        params = {'status_id': status_id} if status_id else None
+        for result in self._session.request(method=GET, path=path, params=params):
+            yield result
+
     @cacheable(models.Run)
     def run_by_id(self, run_id):
         """ Calls `get_run` API endpoint with the given run_id

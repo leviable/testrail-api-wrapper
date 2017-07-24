@@ -451,6 +451,60 @@ class Client(object):
         for project in self.api.projects(is_completed):
             yield models.Project(self, project)
 
+    # Result related methods
+    @dispatchmethod
+    def result(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """ Return a models.Result instance
+            `client.result()` returns a new Result instance (no API call)
+
+        :param: no method parameters, will return a new, uncofigured models.Result instance
+
+        :returns: models.Result instance
+        """
+        return models.Result(self)
+
+    @dispatchmethod
+    def results(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """ Return models.Result generator for the given models.Test object or test ID
+
+            `client.results(test)` yields resultss associated with the Test instance
+            `client.results(1234)` yields resultss associated with test id 1234
+
+        :param test: models.Test object for a test that exists in TestRail
+        :param test_id: int, Test ID for a test that exists in TestRail
+
+        :raiess: NotImplementedError if called with no parameters (`client.results()`) or
+                 a parameter of an unsupported type (`client.results(True)`)
+
+        :yields: models.Result objects
+        """
+        raise NotImplementedError(const.NOTIMP.format("models.Test or int"))
+
+    @results.register(int)
+    def _results_by_test_id(self, test_id, with_status=None):
+        msg = ("`with_status` must be either None, models.Status or an iterable of "
+               "models.Status objects. Found {0}")
+        if with_status is None:
+            pass
+        elif not isinstance(with_status, (models.Status, Iterable)):
+            raise TypeError(msg.format(type(with_status)))
+        elif (isinstance(with_status, Iterable) and
+                not all([isinstance(s, models.Status) for s in with_status])):
+            # TODO: This will exhaust generators, tee them first?
+            raise TypeError(msg.format([type(s) for s in with_status]))
+
+        if with_status is not None:
+            with_status = with_status if isinstance(with_status, Iterable) else (with_status, )
+            with_status = ','.join([str(s.id) for s in with_status])
+
+        for result in self.api.results_by_test_id(test_id, with_status):
+            yield models.Result(self, result)
+
+    @results.register(models.Test)
+    def _results_by_test(self, test, with_status=None):
+        for result in self.results(test.id, with_status):
+            yield result
+
     # Run related methods
     @dispatchmethod
     def run(self, *args, **kwargs):  # pylint: disable=unused-argument
@@ -739,6 +793,7 @@ class Client(object):
             raise TypeError(msg.format(type(with_status)))
         elif (isinstance(with_status, Iterable) and
                 not all([isinstance(s, models.Status) for s in with_status])):
+            # TODO: This will exhaust generators, tee them first?
             raise TypeError(msg.format([type(s) for s in with_status]))
 
         if with_status is not None:
@@ -842,6 +897,7 @@ class Client(object):
         self._clear_cache_plan(None)
         self._clear_cache_priority(None)
         self._clear_cache_project(None)
+        self._clear_cache_result(None)
         self._clear_cache_run(None)
         self._clear_cache_status(None)
         self._clear_cache_suite(None)
@@ -885,6 +941,11 @@ class Client(object):
         """ Clear cache for models.Project related API methods """
         self.api.project_by_id.cache.clear()
         self.api.projects.cache.clear()
+
+    @clear_cache.register(models.Result)
+    def _clear_cache_result(self, _):
+        """ Clear cache for models.Result related API methods """
+        self.api.results_by_test_id.cache.clear()
 
     @clear_cache.register(models.Run)
     def _clear_cache_run(self, _):

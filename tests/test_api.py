@@ -33,6 +33,9 @@ PRIO3 = {'priority': 'priority3'}
 PROJ1 = {'project': 'project1'}
 PROJ2 = {'project': 'project2'}
 PROJ3 = {'project': 'project3'}
+RESU1 = {'result': 'result1'}
+RESU2 = {'result': 'result2'}
+RESU3 = {'result': 'result3'}
 RUN1 = {'run': 'run1'}
 RUN2 = {'run': 'run2'}
 RUN3 = {'run': 'run3'}
@@ -525,6 +528,37 @@ def test_projects_with_arg(api):
 
     assert all(map(lambda p: isinstance(p, dict), proj_list))
     assert len(proj_list) == 3
+    assert api._session.request.call_args == exp_call
+
+
+def test_results_by_test_id_no_status_id(api):
+    """ Verify the ``results_by_test_id`` method call with no status_id"""
+    TEST_ID = 1234
+    api._session.request.return_value = [RESU1, RESU2]
+
+    result = next(api.results_by_test_id(TEST_ID))
+
+    exp_call = mock.call(
+        method=GET, path=AP['get_results'].format(test_id=TEST_ID), params=None)
+
+    assert result == RESU1
+    assert isinstance(result, dict)
+    assert api._session.request.call_args == exp_call
+
+
+def test_results_by_test_id_w_status_id(api):
+    """ Verify the ``results_by_run_id`` method call with status_id"""
+    TEST_ID = 1234
+    api._session.request.return_value = [RESU1, RESU2]
+
+    result = next(api.results_by_test_id(TEST_ID, "111,222"))
+
+    exp_call = mock.call(method=GET,
+                         path=AP['get_results'].format(test_id=TEST_ID),
+                         params={'status_id': '111,222'})
+
+    assert result == RESU1
+    assert isinstance(result, dict)
     assert api._session.request.call_args == exp_call
 
 

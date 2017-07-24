@@ -80,6 +80,7 @@ Currently supported endpoints:
 - priorities     - get all
 - project        - get by project id, add, delete, udpate
 - projects       - get all (with active_only and completed_only filter)
+- results        - get by test or test id
 - run            - get by run id, add, close, delete, update
 - status         - get by status id, get by label (with strict casing filter)
 - statuses       - get all
@@ -101,7 +102,7 @@ Not yet supported:
 - plan entry     - add, delete, update
 - plans          - get by project or project id
 - result         - add by test id, add by run and case
-- results        - get by test or test id, get by run or run id, get by run and case, get by run id and case id, add by run, add by cases
+- results        - get by run or run id, get by run and case, get by run id and case id, add by run, add by cases
 - result fields  - get all
 - runs           - get by project or project id
 - section        - get by section id, add, delete, update
