@@ -13,6 +13,8 @@ The intended way to begin is to instantiate the TRAW Client:
 
 See the Client help documentation (`help(traw.Client)`) for more information
 """
+import logging
+
 from pbr.version import VersionInfo
 
 from .client import Client  # NOQA
@@ -20,3 +22,5 @@ from .client import Client  # NOQA
 
 __version__ = VersionInfo('traw').semantic_version().release_string()
 __all__ = ('__version__', 'Client')
+
+logging.getLogger(__package__).addHandler(logging.NullHandler())

@@ -84,6 +84,25 @@ class NotFound(ResponseException):
     """Indicate that the requested URL was not found."""
 
 
+class RateLimited(ResponseException):
+    """Indicate the API rate limit was reached.
+
+    This class adds the attribute ``retry_after``, which is the number of seconds to
+    wait before retrying.
+
+    """
+
+    def __init__(self, response):
+        """Initialize a Redirect exception instance..
+
+        :param response: A requests.response instance containing a location
+        header.
+
+        """
+        super(RateLimited, self).__init__(response)
+        self.retry_after = int(response.headers['Retry-After'])
+
+
 class Redirect(ResponseException):
     """Indicate the request resulted in a redirect.
 

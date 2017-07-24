@@ -2,6 +2,7 @@ import mock
 import pytest
 import requests
 from requests.status_codes import codes
+import time
 
 from traw.sessions import Session
 from traw import exceptions
@@ -83,6 +84,21 @@ def test_req_w_retries_bad_gateway(make_req_mock, session, response):
         session._request_with_retries()
 
     assert make_req_mock.call_count == 3
+
+
+@mock.patch.object(Session, '_make_request')
+def test_req_w_retries_rate_limited(make_req_mock, session, response):
+    """ Validate _request_with_retries exception logic for bad_gateway """
+    time.sleep.mock_obj.reset_mock()
+    response.status_code = 429
+    response.headers = {'Retry-After': 60}
+    make_req_mock.return_value = response, None
+
+    with pytest.raises(exceptions.RateLimited):
+        session._request_with_retries()
+
+    assert make_req_mock.call_count == 3
+    assert str(time.sleep.mock_obj.call_args_list).count('60') == 3
 
 
 @mock.patch.object(Session, '_make_request')
@@ -278,6 +294,8 @@ def test__make_request_exc(session):
 
 def test__make_request_valid_response(session, response):
     """ Validate _make_request returns response """
+    response.status_code = 200
+    response.headers = {'content-length': 300}
     session._http.request.return_value = response
 
     resp, exc = session._make_request(method='method', url='url')
