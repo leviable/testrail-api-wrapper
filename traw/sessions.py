@@ -1,4 +1,6 @@
 from copy import deepcopy
+import logging
+import time
 
 import requests
 from retry import retry
@@ -6,13 +8,16 @@ from requests.status_codes import codes
 from requests.exceptions import ChunkedEncodingError, ConnectionError
 
 from .const import BASE_API_PATH, TIMEOUT
-from .exceptions import (BadRequest, Conflict, Forbidden, NotFound, Redirect,
-                         ServerError, TooLarge, UnknownStatusCode)
+from .exceptions import (BadRequest, Conflict, Forbidden, NotFound, RateLimited,
+                         Redirect, ServerError, TooLarge, UnknownStatusCode)
+
+log = logging.getLogger(__package__)
 
 
 class Session(object):
     """  """
-    RETRY_EXCEPTIONS = (ChunkedEncodingError, ConnectionError, ServerError)
+    RATE_LIMIT_STATUS = 429
+    RETRY_EXCEPTIONS = (ChunkedEncodingError, ConnectionError, RateLimited, ServerError)
     STATUS_EXCEPTIONS = {codes['bad_gateway']: ServerError,
                          codes['bad_request']: BadRequest,
                          codes['conflict']: Conflict,
@@ -39,11 +44,23 @@ class Session(object):
         self._http = requests.Session()
         self._http.headers['Content-Type'] = 'application/json'
 
+    @staticmethod
+    def _log_request(*args, **kwargs):
+        method = kwargs.get('method', None)
+        url = kwargs.get('url', None)
+        json = kwargs.get('json', None)
+        params = kwargs.get('params', None)
+        log.debug('Fetching: {} {}'.format(method, url))
+        log.debug('JSON    : {}'.format(json))
+        log.debug('Params  : {}'.format(params))
+
     def _make_request(self, *args, **kwargs):
         kwargs['timeout'] = TIMEOUT
         kwargs['auth'] = self._auth
         try:
             response = self._http.request(*args, **kwargs)
+            log.debug('Response: {} ({} bytes)'.format(
+                response.status_code, response.headers.get('content-length')))
         except Exception as exc:
             return None, exc
         else:
@@ -52,12 +69,19 @@ class Session(object):
     @retry(RETRY_EXCEPTIONS, tries=3, delay=1, backoff=2)
     def _request_with_retries(self, *args, **kwargs):
         """  """
+        self._log_request(**kwargs)
         response, _ = self._make_request(*args, **kwargs)
 
         if response.status_code in self.STATUS_EXCEPTIONS:
             raise self.STATUS_EXCEPTIONS[response.status_code](response)
         elif response.status_code == codes['no_content']:
             return
+        elif response.status_code == self.RATE_LIMIT_STATUS:
+            retry_after = int(response.headers['Retry-After'])
+            log_msg = 'API rate limit reached. Retrying after {0} seconds'
+            log.warning(log_msg.format(retry_after))
+            time.sleep(retry_after)
+            raise RateLimited(response)
         elif response.status_code not in self.SUCCESS_STATUSES:
             raise UnknownStatusCode(response)
 
