@@ -1,4 +1,6 @@
 from collections import Iterable
+from datetime import datetime as dt
+import time
 
 from . import const
 from . import models
@@ -482,27 +484,17 @@ class Client(object):
 
     @results.register(int)
     def _results_by_test_id(self, test_id, with_status=None):
-        msg = ("`with_status` must be either None, models.Status or an iterable of "
-               "models.Status objects. Found {0}")
-        if with_status is None:
-            pass
-        elif not isinstance(with_status, (models.Status, Iterable)):
-            raise TypeError(msg.format(type(with_status)))
-        elif (isinstance(with_status, Iterable) and
-                not all([isinstance(s, models.Status) for s in with_status])):
-            # TODO: This will exhaust generators, tee them first?
-            raise TypeError(msg.format([type(s) for s in with_status]))
-
-        if with_status is not None:
-            with_status = with_status if isinstance(with_status, Iterable) else (with_status, )
-            with_status = ','.join([str(s.id) for s in with_status])
+        param_types = (int, models.Status, type(None), Iterable)
+        iter_types = (int, models.Status)
+        with_status = normalize_param('with_status', with_status,
+                                      param_types, iter_types)
 
         for result in self.api.results_by_test_id(test_id, with_status):
             yield models.Result(self, result)
 
     @results.register(models.Test)
     def _results_by_test(self, test, with_status=None):
-        for result in self.results(test.id, with_status):
+        for result in self.results(test.id, with_status=with_status):
             yield result
 
     # Run related methods
@@ -543,6 +535,93 @@ class Client(object):
     def _run_update(self, run):
         response = self.api.run_update(run.id, run.update_params)
         return models.Run(self, response)
+
+    @dispatchmethod
+    def runs(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """ Return models.Run generator for the given models.Project object or project ID
+
+        `client.runs(project)` yields runs associated with the Project instance
+        `client.runs(1234)` yields runs associated with project id 1234
+
+        Optional filter examples:
+        `client.runs(1234, created_after=datetime.now()-timedelta(days=1))`  # 1 day old
+        `client.runs(1234, created_before=1469726522)`  # using a timestamp
+        `client.runs(1234, created_by=client.user("automation@user.com"))`  # by User object
+        `client.runs(1234, created_by=client.user(15))`  # by User ID
+        `client.runs(1234, created_by=[12, 15, 34])`  # by list of User IDs
+        `client.runs(1234, is_completed=True)`
+        `client.runs(1234, limit=3500)`
+        `client.runs(1234, milestone=client.milestone(112))`  # by Milestone object
+        `client.runs(1234, milestone=112)`  # by Milestone ID
+        `client.runs(1234, milestone=[101, 102, 103])`  # by list of Milestone IDs
+        `client.runs(1234, suite=client.suite(223))`  # by Suite object
+        `client.runs(1234, suite=223)`  # by Suite ID
+        `client.runs(1234, suite=[222, 223, 224])`  # by list of Suite IDs
+        `client.runs(1234, suite=[suite1, suite2, suite3])`  # by list of Suite objects
+
+        :param project: models.Project object for a project that exists in TestRail
+        :param project_id: int, Project ID for a project that exists in TestRail
+        :param created_after: datetime.datetime object or timestamp
+        :param created_before: datetime.datetime object or timestamp
+        :param created_by: models.User instance(s) or int(s) (User ID(s))
+        :param is_completed: None (any state) or Bool
+        :param limit: int, only return <limit> responses
+        :param milestone: models.(Sub)Milestone instance(s) or int(s) (Milestone ID(s))
+        :param suite: models.Suite instance(s) or int(s) (Suite ID(s))
+
+        :raiess: NotImplementedError if called with no parameters (`client.runs()`) or
+                 a parameter of an unsupported type (`client.runs(True)`)
+
+        :yields: models.Run objects
+        """
+        raise NotImplementedError(const.NOTIMP.format("models.Project or int"))
+
+    @runs.register(int)
+    def _runs_by_project_id(self, project_id, created_after=None, created_before=None,
+                            created_by=None, is_completed=None, limit=None,
+                            milestone=None, suite=None):
+        params = dict()
+        if created_after:
+            params['created_after'] = normalize_created_filter(created_after)
+        if created_before:
+            params['created_before'] = normalize_created_filter(created_before)
+        if created_by:
+            us_param_types = (int, models.User, type(None), Iterable)
+            us_iter_types = (int, models.User)
+            params['created_by'] = normalize_param(
+                'created_by', created_by, us_param_types, us_iter_types)
+        if is_completed is not None:
+            if is_completed is not True and is_completed is not False:
+                msg = "`is_completed` can only be None, True, or False. Found '{0}'"
+                raise TypeError(msg.format(is_completed))
+            params['is_completed'] = int(is_completed)
+        if limit:
+            params['limit'] = int(limit)
+        if milestone:
+            ms_param_types = (int, models.Milestone, models.SubMilestone,
+                              type(None), Iterable)
+            ms_iter_types = (int, models.Milestone, models.SubMilestone)
+            params['milestone_id'] = normalize_param(
+                'milestone', milestone, ms_param_types, ms_iter_types)
+        if suite:
+            su_param_types = (int, models.Suite, type(None), Iterable)
+            su_iter_types = (int, models.Suite)
+            params['suite_id'] = normalize_param(
+                'suite', suite, su_param_types, su_iter_types)
+
+        for run in self.api.runs_by_project_id(project_id, **params):
+            yield models.Run(self, run)
+
+    @runs.register(models.Project)
+    def _runs_by_project(self, project, created_after=None, created_before=None,
+                         created_by=None, is_completed=None, limit=None,
+                         milestone=None, suite=None):
+
+        for run in self.runs(project.id, created_after=created_after,
+                             created_before=created_before, created_by=created_by,
+                             is_completed=is_completed, limit=limit,
+                             milestone=milestone, suite=suite):
+            yield run
 
     # Status related methods
     @dispatchmethod
@@ -694,13 +773,13 @@ class Client(object):
 
     @dispatchmethod
     def suites(self, *args, **kwargs):  # pylint: disable=unused-argument
-        """ Return models.Suite generator for the given models.Project object or run ID
+        """ Return models.Suite generator for the given models.Project object or project ID
 
             `client.suites(project)` yields suites associated with the Project instance
             `client.suites(1234)` yields suites associated with project id 1234
 
-        :param project: models.Run object for a run that exists in TestRail
-        :param project_id: int, Run ID for a run that exists in TestRail
+        :param project: models.Project object for a project that exists in TestRail
+        :param project_id: int, Project ID for a project that exists in TestRail
 
         :raiess: NotImplementedError if called with no parameters (`client.suites()`) or
                  a parameter of an unsupported type (`client.suites(True)`)
@@ -980,3 +1059,51 @@ class Client(object):
         self.api.user_by_email.cache.clear()
         self.api.user_by_id.cache.clear()
         self.api.users.cache.clear()
+
+
+def normalize_created_filter(created_filter):
+    if not isinstance(created_filter, (int, float, dt)):
+        msg = ("`created_after/created_before` must be a datetime.datetime "
+               "object or UNIX timestamp (1469726522 or 1469726522.10. Found {0}")
+        raise TypeError(msg.format(created_filter))
+    elif isinstance(created_filter, (int, float)):
+        filter_timestamp = int(created_filter)
+    else:
+        filter_timestamp = int(time.mktime(created_filter.timetuple()))
+
+    return filter_timestamp
+
+
+def normalize_param(param_name, param_vals, param_types, iter_types):
+    param_types_str = ' or '.join(map(str, param_types))
+    iter_types_str = " or ".join(map(str, iter_types))
+    msg = ("`{param_name}` must be {param_types} types. "
+           "Each object returned from the `{param_name}` interable can "
+           " only be of type {iter_types}. Found '{param_vals}'")
+
+    msg = msg.format(param_types=param_types_str, iter_types=iter_types_str,
+                     param_name=param_name, param_vals=param_vals)
+
+    if param_vals is None:
+        pass
+    elif not isinstance(param_vals, param_types):
+        raise TypeError(msg)
+    elif isinstance(param_vals, ModelBase):
+        param_vals = param_vals.id
+    elif isinstance(param_vals, Iterable):
+        expanded_vals = list()
+        for val in param_vals:
+            if not isinstance(val, iter_types):
+                raise TypeError(msg)
+            elif isinstance(val, int):
+                expanded_vals.append(val)
+            else:
+                expanded_vals.append(val.id)
+
+        param_vals = expanded_vals
+
+    if param_vals is not None:
+        param_vals = param_vals if isinstance(param_vals, Iterable) else (param_vals, )
+        param_vals = ','.join([str(v) for v in param_vals])
+
+    return param_vals

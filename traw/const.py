@@ -80,6 +80,8 @@ CONFIG_FILE_NAME = '.traw_config'
 
 DEFAULT_CACHE_TIMEOUT = 300  # Seconds
 
+DEFAULT_LIMIT = 250
+
 GET = 'get'
 POST = 'post'
 

@@ -1,6 +1,12 @@
 CHANGES
 =======
 
+* Add get runs support with pagination
+
+0.0.13
+------
+
+* Handle 429 status codes in API responses
 * Add support for results get by test ID
 
 0.0.12

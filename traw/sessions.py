@@ -45,7 +45,7 @@ class Session(object):
         self._http.headers['Content-Type'] = 'application/json'
 
     @staticmethod
-    def _log_request(*args, **kwargs):
+    def _log_request(**kwargs):
         method = kwargs.get('method', None)
         url = kwargs.get('url', None)
         json = kwargs.get('json', None)
