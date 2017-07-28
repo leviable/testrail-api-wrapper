@@ -634,6 +634,75 @@ def test_run_update(api):
     assert api._session.request.call_args == exp_call
 
 
+def test_runs_by_project_id(api):
+    """ Verify the ``runs_by_project_id`` method call """
+    PROJECT_ID = 1234
+    api._session.request.return_value = [RUN1, RUN2]
+
+    run = next(api.runs_by_project_id(PROJECT_ID))
+
+    exp_call = mock.call(method=GET,
+                         params={'offset': 0},
+                         path=AP['get_runs'].format(project_id=PROJECT_ID))
+
+    assert run == RUN1
+    assert isinstance(run, dict)
+    assert api._session.request.call_args == exp_call
+
+
+def test_runs_by_project_id_w_paginate_and_limit(api):
+    """ Verify the ``runs_by_project_id`` pagination and limit """
+    PROJECT_ID = 1234
+    api._session.request.side_effect = [[RUN1] * 250, [RUN2] * 250]
+
+    runs = list(api.runs_by_project_id(PROJECT_ID, limit=300))
+
+    exp_call_1 = mock.call(method=GET,
+                           params={'limit': 250, 'offset': 0},
+                           path=AP['get_runs'].format(project_id=PROJECT_ID))
+
+    exp_call_2 = mock.call(method=GET,
+                           params={'limit': 50, 'offset': 250},
+                           path=AP['get_runs'].format(project_id=PROJECT_ID))
+
+    assert runs == [RUN1] * 250 + [RUN2] * 50
+    assert api._session.request.call_args_list == [exp_call_1, exp_call_2]
+
+
+def test_runs_by_project_id_w_paginate_and_no_limit(api):
+    """ Verify the ``runs_by_project_id`` pagination and no limit """
+    PROJECT_ID = 1235
+    api._session.request.side_effect = [[RUN1] * 250, [RUN2] * 200]
+
+    runs = list(api.runs_by_project_id(PROJECT_ID))
+
+    exp_call_1 = mock.call(method=GET,
+                           params={'offset': 0},
+                           path=AP['get_runs'].format(project_id=PROJECT_ID))
+
+    exp_call_2 = mock.call(method=GET,
+                           params={'offset': 250},
+                           path=AP['get_runs'].format(project_id=PROJECT_ID))
+
+    assert runs == [RUN1] * 250 + [RUN2] * 200
+    assert api._session.request.call_args_list == [exp_call_1, exp_call_2]
+
+
+def test_runs_by_project_id_w_paginate_and_no_results(api):
+    """ Verify the ``runs_by_project_id`` pagination with no responses returned """
+    PROJECT_ID = 1236
+    api._session.request.side_effect = [[], ]
+
+    runs = list(api.runs_by_project_id(PROJECT_ID))
+
+    exp_call = mock.call(method=GET,
+                         params={'offset': 0},
+                         path=AP['get_runs'].format(project_id=PROJECT_ID))
+
+    assert runs == list()
+    assert api._session.request.call_args == exp_call
+
+
 def test_statuses(api):
     """ Verify the ``statuses`` method call """
     api._session.request.return_value = [STAT1, STAT2, STAT3]

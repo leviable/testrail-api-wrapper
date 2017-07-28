@@ -1,3 +1,4 @@
+from datetime import datetime as dt
 import sys
 
 import mock
@@ -38,6 +39,10 @@ PROJ3 = {'name': 'project3'}
 RESU1 = {'name': 'result1', 'id': 771}
 RESU2 = {'name': 'result2', 'id': 772}
 RESU3 = {'name': 'result3', 'id': 773}
+RUN1 = {'name': 'run1', 'id': 881}
+RUN2 = {'name': 'run2', 'id': 882}
+RUN3 = {'name': 'run3', 'id': 883}
+RUN4 = {'name': 'run4', 'id': 884}
 STAT1 = {'name': 'status1', 'id': 221, 'label': 'Passed'}
 STAT2 = {'name': 'status2', 'id': 222, 'label': 'Failed'}
 STAT3 = {'name': 'status3', 'id': 223, 'label': 'failed'}
@@ -1281,7 +1286,7 @@ def test_results_by_test_id(client):
 
 
 def test_results_by_test_id_with_status(client):
-    """ Verify calling ``client.results(123)`` with an ID returns result
+    """ Verify calling ``client.results(123)`` with a status returns result
         generator
     """
     client.api.results_by_test_id.return_value = [RESU1, ]
@@ -1294,6 +1299,21 @@ def test_results_by_test_id_with_status(client):
     assert result1.id == 771
 
     client.api.results_by_test_id.assert_called_once_with(1234, '234')
+
+
+def test_results_by_test_id_with_int_status(client):
+    """ Verify calling ``client.results(123)`` with an int status returns result
+        generator
+    """
+    client.api.results_by_test_id.return_value = [RESU1, ]
+
+    results = client.results(1234, with_status=111)
+
+    result1 = next(results)
+    assert isinstance(result1, models.Result)
+    assert result1.id == 771
+
+    client.api.results_by_test_id.assert_called_once_with(1234, '111')
 
 
 def test_results_by_test_id_with_2_status(client):
@@ -1313,14 +1333,31 @@ def test_results_by_test_id_with_2_status(client):
     client.api.results_by_test_id.assert_called_once_with(1234, '234,345')
 
 
+def test_results_by_test_id_with_2_status_ids(client):
+    """ Verify calling ``client.results(123)`` with status IDs returns result
+        generator
+    """
+    client.api.results_by_test_id.return_value = [RESU1, ]
+
+    results = client.results(1234, with_status=(234, 345))
+
+    result1 = next(results)
+    assert isinstance(result1, models.Result)
+    assert result1.id == 771
+
+    client.api.results_by_test_id.assert_called_once_with(1234, '234,345')
+
+
 def test_results_by_test_id_exc_1(client):
     """ Verify calling ``client.results(123, status)`` throws an exception """
     with pytest.raises(TypeError) as exc:
-        next(client.results(1234, with_status=111))
+        next(client.results(1234, with_status=111.11))
 
-    assert "None, models.Status" in str(exc)
-    assert "iterable of models.Status objects" in str(exc)
+    assert str(None) in str(exc)
     assert str(int) in str(exc)
+    assert str(models.Status) in str(exc)
+    assert 'with_status' in str(exc)
+    assert str(111.11) in str(exc)
     assert not client.api.results_by_test_id.called
 
 
@@ -1330,11 +1367,13 @@ def test_results_by_test_id_exc_2(client):
     status2 = models.Status(client, {'id': 345})
 
     with pytest.raises(TypeError) as exc:
-        next(client.results(1234, with_status=(status1, 111, status2)))
+        next(client.results(1234, with_status=(status1, 'asdf', status2)))
 
-    assert "None, models.Status" in str(exc)
-    assert "iterable of models.Status objects" in str(exc)
+    assert str(None) in str(exc)
     assert str(int) in str(exc)
+    assert str(models.Status) in str(exc)
+    assert 'with_status' in str(exc)
+    assert 'asdf' in str(exc)
     assert not client.api.results_by_test_id.called
 
 
@@ -1428,6 +1467,326 @@ def test_run_by_id(client):
     assert isinstance(run, models.Run)
     assert run.id == 1234
     client.api.run_by_id.assert_called_once_with(1234)
+
+
+def test_runs_exc(client):
+    """ Verify the Client's ``runs`` method throws an exception if called """
+    with pytest.raises(NotImplementedError) as exc:
+        client.runs()
+
+    assert 'You must pass in models.Project or int object' in str(exc)
+    assert not client.api.runs_by_project_id.called
+
+
+def test_runs_by_project_id(client):
+    """ Verify calling ``client.runs(123)`` with an ID returns suite generator """
+    client.api.runs_by_project_id.return_value = [RUN1, RUN2, RUN3]
+    runs = client.runs(1234)
+
+    run1 = next(runs)
+    assert isinstance(run1, models.Run)
+    assert run1.id == 881
+
+    run2 = next(runs)
+    assert isinstance(run2, models.Run)
+    assert run2.id == 882
+
+    run3 = next(runs)
+    assert isinstance(run3, models.Run)
+    assert run3.id == 883
+
+    client.api.runs_by_project_id.assert_called_once_with(1234)
+
+
+def test_runs_by_project(client):
+    """ Verify calling ``client.runs(Project)`` with an ID returns run generator """
+    client.api.runs_by_project_id.return_value = [RUN1, RUN2, RUN3]
+    runs = client.runs(models.Project(client, {'id': 1234}))
+
+    run1 = next(runs)
+    assert isinstance(run1, models.Run)
+    assert run1.id == 881
+
+    run2 = next(runs)
+    assert isinstance(run2, models.Run)
+    assert run2.id == 882
+
+    run3 = next(runs)
+    assert isinstance(run3, models.Run)
+    assert run3.id == 883
+
+    client.api.runs_by_project_id.assert_called_once_with(1234)
+
+
+def test_runs_by_project_w_limit(client):
+    """ Verify calling ``client.runs(Project)`` with a limit """
+    list(client.runs(models.Project(client, {'id': 1234}), limit=2))
+
+    client.api.runs_by_project_id.assert_called_once_with(1234, limit=2)
+
+
+def test_runs_by_project_w_int_created_after(client):
+    """ Verify calling ``client.runs(Project)`` with created_before """
+    list(client.runs(models.Project(client, {'id': 1234}), created_after=1112))
+
+    client.api.runs_by_project_id.assert_called_once_with(1234, created_after=1112)
+
+
+def test_runs_by_project_w_float_created_after(client):
+    """ Verify calling ``client.runs(Project)`` with created_before """
+    list(client.runs(models.Project(client, {'id': 1234}), created_after=11.12))
+
+    client.api.runs_by_project_id.assert_called_once_with(1234, created_after=11)
+
+
+def test_runs_by_project_w_datetime_created_after(client):
+    """ Verify calling ``client.runs(Project)`` with created_before """
+    ca_dt = dt.fromtimestamp(33.22)
+    list(client.runs(models.Project(client, {'id': 1234}), created_after=ca_dt))
+
+    client.api.runs_by_project_id.assert_called_once_with(1234, created_after=33)
+
+
+def test_runs_by_project_w_created_after_exc(client):
+    """ Verify calling ``client.runs(Project)`` with created_before exception """
+    with pytest.raises(TypeError) as exc:
+        list(client.runs(
+            models.Project(client, {'id': 1234}), created_after='asdf'))
+
+    assert 'created_after' in str(exc)
+    assert 'asdf' in str(exc)
+    assert not client.api.runs_by_project_id.called
+
+
+def test_runs_by_project_w_int_created_before(client):
+    """ Verify calling ``client.runs(Project)`` with created_before """
+    list(client.runs(models.Project(client, {'id': 1234}), created_before=1112))
+
+    client.api.runs_by_project_id.assert_called_once_with(1234, created_before=1112)
+
+
+def test_runs_by_project_w_float_created_before(client):
+    """ Verify calling ``client.runs(Project)`` with created_before """
+    list(client.runs(models.Project(client, {'id': 1234}), created_before=11.12))
+
+    client.api.runs_by_project_id.assert_called_once_with(1234, created_before=11)
+
+
+def test_runs_by_project_w_datetime_created_before(client):
+    """ Verify calling ``client.runs(Project)`` with created_before """
+    ca_dt = dt.fromtimestamp(33.22)
+    list(client.runs(models.Project(client, {'id': 1234}), created_before=ca_dt))
+
+    client.api.runs_by_project_id.assert_called_once_with(1234, created_before=33)
+
+
+def test_runs_by_project_w_created_before_exc(client):
+    """ Verify calling ``client.runs(Project)`` with created_before exception """
+    with pytest.raises(TypeError) as exc:
+        list(client.runs(
+            models.Project(client, {'id': 1234}), created_before='asdf'))
+
+    assert 'created_before' in str(exc)
+    assert 'asdf' in str(exc)
+    assert not client.api.runs_by_project_id.called
+
+
+def test_runs_by_project_w_created_by_user(client):
+    """ Verify calling ``client.runs(Project)`` with created_by """
+    user = models.User(client, {'id': 11})
+    list(client.runs(models.Project(client, {'id': 1234}), created_by=user))
+
+    client.api.runs_by_project_id.assert_called_once_with(1234, created_by='11')
+
+
+def test_runs_by_project_w_created_by_user_id(client):
+    """ Verify calling ``client.runs(Project)`` with created_by """
+    list(client.runs(models.Project(client, {'id': 1234}), created_by=11))
+
+    client.api.runs_by_project_id.assert_called_once_with(1234, created_by='11')
+
+
+def test_runs_by_project_w_created_by_exc(client):
+    """ Verify calling ``client.runs(Project)`` with created_by exception """
+    with pytest.raises(TypeError) as exc:
+        list(client.runs(models.Project(client, {'id': 1234}), created_by='asdf'))
+
+    assert 'asdf' in str(exc)
+    assert str(models.User) in str(exc)
+    assert str(int) in str(exc)
+
+
+def test_runs_by_project_id_w_created_by_user(client):
+    """ Verify calling ``client.runs(1234)`` with created_by """
+    user = models.User(client, {'id': 11})
+    list(client.runs(1234, created_by=user))
+
+    client.api.runs_by_project_id.assert_called_once_with(1234, created_by='11')
+
+
+def test_runs_by_project_id_w_created_by_user_id(client):
+    """ Verify calling ``client.runs(1234)`` with created_by """
+    list(client.runs(1234, created_by=11))
+
+    client.api.runs_by_project_id.assert_called_once_with(1234, created_by='11')
+
+
+def test_runs_by_project_id_w_created_by_exc(client):
+    """ Verify calling ``client.runs(1234)`` with created_by exception """
+    with pytest.raises(TypeError) as exc:
+        list(client.runs(1234, created_by='asdf'))
+
+    assert 'asdf' in str(exc)
+    assert str(models.User) in str(exc)
+    assert str(int) in str(exc)
+
+
+def test_runs_by_project_w_is_completed_true(client):
+    """ Verify calling ``client.runs(Project)`` with is_completed """
+    list(client.runs(models.Project(client, {'id': 1234}), is_completed=True))
+
+    client.api.runs_by_project_id.assert_called_once_with(1234, is_completed=1)
+
+
+def test_runs_by_project_w_is_copmleted_false(client):
+    """ Verify calling ``client.runs(Project)`` with is_completed """
+    list(client.runs(models.Project(client, {'id': 1234}), is_completed=False))
+
+    client.api.runs_by_project_id.assert_called_once_with(1234, is_completed=0)
+
+
+def test_runs_by_project_w_is_completed_exc(client):
+    """ Verify calling ``client.runs(Project)`` with is_completed exception """
+    with pytest.raises(TypeError) as exc:
+        list(client.runs(models.Project(client, {'id': 1234}), is_completed='asdf'))
+
+    assert 'asdf' in str(exc)
+    assert 'None, True, or False' in str(exc)
+
+
+def test_runs_by_project_id_w_is_completed_true(client):
+    """ Verify calling ``client.runs(1234)`` with is_completed """
+    list(client.runs(1234, is_completed=True))
+
+    client.api.runs_by_project_id.assert_called_once_with(1234, is_completed=1)
+
+
+def test_runs_by_project_id_w_is_completed_false(client):
+    """ Verify calling ``client.runs(1234)`` with is_completed """
+    list(client.runs(1234, is_completed=False))
+
+    client.api.runs_by_project_id.assert_called_once_with(1234, is_completed=0)
+
+
+def test_runs_by_project_id_w_is_complete_exc(client):
+    """ Verify calling ``client.runs(1234)`` with is_completed exception """
+    with pytest.raises(TypeError) as exc:
+        list(client.runs(1234, is_completed='asdf'))
+
+    assert 'asdf' in str(exc)
+    assert 'None, True, or False' in str(exc)
+
+
+def test_runs_by_project_w_milestone(client):
+    """ Verify calling ``client.runs(Project)`` with milestone """
+    ms = models.Milestone(client, {'id': 22})
+    list(client.runs(models.Project(client, {'id': 1234}), milestone=ms))
+
+    client.api.runs_by_project_id.assert_called_once_with(1234, milestone_id='22')
+
+
+def test_runs_by_project_w_milestone_id(client):
+    """ Verify calling ``client.runs(Project)`` with milestone """
+    list(client.runs(models.Project(client, {'id': 1234}), milestone=22))
+
+    client.api.runs_by_project_id.assert_called_once_with(1234, milestone_id='22')
+
+
+def test_runs_by_project_w_milestone_exc(client):
+    """ Verify calling ``client.runs(Project)`` with milestone exception """
+    with pytest.raises(TypeError) as exc:
+        list(client.runs(models.Project(client, {'id': 1234}), milestone='asdf'))
+
+    assert 'asdf' in str(exc)
+    assert str(models.Milestone) in str(exc)
+    assert str(models.SubMilestone) in str(exc)
+    assert str(int) in str(exc)
+
+
+def test_runs_by_project_id_w_milestone(client):
+    """ Verify calling ``client.runs(1234)`` with milestone """
+    ms = models.Milestone(client, {'id': 22})
+    list(client.runs(1234, milestone=ms))
+
+    client.api.runs_by_project_id.assert_called_once_with(1234, milestone_id='22')
+
+
+def test_runs_by_project_id_w_milestone_id(client):
+    """ Verify calling ``client.runs(1234)`` with milestone """
+    list(client.runs(1234, milestone=22))
+
+    client.api.runs_by_project_id.assert_called_once_with(1234, milestone_id='22')
+
+
+def test_runs_by_project_id_w_milestone_exc(client):
+    """ Verify calling ``client.runs(1234)`` with milestone exception """
+    with pytest.raises(TypeError) as exc:
+        list(client.runs(1234, milestone='asdf'))
+
+    assert 'asdf' in str(exc)
+    assert str(models.Milestone) in str(exc)
+    assert str(models.SubMilestone) in str(exc)
+    assert str(int) in str(exc)
+
+
+def test_runs_by_project_w_suite(client):
+    """ Verify calling ``client.runs(Project)`` with suite """
+    suite = models.Suite(client, {'id': 22})
+    list(client.runs(models.Project(client, {'id': 1234}), suite=suite))
+
+    client.api.runs_by_project_id.assert_called_once_with(1234, suite_id='22')
+
+
+def test_runs_by_project_w_suite_id(client):
+    """ Verify calling ``client.runs(Project)`` with suite """
+    list(client.runs(models.Project(client, {'id': 1234}), suite=22))
+
+    client.api.runs_by_project_id.assert_called_once_with(1234, suite_id='22')
+
+
+def test_runs_by_project_w_suite_exc(client):
+    """ Verify calling ``client.runs(Project)`` with suite exception """
+    with pytest.raises(TypeError) as exc:
+        list(client.runs(models.Project(client, {'id': 1234}), suite='asdf'))
+
+    assert 'asdf' in str(exc)
+    assert str(models.Suite) in str(exc)
+    assert str(int) in str(exc)
+
+
+def test_runs_by_project_id_w_suite(client):
+    """ Verify calling ``client.runs(1234)`` with suite """
+    suite = models.Suite(client, {'id': 22})
+    list(client.runs(1234, suite=suite))
+
+    client.api.runs_by_project_id.assert_called_once_with(1234, suite_id='22')
+
+
+def test_runs_by_project_id_w_suite_id(client):
+    """ Verify calling ``client.runs(1234)`` with suite """
+    list(client.runs(1234, suite=22))
+
+    client.api.runs_by_project_id.assert_called_once_with(1234, suite_id='22')
+
+
+def test_runs_by_project_id_w_suite_exc(client):
+    """ Verify calling ``client.runs(1234)`` with suite exception """
+    with pytest.raises(TypeError) as exc:
+        list(client.runs(1234, suite='asdf'))
+
+    assert 'asdf' in str(exc)
+    assert str(models.Suite) in str(exc)
+    assert str(int) in str(exc)
 
 
 def test_custom_status_exc(client):

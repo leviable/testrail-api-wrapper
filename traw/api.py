@@ -10,7 +10,7 @@ from .const import API_PATH, CONFIG_FILE_NAME, DEFAULT_CACHE_TIMEOUT, ENVs, GET,
 from .exceptions import TRAWLoginError
 from . import models
 from .sessions import Session
-from .utils import cacheable, cacheable_generator, clear_cache
+from .utils import cacheable, cacheable_generator, clear_cache, paginate
 
 _USER_KEY = 'username'
 _PASS_KEY = 'password'
@@ -241,6 +241,18 @@ class API(object):
         """
         path = API_PATH['get_run'].format(run_id=run_id)
         return self._session.request(method=GET, path=path)
+
+    @cacheable_generator(models.Run)
+    @paginate
+    def runs_by_project_id(self, project_id, **params):
+        """ Calls `get_runs` API endpoint
+
+        :yields: run dictionaries from api
+        """
+        path = API_PATH['get_runs'].format(project_id=project_id)
+
+        for run in self._session.request(method=GET, path=path, params=params):
+            yield run
 
     @clear_cache(run_by_id)
     def run_add(self, project_id, params):

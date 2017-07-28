@@ -1,9 +1,12 @@
-import re
+from copy import deepcopy
 from datetime import datetime as dt, timedelta
 from functools import update_wrapper, wraps
 from inspect import isclass
+import re
 
 from singledispatch import singledispatch
+
+from .const import DEFAULT_LIMIT
 
 
 def cacheable_generator(obj_type):
@@ -183,3 +186,36 @@ def duration_to_timedelta(duration):
         'seconds': timespan(re.search('\d+s', duration))
     }
     return timedelta(**timedelta_map)
+
+
+def paginate(func):
+    """ """
+    @wraps(func)
+    def paginated_func(*args, **kwargs):
+        limit = kwargs.get('limit', None)
+        offset = 0
+
+        keep_paging = True
+        while keep_paging:
+            new_kwargs = deepcopy(kwargs)
+            new_kwargs['offset'] = offset
+            if limit:
+                new_kwargs['limit'] = min([limit - offset, DEFAULT_LIMIT])
+
+            obj_count = 0
+            for obj_count, obj in enumerate(func(*args, **new_kwargs), 1):
+                yield obj
+
+                if limit and obj_count + offset >= limit:
+                    break
+
+            offset = offset + obj_count
+            if limit and offset >= limit:
+                keep_paging = False
+            elif limit is None and DEFAULT_LIMIT > obj_count:
+                # If obj_count is less than the pagin size (DEFAULT_LIMIT),
+                # it indicates that there are no more objects for the API
+                # to return
+                keep_paging = False
+
+    return paginated_func
