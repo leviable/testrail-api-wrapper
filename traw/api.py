@@ -221,15 +221,20 @@ class API(object):
         return self._session.request(method=POST, path=path, json=params)
 
     @cacheable_generator(models.Test)
-    def results_by_test_id(self, test_id, status_id=None):
+    @paginate
+    def results_by_test_id(self, test_id, **params):
         """ Calls `get_results` API endpoint
 
         :yields: result dictionaries from api
         """
         path = API_PATH['get_results'].format(test_id=test_id)
-        params = {'status_id': status_id} if status_id else None
         for result in self._session.request(method=GET, path=path, params=params):
             yield result
+
+    @clear_cache(results_by_test_id)
+    def result_add(self, test_id, params):
+        path = API_PATH['add_result'].format(test_id=test_id)
+        return self._session.request(method=POST, path=path, json=params)
 
     @cacheable(models.Run)
     def run_by_id(self, run_id):

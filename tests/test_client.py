@@ -1282,7 +1282,7 @@ def test_results_by_test_id(client):
     assert isinstance(result3, models.Result)
     assert result3.id == 773
 
-    client.api.results_by_test_id.assert_called_once_with(1234, None)
+    client.api.results_by_test_id.assert_called_once_with(1234)
 
 
 def test_results_by_test_id_with_status(client):
@@ -1298,7 +1298,7 @@ def test_results_by_test_id_with_status(client):
     assert isinstance(result1, models.Result)
     assert result1.id == 771
 
-    client.api.results_by_test_id.assert_called_once_with(1234, '234')
+    client.api.results_by_test_id.assert_called_once_with(1234, status_id='234')
 
 
 def test_results_by_test_id_with_int_status(client):
@@ -1313,7 +1313,7 @@ def test_results_by_test_id_with_int_status(client):
     assert isinstance(result1, models.Result)
     assert result1.id == 771
 
-    client.api.results_by_test_id.assert_called_once_with(1234, '111')
+    client.api.results_by_test_id.assert_called_once_with(1234, status_id='111')
 
 
 def test_results_by_test_id_with_2_status(client):
@@ -1330,7 +1330,7 @@ def test_results_by_test_id_with_2_status(client):
     assert isinstance(result1, models.Result)
     assert result1.id == 771
 
-    client.api.results_by_test_id.assert_called_once_with(1234, '234,345')
+    client.api.results_by_test_id.assert_called_once_with(1234, status_id='234,345')
 
 
 def test_results_by_test_id_with_2_status_ids(client):
@@ -1345,7 +1345,7 @@ def test_results_by_test_id_with_2_status_ids(client):
     assert isinstance(result1, models.Result)
     assert result1.id == 771
 
-    client.api.results_by_test_id.assert_called_once_with(1234, '234,345')
+    client.api.results_by_test_id.assert_called_once_with(1234, status_id='234,345')
 
 
 def test_results_by_test_id_exc_1(client):
@@ -1394,7 +1394,7 @@ def test_results_by_test(client):
     assert isinstance(result3, models.Result)
     assert result3.id == 773
 
-    client.api.results_by_test_id.assert_called_once_with(1234, None)
+    client.api.results_by_test_id.assert_called_once_with(1234)
 
 
 def test_results_by_test_with_status(client):
@@ -1410,7 +1410,7 @@ def test_results_by_test_with_status(client):
     assert isinstance(result1, models.Result)
     assert result1.id == 771
 
-    client.api.results_by_test_id.assert_called_once_with(1234, '234')
+    client.api.results_by_test_id.assert_called_once_with(1234, status_id='234')
 
 
 def test_results_by_test_with_2_status(client):
@@ -1427,7 +1427,7 @@ def test_results_by_test_with_2_status(client):
     assert isinstance(result1, models.Result)
     assert result1.id == 771
 
-    client.api.results_by_test_id.assert_called_once_with(1234, '234,345')
+    client.api.results_by_test_id.assert_called_once_with(1234, status_id='234,345')
 
 
 def test_run(client):

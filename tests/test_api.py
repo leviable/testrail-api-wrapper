@@ -538,8 +538,9 @@ def test_results_by_test_id_no_status_id(api):
 
     result = next(api.results_by_test_id(TEST_ID))
 
-    exp_call = mock.call(
-        method=GET, path=AP['get_results'].format(test_id=TEST_ID), params=None)
+    exp_call = mock.call(method=GET,
+                         path=AP['get_results'].format(test_id=TEST_ID),
+                         params={'offset': 0})
 
     assert result == RESU1
     assert isinstance(result, dict)
@@ -551,11 +552,11 @@ def test_results_by_test_id_w_status_id(api):
     TEST_ID = 1234
     api._session.request.return_value = [RESU1, RESU2]
 
-    result = next(api.results_by_test_id(TEST_ID, "111,222"))
+    result = next(api.results_by_test_id(TEST_ID, status_id="111,222"))
 
     exp_call = mock.call(method=GET,
                          path=AP['get_results'].format(test_id=TEST_ID),
-                         params={'status_id': '111,222'})
+                         params={'offset': 0, 'status_id': '111,222'})
 
     assert result == RESU1
     assert isinstance(result, dict)
