@@ -531,6 +531,22 @@ def test_projects_with_arg(api):
     assert api._session.request.call_args == exp_call
 
 
+def test_result_add(api):
+    """ Verify the ``result_add`` method call """
+    TEST_ID = 1155
+    PARAMS = {'param_key': 'param_value'}
+    api._session.request.return_value = RESU1
+    result = api.result_add(TEST_ID, PARAMS)
+
+    exp_call = mock.call(method=POST,
+                         path=AP['add_result'].format(test_id=TEST_ID),
+                         json=PARAMS)
+
+    assert result == RESU1
+    assert isinstance(result, dict)
+    assert api._session.request.call_args == exp_call
+
+
 def test_results_by_test_id_no_status_id(api):
     """ Verify the ``results_by_test_id`` method call with no status_id"""
     TEST_ID = 1234

@@ -213,7 +213,7 @@ def paginate(func):
             if limit and offset >= limit:
                 keep_paging = False
             elif limit is None and DEFAULT_LIMIT > obj_count:
-                # If obj_count is less than the pagin size (DEFAULT_LIMIT),
+                # If obj_count is less than the paging size (DEFAULT_LIMIT),
                 # it indicates that there are no more objects for the API
                 # to return
                 keep_paging = False

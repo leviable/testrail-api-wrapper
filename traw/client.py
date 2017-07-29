@@ -496,7 +496,7 @@ class Client(object):
             param_types = (int, models.Status, type(None), Iterable)
             iter_types = (int, models.Status)
             with_status = normalize_param('with_status', with_status,
-                                        param_types, iter_types)
+                                          param_types, iter_types)
             params['status_id'] = with_status
 
         for result in self.api.results_by_test_id(test_id, **params):
@@ -1094,9 +1094,7 @@ def normalize_param(param_name, param_vals, param_types, iter_types):
     msg = msg.format(param_types=param_types_str, iter_types=iter_types_str,
                      param_name=param_name, param_vals=param_vals)
 
-    if param_vals is None:
-        pass
-    elif not isinstance(param_vals, param_types):
+    if not isinstance(param_vals, param_types):
         raise TypeError(msg)
     elif isinstance(param_vals, ModelBase):
         param_vals = param_vals.id

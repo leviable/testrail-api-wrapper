@@ -220,7 +220,7 @@ class API(object):
         path = API_PATH['update_project'].format(project_id=project_id)
         return self._session.request(method=POST, path=path, json=params)
 
-    @cacheable_generator(models.Test)
+    @cacheable_generator(models.Result)
     @paginate
     def results_by_test_id(self, test_id, **params):
         """ Calls `get_results` API endpoint
