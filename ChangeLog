@@ -1,6 +1,7 @@
 CHANGES
 =======
 
+* Add results pagination and add result support
 * Add get runs support with pagination
 
 0.0.13

@@ -196,6 +196,32 @@ def test_add_run_no_case_ids(client):
     assert 'extra' not in str(client.api.run_add.call_args)
 
 
+def test_add_result(client):
+    RESULT_ID = 111
+    TEST_ID = 1155
+
+    result_config = {traw.const.TEST_ID: 998877,
+                     traw.const.STATUS_ID: 8,
+                     traw.const.COMMENT: 'mock comment',
+                     traw.const.VERSION: 'VER.SI.ON.RC',
+                     traw.const.ELAPSED: 12345,
+                     traw.const.DEFECTS: 'DEF1,DEF2',
+                     traw.const.ASSIGNEDTO_ID: 77}
+    result = models.Result(client, dict(extra='extra', **result_config))
+
+    client.api.result_add.return_value = dict(id=RESULT_ID, **result_config)
+
+    with mock.patch.object(client, 'test') as test_mock:
+        test_mock.return_value = models.Test(client, {'id': TEST_ID})
+        response = client.add(result)
+
+    assert isinstance(response, models.Result)
+    assert response.id == RESULT_ID
+    assert client.api.result_add.called
+    assert 'mock comment' in str(client.api.result_add.call_args)
+    assert 'extra' not in str(client.api.result_add.call_args)
+
+
 def test_add_run_with_case_ids(client):
     RUN_ID = 111
     PROJECT_ID = 15
@@ -1267,8 +1293,8 @@ def test_results_exc(client):
 
 def test_results_by_test_id(client):
     """ Verify calling ``client.tests(123)`` with an ID returns test generator """
-    client.api.results_by_test_id.return_value = [RESU1, RESU2, RESU3]
-    results = client.results(1234)
+    client.api.results_by_test_id.return_value = [RESU1, RESU2]
+    results = client.results(1234, limit=2)
 
     result1 = next(results)
     assert isinstance(result1, models.Result)
@@ -1278,11 +1304,7 @@ def test_results_by_test_id(client):
     assert isinstance(result2, models.Result)
     assert result2.id == 772
 
-    result3 = next(results)
-    assert isinstance(result3, models.Result)
-    assert result3.id == 773
-
-    client.api.results_by_test_id.assert_called_once_with(1234, None)
+    client.api.results_by_test_id.assert_called_once_with(1234, limit=2)
 
 
 def test_results_by_test_id_with_status(client):
@@ -1298,7 +1320,7 @@ def test_results_by_test_id_with_status(client):
     assert isinstance(result1, models.Result)
     assert result1.id == 771
 
-    client.api.results_by_test_id.assert_called_once_with(1234, '234')
+    client.api.results_by_test_id.assert_called_once_with(1234, status_id='234')
 
 
 def test_results_by_test_id_with_int_status(client):
@@ -1313,7 +1335,7 @@ def test_results_by_test_id_with_int_status(client):
     assert isinstance(result1, models.Result)
     assert result1.id == 771
 
-    client.api.results_by_test_id.assert_called_once_with(1234, '111')
+    client.api.results_by_test_id.assert_called_once_with(1234, status_id='111')
 
 
 def test_results_by_test_id_with_2_status(client):
@@ -1330,7 +1352,7 @@ def test_results_by_test_id_with_2_status(client):
     assert isinstance(result1, models.Result)
     assert result1.id == 771
 
-    client.api.results_by_test_id.assert_called_once_with(1234, '234,345')
+    client.api.results_by_test_id.assert_called_once_with(1234, status_id='234,345')
 
 
 def test_results_by_test_id_with_2_status_ids(client):
@@ -1345,7 +1367,7 @@ def test_results_by_test_id_with_2_status_ids(client):
     assert isinstance(result1, models.Result)
     assert result1.id == 771
 
-    client.api.results_by_test_id.assert_called_once_with(1234, '234,345')
+    client.api.results_by_test_id.assert_called_once_with(1234, status_id='234,345')
 
 
 def test_results_by_test_id_exc_1(client):
@@ -1394,7 +1416,7 @@ def test_results_by_test(client):
     assert isinstance(result3, models.Result)
     assert result3.id == 773
 
-    client.api.results_by_test_id.assert_called_once_with(1234, None)
+    client.api.results_by_test_id.assert_called_once_with(1234)
 
 
 def test_results_by_test_with_status(client):
@@ -1410,7 +1432,7 @@ def test_results_by_test_with_status(client):
     assert isinstance(result1, models.Result)
     assert result1.id == 771
 
-    client.api.results_by_test_id.assert_called_once_with(1234, '234')
+    client.api.results_by_test_id.assert_called_once_with(1234, status_id='234')
 
 
 def test_results_by_test_with_2_status(client):
@@ -1427,7 +1449,7 @@ def test_results_by_test_with_2_status(client):
     assert isinstance(result1, models.Result)
     assert result1.id == 771
 
-    client.api.results_by_test_id.assert_called_once_with(1234, '234,345')
+    client.api.results_by_test_id.assert_called_once_with(1234, status_id='234,345')
 
 
 def test_run(client):

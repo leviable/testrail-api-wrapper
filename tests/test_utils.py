@@ -1,8 +1,10 @@
+from datetime import timedelta as td
 import mock
 import pytest
 
 import traw
-from traw.utils import dispatchmethod
+from traw.const import GET, API_PATH as AP
+from traw.utils import dispatchmethod, duration_to_timedelta
 
 MOCK_USERNAME = 'mock username'
 MOCK_USER_API_KEY = 'mock user api key'
@@ -60,6 +62,56 @@ def api():
                            user_api_key=MOCK_USER_API_KEY,
                            password=MOCK_PASSWORD,
                            url=MOCK_URL)
+
+
+def test_paginate_w_no_limit(api):
+    api.results_by_test_id.cache.clear()
+    api._session.request.side_effect = [[1] * 250, [2] * 250, [3] * 50]
+
+    TEST_ID = 1
+
+    results = list(api.results_by_test_id(TEST_ID))
+
+    exp_call_1 = mock.call(method=GET,
+                           path=AP['get_results'].format(test_id=TEST_ID),
+                           params={'offset': 0})
+
+    exp_call_2 = mock.call(method=GET,
+                           path=AP['get_results'].format(test_id=TEST_ID),
+                           params={'offset': 250})
+
+    exp_call_3 = mock.call(method=GET,
+                           path=AP['get_results'].format(test_id=TEST_ID),
+                           params={'offset': 500})
+
+    assert len(results) == 550
+    assert results == [1] * 250 + [2] * 250 + [3] * 50
+    assert api._session.request.call_args_list == [exp_call_1, exp_call_2, exp_call_3]
+
+
+def test_paginate_w_limit(api):
+    api.results_by_test_id.cache.clear()
+    api._session.request.side_effect = [[1] * 250, [2] * 250, [3] * 50]
+
+    TEST_ID = 1
+
+    results = list(api.results_by_test_id(TEST_ID, limit=525))
+
+    exp_call_1 = mock.call(method=GET,
+                           path=AP['get_results'].format(test_id=TEST_ID),
+                           params={'offset': 0, 'limit': 250})
+
+    exp_call_2 = mock.call(method=GET,
+                           path=AP['get_results'].format(test_id=TEST_ID),
+                           params={'offset': 250, 'limit': 250})
+
+    exp_call_3 = mock.call(method=GET,
+                           path=AP['get_results'].format(test_id=TEST_ID),
+                           params={'offset': 500, 'limit': 25})
+
+    assert len(results) == 525
+    assert results == [1] * 250 + [2] * 250 + [3] * 25
+    assert api._session.request.call_args_list == [exp_call_1, exp_call_2, exp_call_3]
 
 
 def test_cacheable_caching(timedelta, dt, api):
@@ -194,3 +246,15 @@ def test_dispatchmethod_dict_with_kwargs(dm):
     assert not dm.mock_obj.method_list.called
     assert dm.mock_obj.method_dict.called
     dm.mock_obj.method_dict.assert_called_once_with(dict(obj, **kwargs))
+
+
+def test_duration_to_timedelta():
+    """ Verify the duration to timedelta conversion """
+    duration = '1w 2d 3h 4m 5s'
+    d2td = duration_to_timedelta(duration)
+
+    total_days = 7 + 2
+    total_seconds = (3 * 60 * 60) + (4 * 60) + 5
+
+    assert isinstance(d2td, td)
+    assert d2td == td(days=total_days, seconds=total_seconds)

@@ -465,6 +465,11 @@ class Client(object):
         """
         return models.Result(self)
 
+    @add.register(models.Result)
+    def _result_add(self, result):
+        response = self.api.result_add(result.test.id, result.add_params)
+        return models.Result(self, response)
+
     @dispatchmethod
     def results(self, *args, **kwargs):  # pylint: disable=unused-argument
         """ Return models.Result generator for the given models.Test object or test ID
@@ -483,18 +488,23 @@ class Client(object):
         raise NotImplementedError(const.NOTIMP.format("models.Test or int"))
 
     @results.register(int)
-    def _results_by_test_id(self, test_id, with_status=None):
-        param_types = (int, models.Status, type(None), Iterable)
-        iter_types = (int, models.Status)
-        with_status = normalize_param('with_status', with_status,
-                                      param_types, iter_types)
+    def _results_by_test_id(self, test_id, limit=None, with_status=None):
+        params = dict()
+        if limit:
+            params['limit'] = int(limit)
+        if with_status is not None:
+            param_types = (int, models.Status, type(None), Iterable)
+            iter_types = (int, models.Status)
+            with_status = normalize_param('with_status', with_status,
+                                          param_types, iter_types)
+            params['status_id'] = with_status
 
-        for result in self.api.results_by_test_id(test_id, with_status):
+        for result in self.api.results_by_test_id(test_id, **params):
             yield models.Result(self, result)
 
     @results.register(models.Test)
-    def _results_by_test(self, test, with_status=None):
-        for result in self.results(test.id, with_status=with_status):
+    def _results_by_test(self, test, limit=None, with_status=None):
+        for result in self.results(test.id, limit=limit, with_status=with_status):
             yield result
 
     # Run related methods
@@ -1084,9 +1094,7 @@ def normalize_param(param_name, param_vals, param_types, iter_types):
     msg = msg.format(param_types=param_types_str, iter_types=iter_types_str,
                      param_name=param_name, param_vals=param_vals)
 
-    if param_vals is None:
-        pass
-    elif not isinstance(param_vals, param_types):
+    if not isinstance(param_vals, param_types):
         raise TypeError(msg)
     elif isinstance(param_vals, ModelBase):
         param_vals = param_vals.id

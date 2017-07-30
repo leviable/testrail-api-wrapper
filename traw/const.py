@@ -117,6 +117,7 @@ STATUS_ID = 'status_id'
 SUITE_ID = 'suite_id'
 SUITE_MODE = 'suite_mode'
 START_ON = 'start_on'
+TEST_ID = 'test_id'
 VERSION = 'version'
 
 # Add/Delete/Update fields by object
