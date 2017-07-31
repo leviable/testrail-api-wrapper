@@ -279,6 +279,46 @@ class API(object):
         path = API_PATH['update_run'].format(run_id=run_id)
         return self._session.request(method=POST, path=path, json=params)
 
+    @cacheable(models.Section)
+    def section_by_id(self, section_id):
+        """ Calls `get_section` API endpoint with the given section_id
+
+        :param section_id: int id of section
+
+        :returns: section dict
+        """
+        path = API_PATH['get_section'].format(section_id=section_id)
+        return self._session.request(method=GET, path=path)
+
+    @cacheable_generator(models.Section)
+    def sections_by_project_id(self, project_id, suite=None):
+        """ Calls `get_sections` API endpoint
+
+        :yields: section dictionaries from api
+        """
+        params = {'suite_id': suite} if suite else dict()
+        path = API_PATH['get_sections'].format(project_id=project_id)
+        for section in self._session.request(method=GET, path=path, params=params):
+            yield section
+
+    @clear_cache(section_by_id)
+    @clear_cache(sections_by_project_id)
+    def section_add(self, project_id, params):
+        path = API_PATH['add_section'].format(project_id=project_id)
+        return self._session.request(method=POST, path=path, json=params)
+
+    @clear_cache(section_by_id)
+    @clear_cache(sections_by_project_id)
+    def section_delete(self, section_id):
+        path = API_PATH['delete_section'].format(section_id=section_id)
+        return self._session.request(method=POST, path=path)
+
+    @clear_cache(section_by_id)
+    @clear_cache(sections_by_project_id)
+    def section_update(self, section_id, params):
+        path = API_PATH['update_section'].format(section_id=section_id)
+        return self._session.request(method=POST, path=path, json=params)
+
     @cacheable_generator(models.Status)
     def statuses(self):
         """ Calls `get_statuses` API endpoint

@@ -39,6 +39,9 @@ RESU3 = {'result': 'result3'}
 RUN1 = {'run': 'run1'}
 RUN2 = {'run': 'run2'}
 RUN3 = {'run': 'run3'}
+SECT1 = {'section': 'section1'}
+SECT2 = {'section': 'section2'}
+SECT3 = {'section': 'section3'}
 STAT1 = {'stat': 'stat1'}
 STAT2 = {'stat': 'stat2'}
 STAT3 = {'stat': 'stat3'}
@@ -717,6 +720,82 @@ def test_runs_by_project_id_w_paginate_and_no_results(api):
                          path=AP['get_runs'].format(project_id=PROJECT_ID))
 
     assert runs == list()
+    assert api._session.request.call_args == exp_call
+
+
+def test_section_add(api):
+    """ Verify the ``section_add`` method call """
+    PROJECT_ID = 15
+    PARAMS = {'param_key': 'param_value'}
+    api._session.request.return_value = SECT1
+    section = api.section_add(PROJECT_ID, PARAMS)
+
+    exp_call = mock.call(method=POST,
+                         path=AP['add_section'].format(project_id=PROJECT_ID),
+                         json=PARAMS)
+
+    assert section == SECT1
+    assert isinstance(section, dict)
+    assert api._session.request.call_args == exp_call
+
+
+def test_section_by_id(api):
+    """ Verify the ``section_by_id`` method call """
+    SECTION_ID = 1234
+    api._session.request.return_value = SECT1
+    section = api.section_by_id(SECTION_ID)
+
+    exp_call = mock.call(method=GET,
+                         path=AP['get_section'].format(section_id=SECTION_ID))
+
+    assert section == SECT1
+    assert isinstance(section, dict)
+    assert api._session.request.call_args == exp_call
+
+
+def test_sections_by_project_id(api):
+    """ Verify the ``sections_by_project_id`` method call """
+    PROJECT_ID = 1234
+    api._session.request.return_value = [SECT1, SECT2]
+
+    section = next(api.sections_by_project_id(PROJECT_ID))
+
+    exp_call = mock.call(method=GET,
+                         path=AP['get_sections'].format(project_id=PROJECT_ID),
+                         params=dict())
+
+    assert section == SECT1
+    assert isinstance(section, dict)
+    assert api._session.request.call_args == exp_call
+
+
+def test_section_delete(api):
+    """ Verify the ``section_delete`` method call """
+    SECTION_ID = 1234
+    api._session.request.return_value = {}
+    section = api.section_delete(SECTION_ID)
+
+    exp_call = mock.call(method=POST,
+                         path=AP['delete_section'].format(section_id=SECTION_ID))
+
+    assert isinstance(section, dict)
+    assert section == dict()
+    assert api._session.request.call_args == exp_call
+
+
+def test_section_update(api):
+    """ Verify the ``section_update`` method call """
+    SECTION_ID = 1234
+    PARAMS = {'param_key': 'param_value'}
+    api._session.request.return_value = SECT1
+    section = api.section_update(SECTION_ID, PARAMS)
+
+    exp_call = mock.call(method=POST,
+                         path=AP['update_section'].format(section_id=SECTION_ID),
+                         json=PARAMS)
+
+    assert section == SECT1
+    assert isinstance(section, dict)
     assert api._session.request.call_args == exp_call
 
 

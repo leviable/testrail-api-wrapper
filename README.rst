@@ -70,6 +70,7 @@ Additional, more comprehensive examples are available in the `examples folder`_.
 
 Currently supported endpoints:
 
+- case           - get by case id
 - case type      - get by case type id
 - case types     - get all
 - configs        - get by project or project id, add, delete, update
@@ -80,11 +81,13 @@ Currently supported endpoints:
 - priorities     - get all
 - project        - get by project id, add, delete, udpate
 - projects       - get all (with active_only and completed_only filter)
-- results        - get by test or test id
+- results        - get by test or test id (with limit and with_status filters)
 - run            - get by run id, add, close, delete, update
 - runs           - get by project or project id (with created after/before, created by, is completed, limit, milestone, and suite filters)
 - status         - get by status id, get by label (with strict casing filter)
 - statuses       - get all
+- section        - get by section id, add, delete, update
+- sections       - get by project or project id (optionally by suite or suite id)
 - suite          - get by suite id
 - suites         - get by project or project id
 - templates      - get by project or project id
@@ -96,7 +99,7 @@ Currently supported endpoints:
 
 Not yet supported:
 
-- case           - get by case id, add, delete, update
+- case           - add, delete, update
 - cases          - get by project or project id (* plus suite and section)
 - case fields    - get all
 - plan           - get by plan id, add, close, delete, update
@@ -105,8 +108,6 @@ Not yet supported:
 - result         - add by test id, add by run and case
 - results        - get by run or run id, get by run and case, get by run id and case id, add by run, add by cases
 - result fields  - get all
-- section        - get by section id, add, delete, update
-- sections       - get by project or project id (* and suite or suite id)
 
 Note: * Denotes endpoint variations dependent on if the project is or is not
   operating in single suite mode

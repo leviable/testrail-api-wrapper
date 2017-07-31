@@ -633,6 +633,84 @@ class Client(object):
                              milestone=milestone, suite=suite):
             yield run
 
+    # Section related methods
+    @dispatchmethod
+    def section(self):
+        """
+            :param section_id: int
+
+            :returns: models.Section
+        """
+        return models.Section(self)
+
+    @add.register(models.Section)
+    def _section_add(self, section):
+        if section.project.suite_mode != 1 and section.suite is None:
+            msg = ("You must associate the Section with a TestRail Suite "
+                   "if the Project is not in Single Suite mode")
+            raise ValueError(msg)
+        response = self.api.section_add(section.project.id, section.add_params)
+        return models.Section(self, response)
+
+    @section.register(int)
+    def _section_by_id(self, section_id):
+        """ Do not call directly
+            Returns a models.Section object with id of ``section_id``
+            :param section_id: int
+
+            :returns: models.Section
+        """
+        return models.Section(self, self.api.section_by_id(section_id))
+
+    @delete.register(models.Section)
+    def _section_delete(self, section):
+        self.api.section_delete(section.id)
+
+    @update.register(models.Section)
+    def _section_update(self, section):
+        response = self.api.section_update(section.id, section.update_params)
+        return models.Section(self, response)
+
+    @dispatchmethod
+    def sections(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """ Return models.Section generator for the given models.Project object or project ID
+
+            `client.sections(project)` yields sections associated with the Project instance
+            `client.sections(1234)` yields sections associated with project id 1234
+
+        :param project: models.Project object for a project that exists in TestRail
+        :param project_id: int, Project ID for a project that exists in TestRail
+
+        :raiess: NotImplementedError if called with no parameters (`client.sections()`) or
+                 a parameter of an unsupported type (`client.sections(True)`)
+
+        :yields: models.Section objects
+        """
+        raise NotImplementedError(const.NOTIMP.format("models.Project or int"))
+
+    @sections.register(int)
+    def _sections_by_project_id(self, project_id, suite=None):
+        project = self.project(project_id)
+        if project.suite_mode != 1 and suite is None:
+            msg = ("The project with ID {0} is set to a suite_mode of {1}, which "
+                   "requires a valid suite or suite_id to retrieve sections")
+            raise TypeError(msg.format(project, project.suite_mode))
+
+        if suite and not isinstance(suite, (int, models.Suite)):
+            msg = ("``suite`` must be a models.Suite object, or int ID of a "
+                   "suite in testrail. Found {0}")
+            raise TypeError(msg.format(suite))
+
+        suite_id = suite.id if isinstance(suite, models.Suite) else suite
+
+        for section in self.api.sections_by_project_id(project_id, suite_id):
+            yield models.Section(self, section)
+
+    @sections.register(models.Project)
+    def _sections_by_project(self, project, suite=None):
+        for section in self.sections(project.id, suite):
+            yield section
+
     # Status related methods
     @dispatchmethod
     def custom_status(self, *args, **kwargs):
@@ -809,6 +887,37 @@ class Client(object):
             yield suite
 
     # Template related methods
+    @dispatchmethod
+    def template(self):
+        """
+            :param template_id: int
+
+            :returns: models.Template
+        """
+        raise NotImplementedError(const.NOTIMP.format("int"))
+
+    @template.register(int)
+    def _template_by_id(self, template_id):
+        """ Do not call directly
+            Returns a models.Template object with id of ``template_id``
+            :param template_id: int
+
+            :returns: models.Template
+        """
+        for project in self.projects():
+            for sys_template in self.templates(project):
+                if sys_template.id == template_id:
+                    template = sys_template
+                    break
+            else:  # Necessary to break out of both for loops
+                continue
+            break
+        else:
+            msg = "Could not locate a models.Template with id of {0}"
+            raise TRAWClientError(msg.format(template_id))
+
+        return template
+
     @dispatchmethod
     def templates(self, *args, **kwargs):  # pylint: disable=unused-argument
         """ Return models.Template generator for the given models.Project object or project ID
@@ -988,6 +1097,7 @@ class Client(object):
         self._clear_cache_project(None)
         self._clear_cache_result(None)
         self._clear_cache_run(None)
+        self._clear_cache_section(None)
         self._clear_cache_status(None)
         self._clear_cache_suite(None)
         self._clear_cache_template(None)
@@ -1040,6 +1150,13 @@ class Client(object):
     def _clear_cache_run(self, _):
         """ Clear cache for models.Run related API methods """
         self.api.run_by_id.cache.clear()
+        self.api.runs_by_project_id.cache.clear()
+
+    @clear_cache.register(models.Section)
+    def _clear_cache_section(self, _):
+        """ Clear cache for models.Section related API methods """
+        self.api.section_by_id.cache.clear()
+        self.api.sections_by_project_id.cache.clear()
 
     @clear_cache.register(models.Status)
     def _clear_cache_status(self, _):

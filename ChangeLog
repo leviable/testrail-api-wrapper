@@ -1,6 +1,10 @@
 CHANGES
 =======
 
+* Add section support for client and API
+* Add Section model
+* Add/update case model
+* Add unit tests for pagination
 * Add results pagination and add result support
 * Add get runs support with pagination
 

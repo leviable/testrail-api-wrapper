@@ -228,7 +228,7 @@ def test_configs(new_run, run):
 def test_created_by(new_run, run):
     run.client.api.user_by_id.return_value = {'id': CREATED_BY_ID}
 
-    assert new_run.assigned_to is None
+    assert new_run.created_by is None
     assert isinstance(run.created_by, User)
     assert run.created_by.id == CREATED_BY_ID
 

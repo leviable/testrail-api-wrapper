@@ -43,6 +43,9 @@ RUN1 = {'name': 'run1', 'id': 881}
 RUN2 = {'name': 'run2', 'id': 882}
 RUN3 = {'name': 'run3', 'id': 883}
 RUN4 = {'name': 'run4', 'id': 884}
+SECT1 = {'name': 'section1', 'id': 991}
+SECT2 = {'name': 'section2', 'id': 992}
+SECT3 = {'name': 'section3', 'id': 993}
 STAT1 = {'name': 'status1', 'id': 221, 'label': 'Passed'}
 STAT2 = {'name': 'status2', 'id': 222, 'label': 'Failed'}
 STAT3 = {'name': 'status3', 'id': 223, 'label': 'failed'}
@@ -50,9 +53,9 @@ STAT4 = {'name': 'status4', 'id': 8, 'label': 'custom-failed'}
 SUIT1 = {'name': 'suite1', 'id': 551}
 SUIT2 = {'name': 'suite2', 'id': 552}
 SUIT3 = {'name': 'suite3', 'id': 553}
-TEMP1 = {'name': 'template1'}
-TEMP2 = {'name': 'template2'}
-TEMP3 = {'name': 'template3'}
+TEMP1 = {'name': 'template1', 'id': 991}
+TEMP2 = {'name': 'template2', 'id': 992}
+TEMP3 = {'name': 'template3', 'id': 993}
 TEST1 = {'name': 'test1', 'id': 441}
 TEST2 = {'name': 'test2', 'id': 442}
 TEST3 = {'name': 'test3', 'id': 443}
@@ -247,6 +250,77 @@ def test_add_run_with_case_ids(client):
     assert 'mock name' in str(client.api.run_add.call_args)
     assert '1,2,3,4' in str(client.api.run_add.call_args)
     assert 'extra' not in str(client.api.run_add.call_args)
+
+
+def test_add_section(client):
+    SECTION_ID = 14
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+
+    section_config = {traw.const.NAME: 'mock name',
+                      traw.const.DESCRIPTION: 'mock description',
+                      traw.const.PROJECT_ID: PROJECT_ID}
+    section = models.Section(client, dict(extra='extra', **section_config))
+
+    client.api.section_add.return_value = dict(id=SECTION_ID, **section_config)
+
+    with mock.patch.object(client, 'project') as proj_mock:
+        proj_mock.return_value = models.Project(client, PROJECT_DICT)
+        response = client.add(section)
+
+    assert isinstance(response, models.Section)
+    assert response.id == SECTION_ID
+    assert client.api.section_add.called
+    assert 'mock name' in str(client.api.section_add.call_args)
+    assert 'extra' not in str(client.api.section_add.call_args)
+
+
+def test_add_section_w_suite(client):
+    SECTION_ID = 13
+    SUITE_ID = 14
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 2}
+
+    section_config = {traw.const.NAME: 'mock name',
+                      traw.const.DESCRIPTION: 'mock description',
+                      traw.const.PROJECT_ID: PROJECT_ID,
+                      traw.const.SUITE_ID: SUITE_ID}
+    section = models.Section(client, dict(extra='extra', **section_config))
+
+    client.api.section_add.return_value = dict(id=SECTION_ID, **section_config)
+
+    with mock.patch.object(client, 'project') as proj_mock:
+        proj_mock.return_value = models.Project(client, PROJECT_DICT)
+        response = client.add(section)
+
+    assert isinstance(response, models.Section)
+    assert response.id == SECTION_ID
+    assert client.api.section_add.called
+    assert 'mock name' in str(client.api.section_add.call_args)
+    assert 'extra' not in str(client.api.section_add.call_args)
+
+
+def test_add_section_exc(client):
+    SECTION_ID = 13
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 2}
+
+    section_config = {traw.const.NAME: 'mock name',
+                      traw.const.DESCRIPTION: 'mock description',
+                      traw.const.PROJECT_ID: PROJECT_ID}
+    section = models.Section(client, dict(extra='extra', **section_config))
+
+    client.api.section_add.return_value = dict(id=SECTION_ID, **section_config)
+
+    with mock.patch.object(client, 'project') as proj_mock:
+        proj_mock.return_value = models.Project(client, PROJECT_DICT)
+
+        with pytest.raises(ValueError) as exc:
+            client.add(section)
+
+    assert "not in Single Suite mode" in str(exc)
+    assert not client.api.section_add.called
+    proj_mock.assert_called_once_with(PROJECT_ID)
 
 
 def test_add_sub_milestone(client):
@@ -458,6 +532,25 @@ def test_delete_run(client):
     client.api.run_delete.assert_called_once_with(RUN_ID)
 
 
+def test_delete_section(client):
+    SECTION_ID = 111
+    PROJECT_ID = 15
+
+    section_config = {traw.const.NAME: 'mock name',
+                      traw.const.DESCRIPTION: 'mock description',
+                      traw.const.PROJECT_ID: PROJECT_ID}
+    section = models.Section(client, dict(id=SECTION_ID, **section_config))
+
+    client.api.section_delete.return_value = dict()
+
+    with mock.patch.object(client, 'project') as proj_mock:
+        proj_mock.return_value = models.Project(client, {'id': PROJECT_ID})
+        response = client.delete(section)
+
+    assert response is None
+    client.api.section_delete.assert_called_once_with(SECTION_ID)
+
+
 def test_delete_suite(client):
     SUITE_ID = 111
     PROJECT_ID = 15
@@ -632,6 +725,30 @@ def test_update_run_w_case_ids(client):
     assert 'extra' not in str(client.api.run_update.call_args)
 
 
+def test_update_section(client):
+    SECTION_ID = 111
+    PROJECT_ID = 15
+
+    section_config = {traw.const.NAME: 'mock name',
+                      traw.const.DESCRIPTION: 'mock description',
+                      traw.const.DUE_ON: 123456,
+                      traw.const.START_ON: 12345,
+                      traw.const.PROJECT_ID: PROJECT_ID}
+    section = models.Section(client, dict(extra='extra', **section_config))
+
+    client.api.section_update.return_value = dict(id=SECTION_ID, **section_config)
+
+    with mock.patch.object(client, 'project') as proj_mock:
+        proj_mock.return_value = models.Project(client, {'id': PROJECT_ID})
+        response = client.update(section)
+
+    assert isinstance(response, models.Section)
+    assert response.id == SECTION_ID
+    assert client.api.section_update.called
+    assert 'mock name' in str(client.api.section_update.call_args)
+    assert 'extra' not in str(client.api.section_update.call_args)
+
+
 def test_update_sub_milestone(client):
     SUB_MILESTONE_ID = 111
     PARENT_ID = 222
@@ -689,13 +806,19 @@ def test_case(client):
     case = client.case()
 
     assert isinstance(case, models.Case)
-    # TODO: Complete when Case is more than a stub
-    # assert proj.announcement is None
-    # assert proj.completed_on is None
-    # assert proj.is_completed is False
-    # assert proj.show_announcement is False
-    # assert proj.suite_mode is None
-    # assert proj.url is None
+    assert case.created_by is None
+    assert case.created_on is None
+    assert case.estimate is None
+    assert case.estimate_forecast is None
+    assert case.id is None
+    assert case.milestone is None
+    assert case.priority is None
+    assert case.suite is None
+    assert case.template is None
+    assert case.title is None
+    assert case.case_type is None
+    assert case.updated_by is None
+    assert case.updated_on is None
 
 
 def test_case_by_id(client):
@@ -1811,6 +1934,174 @@ def test_runs_by_project_id_w_suite_exc(client):
     assert str(int) in str(exc)
 
 
+def test_section(client):
+    """ Verify the Client's ``section`` method returns models.Section object """
+    section = client.section()
+
+    assert isinstance(section, models.Section)
+    assert section.depth is None
+    assert section.description is None
+    assert section.display_order is None
+    assert section.name is None
+    assert section.parent is None
+    assert section.project is None
+    assert section.suite is None
+
+
+def test_section_by_id(client):
+    """ Verify calling ``client.section(123)`` with an ID returns that section """
+    client.api.section_by_id.return_value = {'id': 1234}
+    section = client.section(1234)
+
+    assert isinstance(section, models.Section)
+    assert section.id == 1234
+    client.api.section_by_id.assert_called_once_with(1234)
+
+
+def test_sections_exc(client):
+    """ Verify the Client's ``sections`` method throws an exception if called """
+    with pytest.raises(NotImplementedError) as exc:
+        client.sections()
+
+    assert 'You must pass in models.Project or int object' in str(exc)
+    assert not client.api.sections_by_project_id.called
+
+
+def test_sections_by_project_id(client):
+    """ Verify calling ``client.sections(123)`` with an ID returns section
+        generator
+    """
+    PROJECT_ID = 15
+    client.api.project_by_id.return_value = {'id': PROJECT_ID, 'suite_mode': 1}
+    client.api.sections_by_project_id.return_value = [SECT1, SECT2, SECT3]
+    sections = client.sections(PROJECT_ID)
+
+    section1 = next(sections)
+    assert isinstance(section1, models.Section)
+    assert section1.id == 991
+
+    section2 = next(sections)
+    assert isinstance(section2, models.Section)
+    assert section2.id == 992
+
+    section3 = next(sections)
+    assert isinstance(section3, models.Section)
+    assert section3.id == 993
+
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+    client.api.sections_by_project_id.assert_called_once_with(PROJECT_ID, None)
+
+
+def test_sections_by_project(client):
+    """ Verify calling ``client.sections(Project)`` with an ID returns
+        section generator
+    """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    client.api.project_by_id.return_value = PROJECT_DICT
+    client.api.sections_by_project_id.return_value = [SECT1, SECT2, SECT3]
+
+    sections = client.sections(models.Project(client, PROJECT_DICT))
+
+    section1 = next(sections)
+    assert isinstance(section1, models.Section)
+    assert section1.id == 991
+
+    section2 = next(sections)
+    assert isinstance(section2, models.Section)
+    assert section2.id == 992
+
+    section3 = next(sections)
+    assert isinstance(section3, models.Section)
+    assert section3.id == 993
+
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+    client.api.sections_by_project_id.assert_called_once_with(PROJECT_ID, None)
+
+
+def test_sections_by_project_and_suite(client):
+    """ Verify calling ``client.sections(Project, Suite)`` returns
+        section generator
+    """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 2}
+    SUITE_ID = 16
+    SUITE_DICT = {'id': SUITE_ID}
+
+    client.api.project_by_id.return_value = PROJECT_DICT
+    client.api.sections_by_project_id.return_value = [SECT1, ]
+
+    project = models.Project(client, PROJECT_DICT)
+    suite = models.Suite(client, SUITE_DICT)
+    sections = client.sections(project, suite)
+
+    section1 = next(sections)
+    assert isinstance(section1, models.Section)
+    assert section1.id == 991
+
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+    client.api.sections_by_project_id.assert_called_once_with(PROJECT_ID, SUITE_ID)
+
+
+def test_sections_by_project_and_suite_id(client):
+    """ Verify calling ``client.sections(Project, 15)`` returns
+        section generator
+    """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 2}
+    SUITE_ID = 16
+
+    client.api.project_by_id.return_value = PROJECT_DICT
+    client.api.sections_by_project_id.return_value = [SECT1, ]
+
+    project = models.Project(client, PROJECT_DICT)
+    sections = client.sections(project, SUITE_ID)
+
+    section1 = next(sections)
+    assert isinstance(section1, models.Section)
+    assert section1.id == 991
+
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+    client.api.sections_by_project_id.assert_called_once_with(PROJECT_ID, SUITE_ID)
+
+
+def test_sections_by_project_exc_1(client):
+    """ Verify calling ``client.sections(Project)`` when the project is a
+        suite_mode of 2 raises an exception
+    """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 2}
+
+    client.api.project_by_id.return_value = PROJECT_DICT
+    client.api.sections_by_project_id.return_value = [SECT1, ]
+
+    with pytest.raises(TypeError) as exc:
+        list(client.sections(models.Project(client, PROJECT_DICT)))
+
+    assert 'suite_mode of 2' in str(exc)
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+    assert not client.api.sections_by_project_id.called
+
+
+def test_sections_by_project_exc_2(client):
+    """ Verify calling ``client.sections(Project, 'asdf')`` when the project
+        is a suite_mode of 2 raises an exception
+    """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 2}
+
+    client.api.project_by_id.return_value = PROJECT_DICT
+    client.api.sections_by_project_id.return_value = [SECT1, ]
+
+    with pytest.raises(TypeError) as exc:
+        list(client.sections(models.Project(client, PROJECT_DICT), 'asdf'))
+
+    assert 'models.Suite' in str(exc)
+    assert 'int ID of a suite in testrail' in str(exc)
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+    assert not client.api.sections_by_project_id.called
+
+
 def test_custom_status_exc(client):
     """ Verify the Client's ``custom_status`` method throws an exception
         if called
@@ -1962,7 +2253,7 @@ def test_statuses(client):
 
 
 def test_suite(client):
-    """ Verify the Client's ``suite`` method returns models.Suit object """
+    """ Verify the Client's ``suite`` method returns models.Suite object """
     suite = client.suite()
 
     assert isinstance(suite, models.Suite)
@@ -2033,6 +2324,43 @@ def test_suites_by_project(client):
     assert suite3.id == 553
 
     client.api.suites_by_project_id.assert_called_once_with(1234)
+
+
+def test_template_exc(client):
+    """ Verify the Client's ``template`` method throws an exception if called """
+    with pytest.raises(NotImplementedError) as exc:
+        client.template()
+
+    assert 'You must pass in int object' in str(exc)
+    assert not client.api.templates.called
+
+
+def test_template_by_int(client):
+    """ Verify the Client's ``templates`` method call with int"""
+    client.api.templates.return_value = [TEMP1, TEMP2, TEMP3]
+
+    with mock.patch.object(client, 'projects') as proj_mock:
+        proj_mock.return_value = [models.Project(client, {'id': 123}), ]
+        template = client.template(992)
+
+    assert isinstance(template, models.Template)
+    assert template.id == 992
+    assert client.api.templates.called
+
+
+def test_template_by_int_exc(client):
+    """ Verify the Client's ``template`` method throws an exception if
+        unmatched id
+    """
+    client.api.templates.return_value = [TEMP1, TEMP2, TEMP3]
+
+    with mock.patch.object(client, 'projects') as proj_mock:
+        proj_mock.return_value = [models.Project(client, {'id': 123}), ]
+        with pytest.raises(TRAWClientError) as exc:
+            client.template(994)
+
+    assert 'id of 994' in str(exc)
+    assert client.api.templates.called
 
 
 def test_templates_exception(client):
@@ -2391,6 +2719,9 @@ def test_clear_cache(client):
     assert client.api.projects.cache.clear.called
     assert client.api.results_by_test_id.cache.clear.called
     assert client.api.run_by_id.cache.clear.called
+    assert client.api.runs_by_project_id.cache.clear.called
+    assert client.api.section_by_id.cache.clear.called
+    assert client.api.sections_by_project_id.cache.clear.called
     assert client.api.statuses.cache.clear.called
     assert client.api.suite_by_id.cache.clear.called
     assert client.api.suites_by_project_id.cache.clear.called
