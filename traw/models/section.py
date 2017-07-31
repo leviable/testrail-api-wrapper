@@ -1,10 +1,11 @@
 from .. import const
 from .model_base import ModelBase
+from .posters import Addable, Deleteable, Updatable
 from .project import Project
 from .suite import Suite
 
 
-class Section(ModelBase):
+class Section(Addable, Deleteable, Updatable, ModelBase):
     """ Object model for TestRail Sections
 
     To add a new section
@@ -26,6 +27,9 @@ class Section(ModelBase):
         section = traw_client.add(new_section)
 
     """
+    _ADDABLE_FIELDS = const.SECTION_ADD_FIELDS
+    _UPDATABLE_FIELDS = const.SECTION_UPDATE_FIELDS
+
     @property
     def depth(self):
         """ The level in the section hierarchy of the test suite """
