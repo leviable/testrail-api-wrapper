@@ -12,6 +12,9 @@ USER = 'mock username'
 PASS = 'mock password'
 URL = 'mock url'
 
+CASE1 = {'name': 'case1', 'id': 991}
+CASE2 = {'name': 'case2', 'id': 992}
+CASE3 = {'name': 'case3', 'id': 993}
 CONF1 = {'group_id': 1, 'id': 1, 'name': 'config 1 name'}
 CONF2 = {'group_id': 1, 'id': 2, 'name': 'config 2 name'}
 CONF3 = {'group_id': 2, 'id': 3, 'name': 'config 3 name'}
@@ -829,6 +832,178 @@ def test_case_by_id(client):
     assert isinstance(case, models.Case)
     assert case.id == 1234
     client.api.case_by_id.assert_called_once_with(1234)
+
+
+def test_cases_exc(client):
+    """ Verify the Client's ``cases`` method throws an exception if called """
+    with pytest.raises(NotImplementedError) as exc:
+        client.cases()
+
+    assert 'You must pass in models.Project or int object' in str(exc)
+    assert not client.api.cases_by_project_id.called
+
+
+def test_cases_by_project_id(client):
+    """ Verify calling ``client.cases(123)`` with an ID returns case
+        generator
+    """
+    PROJECT_ID = 15
+    client.api.project_by_id.return_value = {'id': PROJECT_ID, 'suite_mode': 1}
+    client.api.cases_by_project_id.return_value = [CASE1, CASE2, CASE3]
+    cases = client.cases(PROJECT_ID)
+
+    case1 = next(cases)
+    assert isinstance(case1, models.Case)
+    assert case1.id == 991
+
+    case2 = next(cases)
+    assert isinstance(case2, models.Case)
+    assert case2.id == 992
+
+    case3 = next(cases)
+    assert isinstance(case3, models.Case)
+    assert case3.id == 993
+
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, None, None)
+
+
+def test_cases_by_project(client):
+    """ Verify calling ``client.cases(Project)`` with an ID returns
+        case generator
+    """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    client.api.project_by_id.return_value = PROJECT_DICT
+    client.api.cases_by_project_id.return_value = [CASE1, CASE2, CASE3]
+
+    cases = client.cases(models.Project(client, PROJECT_DICT))
+
+    case1 = next(cases)
+    assert isinstance(case1, models.Case)
+    assert case1.id == 991
+
+    case2 = next(cases)
+    assert isinstance(case2, models.Case)
+    assert case2.id == 992
+
+    case3 = next(cases)
+    assert isinstance(case3, models.Case)
+    assert case3.id == 993
+
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, None, None)
+
+
+def test_cases_by_project_and_suite_and_section(client):
+    """ Verify calling ``client.cases(Project, Suite, Section)`` returns
+        case generator
+    """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 2}
+    SUITE_ID = 16
+    SUITE_DICT = {'id': SUITE_ID}
+    SECTION_ID = 17
+    SECTION_DICT = {'id': SECTION_ID}
+
+    client.api.project_by_id.return_value = PROJECT_DICT
+    client.api.cases_by_project_id.return_value = [CASE1, ]
+
+    project = models.Project(client, PROJECT_DICT)
+    suite = models.Suite(client, SUITE_DICT)
+    section = models.Section(client, SECTION_DICT)
+    cases = client.cases(project, suite, section)
+
+    case1 = next(cases)
+    assert isinstance(case1, models.Case)
+    assert case1.id == 991
+
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID,
+                                                           SUITE_ID,
+                                                           SECTION_ID)
+
+
+def test_cases_by_project_and_suite_id_and_section_id(client):
+    """ Verify calling ``client.cases(Project, 16, 17)`` returns
+        case generator
+    """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 2}
+    SUITE_ID = 16
+    SECTION_ID = 17
+
+    client.api.project_by_id.return_value = PROJECT_DICT
+    client.api.cases_by_project_id.return_value = [CASE1, ]
+
+    project = models.Project(client, PROJECT_DICT)
+    cases = client.cases(project, SUITE_ID, SECTION_ID)
+
+    case1 = next(cases)
+    assert isinstance(case1, models.Case)
+    assert case1.id == 991
+
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID,
+                                                           SUITE_ID,
+                                                           SECTION_ID)
+
+
+def test_cases_by_project_exc_1(client):
+    """ Verify calling ``client.cases(Project)`` when the project is a
+        suite_mode of 2 raises an exception
+    """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 2}
+
+    client.api.project_by_id.return_value = PROJECT_DICT
+    client.api.cases_by_project_id.return_value = [SECT1, ]
+
+    with pytest.raises(TypeError) as exc:
+        list(client.cases(models.Project(client, PROJECT_DICT)))
+
+    assert 'suite_mode of 2' in str(exc)
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+    assert not client.api.cases_by_project_id.called
+
+
+def test_cases_by_project_exc_2(client):
+    """ Verify calling ``client.cases(Project, 'asdf')`` when the project
+        is a suite_mode of 2 raises an exception
+    """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 2}
+
+    client.api.project_by_id.return_value = PROJECT_DICT
+    client.api.cases_by_project_id.return_value = [CASE1, ]
+
+    with pytest.raises(TypeError) as exc:
+        list(client.cases(models.Project(client, PROJECT_DICT), 'asdf'))
+
+    assert 'models.Suite' in str(exc)
+    assert 'int ID of a suite in testrail' in str(exc)
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+    assert not client.api.cases_by_project_id.called
+
+
+def test_cases_by_project_exc_3(client):
+    """ Verify calling ``client.cases(Project, None, 'asdf')`` when the project
+        is a suite_mode of 2 raises an exception
+    """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 2}
+    SUITE_ID = 16
+
+    client.api.project_by_id.return_value = PROJECT_DICT
+    client.api.cases_by_project_id.return_value = [CASE1, ]
+
+    with pytest.raises(TypeError) as exc:
+        list(client.cases(models.Project(client, PROJECT_DICT), SUITE_ID, 'asdf'))
+
+    assert 'models.Section' in str(exc)
+    assert 'int ID of a section in testrail' in str(exc)
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+    assert not client.api.cases_by_project_id.called
 
 
 def test_case_type_exc(client):

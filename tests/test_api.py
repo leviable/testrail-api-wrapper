@@ -218,6 +218,40 @@ def test_case_by_id(api):
     assert api._session.request.call_args == exp_call
 
 
+def test_cases_by_project_id(api):
+    """ Verify the ``cases_by_project_id`` method call """
+    PROJECT_ID = 1234
+    api._session.request.return_value = [CASE1, CASE2]
+
+    case = next(api.cases_by_project_id(PROJECT_ID))
+
+    exp_call = mock.call(method=GET,
+                         path=AP['get_cases'].format(project_id=PROJECT_ID),
+                         params=dict())
+
+    assert case == CASE1
+    assert isinstance(case, dict)
+    assert api._session.request.call_args == exp_call
+
+
+def test_cases_by_project_id_suite_id_section_id(api):
+    """ Verify the ``cases_by_project_id`` method call """
+    PROJECT_ID = 1234
+    SUITE_ID = 2345
+    SECTION_ID = 3456
+    api._session.request.return_value = [CASE1, CASE2]
+
+    case = next(api.cases_by_project_id(PROJECT_ID, SUITE_ID, SECTION_ID))
+
+    exp_call = mock.call(method=GET,
+                         path=AP['get_cases'].format(project_id=PROJECT_ID),
+                         params={'suite_id': SUITE_ID, 'section_id': SECTION_ID})
+
+    assert case == CASE1
+    assert isinstance(case, dict)
+    assert api._session.request.call_args == exp_call
+
+
 def test_case_types(api):
     """ Verify the ``case_types`` method call """
     api._session.request.return_value = [CT1, CT2, CT3]

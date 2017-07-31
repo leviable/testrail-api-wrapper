@@ -91,6 +91,52 @@ class Client(object):
         """
         return models.Case(self, self.api.case_by_id(case_id))
 
+    @dispatchmethod
+    def cases(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """ Return models.Case generator for the given models.Project object or project ID
+
+            `client.cases(project)` yields cases associated with the Project instance
+            `client.cases(1234)` yields cases associated with project id 1234
+
+        :param project: models.Project object for a project that exists in TestRail
+        :param project_id: int, Project ID for a project that exists in TestRail
+
+        :raiess: NotImplementedError if called with no parameters (`client.cases()`) or
+                 a parameter of an unsupported type (`client.cases(True)`)
+
+        :yields: models.Case objects
+        """
+        raise NotImplementedError(const.NOTIMP.format("models.Project or int"))
+
+    @cases.register(int)
+    def _cases_by_project_id(self, project_id, suite=None, section=None):
+        project = self.project(project_id)
+        if project.suite_mode != 1 and suite is None:
+            msg = ("The project with ID {0} is set to a suite_mode of {1}, which "
+                   "requires a valid suite or suite_id to retrieve cases")
+            raise TypeError(msg.format(project, project.suite_mode))
+
+        if suite and not isinstance(suite, (int, models.Suite)):
+            msg = ("``suite`` must be a models.Suite object, or int ID of a "
+                   "suite in testrail. Found {0}")
+            raise TypeError(msg.format(suite))
+
+        if section and not isinstance(section, (int, models.Section)):
+            msg = ("``section`` must be a models.Section object, or int ID of a "
+                   "section in testrail. Found {0}")
+            raise TypeError(msg.format(section))
+
+        suite_id = suite.id if isinstance(suite, models.Suite) else suite
+        section_id = section.id if isinstance(section, models.Section) else section
+
+        for case in self.api.cases_by_project_id(project_id, suite_id, section_id):
+            yield models.Case(self, case)
+
+    @cases.register(models.Project)
+    def _cases_by_project(self, project, suite=None, section=None):
+        for case in self.cases(project.id, suite, section):
+            yield case
+
     # Case type related methods
     @dispatchmethod
     def case_type(self):

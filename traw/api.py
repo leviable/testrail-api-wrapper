@@ -50,6 +50,22 @@ class API(object):
         path = API_PATH['get_case'].format(case_id=case_id)
         return self._session.request(method=GET, path=path)
 
+    @cacheable_generator(models.Case)
+    def cases_by_project_id(self, project_id, suite_id=None, section_id=None):
+        """ Calls `get_cases` API endpoint
+
+        :yields: case dictionaries from api
+        """
+        params = dict()
+        if suite_id:
+            params['suite_id'] = suite_id
+        if section_id:
+            params['section_id'] = section_id
+
+        path = API_PATH['get_cases'].format(project_id=project_id)
+        for case in self._session.request(method=GET, path=path, params=params):
+            yield case
+
     @cacheable_generator(models.CaseType)
     def case_types(self):
         """ Calls `get_case_types` API endpoint
@@ -291,12 +307,12 @@ class API(object):
         return self._session.request(method=GET, path=path)
 
     @cacheable_generator(models.Section)
-    def sections_by_project_id(self, project_id, suite=None):
+    def sections_by_project_id(self, project_id, suite_id=None):
         """ Calls `get_sections` API endpoint
 
         :yields: section dictionaries from api
         """
-        params = {'suite_id': suite} if suite else dict()
+        params = {'suite_id': suite_id} if suite_id else dict()
         path = API_PATH['get_sections'].format(project_id=project_id)
         for section in self._session.request(method=GET, path=path, params=params):
             yield section
