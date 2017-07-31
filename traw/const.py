@@ -52,7 +52,7 @@ API_PATH = {
     'get_run': 'get_run/{run_id}',
     'get_runs': 'get_runs/{project_id}',
     'get_section': 'get_section/{section_id}',
-    'get_sections': 'get_sections/{project_id}/{suite_id}',  # suite_id may be optional
+    'get_sections': 'get_sections/{project_id}',  # suite_id may be optional
     'get_statuses': 'get_statuses',
     'get_suite': 'get_suite/{suite_id}',
     'get_suites': 'get_suites/{project_id}',
@@ -104,6 +104,7 @@ DEFECTS = 'defects'
 DESCRIPTION = 'description'
 DUE_ON = 'due_on'
 ELAPSED = 'elapsed'
+ESTIMATE = 'estimate'
 ID = 'id'
 INCLUDE_ALL = 'include_all'
 IS_COMPLETED = 'is_completed'
@@ -111,16 +112,24 @@ IS_STARTED = 'is_started'
 MILESTONE_ID = 'milestone_id'
 NAME = 'name'
 PARENT_ID = 'parent_id'
+PRIORITY_ID = 'priority_id'
 PROJECT_ID = 'project_id'
+REFS = 'refs'
 SHOW_ANNOUNCEMENT = 'show_announcement'
 STATUS_ID = 'status_id'
 SUITE_ID = 'suite_id'
 SUITE_MODE = 'suite_mode'
 START_ON = 'start_on'
+TEMPLATE_ID = 'template_id'
 TEST_ID = 'test_id'
+TYPE_ID = 'type_id'
+TITLE = 'title'
 VERSION = 'version'
 
 # Add/Delete/Update fields by object
+CASE_ADD_FIELDS = (TITLE, TEMPLATE_ID, TYPE_ID, PRIORITY_ID, ESTIMATE,
+                   MILESTONE_ID, REFS)
+CASE_UPDATE_FIELDS = CASE_ADD_FIELDS
 CONFIG_ADD_FIELDS = (NAME, )
 CONFIG_UPDATE_FIELDS = CONFIG_ADD_FIELDS
 CONFIG_GROUP_ADD_FIELDS = (NAME, )
