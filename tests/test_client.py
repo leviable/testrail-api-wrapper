@@ -12,6 +12,9 @@ USER = 'mock username'
 PASS = 'mock password'
 URL = 'mock url'
 
+CASE1 = {'name': 'case1', 'id': 991}
+CASE2 = {'name': 'case2', 'id': 992}
+CASE3 = {'name': 'case3', 'id': 993}
 CONF1 = {'group_id': 1, 'id': 1, 'name': 'config 1 name'}
 CONF2 = {'group_id': 1, 'id': 2, 'name': 'config 2 name'}
 CONF3 = {'group_id': 2, 'id': 3, 'name': 'config 3 name'}
@@ -829,6 +832,845 @@ def test_case_by_id(client):
     assert isinstance(case, models.Case)
     assert case.id == 1234
     client.api.case_by_id.assert_called_once_with(1234)
+
+
+def test_cases_exc(client):
+    """ Verify the Client's ``cases`` method throws an exception if called """
+    with pytest.raises(NotImplementedError) as exc:
+        client.cases()
+
+    assert 'You must pass in models.Project or int object' in str(exc)
+    assert not client.api.cases_by_project_id.called
+
+
+def test_cases_by_project_id(client):
+    """ Verify calling ``client.cases(123)`` with an ID returns case
+        generator
+    """
+    PROJECT_ID = 15
+    client.api.project_by_id.return_value = {'id': PROJECT_ID, 'suite_mode': 1}
+    client.api.cases_by_project_id.return_value = [CASE1, CASE2, CASE3]
+    cases = client.cases(PROJECT_ID)
+
+    case1 = next(cases)
+    assert isinstance(case1, models.Case)
+    assert case1.id == 991
+
+    case2 = next(cases)
+    assert isinstance(case2, models.Case)
+    assert case2.id == 992
+
+    case3 = next(cases)
+    assert isinstance(case3, models.Case)
+    assert case3.id == 993
+
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project(client):
+    """ Verify calling ``client.cases(Project)`` with an ID returns
+        case generator
+    """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    client.api.project_by_id.return_value = PROJECT_DICT
+    client.api.cases_by_project_id.return_value = [CASE1, CASE2, CASE3]
+
+    cases = client.cases(models.Project(client, PROJECT_DICT))
+
+    case1 = next(cases)
+    assert isinstance(case1, models.Case)
+    assert case1.id == 991
+
+    case2 = next(cases)
+    assert isinstance(case2, models.Case)
+    assert case2.id == 992
+
+    case3 = next(cases)
+    assert isinstance(case3, models.Case)
+    assert case3.id == 993
+
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_and_suite_and_section(client):
+    """ Verify calling ``client.cases(Project, Suite, Section)`` returns
+        case generator
+    """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 2}
+    SUITE_ID = 16
+    SUITE_DICT = {'id': SUITE_ID}
+    SECTION_ID = 17
+    SECTION_DICT = {'id': SECTION_ID}
+
+    client.api.project_by_id.return_value = PROJECT_DICT
+    client.api.cases_by_project_id.return_value = [CASE1, ]
+
+    project = models.Project(client, PROJECT_DICT)
+    suite = models.Suite(client, SUITE_DICT)
+    section = models.Section(client, SECTION_DICT)
+    cases = client.cases(project, suite, section)
+
+    case1 = next(cases)
+    assert isinstance(case1, models.Case)
+    assert case1.id == 991
+
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+    client.api.cases_by_project_id.assert_called_once_with(
+        PROJECT_ID, suite_id=SUITE_ID, section_id=SECTION_ID)
+
+
+def test_cases_by_project_and_suite_id_and_section_id(client):
+    """ Verify calling ``client.cases(Project, 16, 17)`` returns
+        case generator
+    """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 2}
+    SUITE_ID = 16
+    SECTION_ID = 17
+
+    client.api.project_by_id.return_value = PROJECT_DICT
+    client.api.cases_by_project_id.return_value = [CASE1, ]
+
+    project = models.Project(client, PROJECT_DICT)
+    cases = client.cases(project, SUITE_ID, SECTION_ID)
+
+    case1 = next(cases)
+    assert isinstance(case1, models.Case)
+    assert case1.id == 991
+
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+    client.api.cases_by_project_id.assert_called_once_with(
+        PROJECT_ID, suite_id=SUITE_ID, section_id=SECTION_ID)
+
+
+def test_cases_by_project_exc_1(client):
+    """ Verify calling ``client.cases(Project)`` when the project is a
+        suite_mode of 2 raises an exception
+    """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 2}
+
+    client.api.project_by_id.return_value = PROJECT_DICT
+    client.api.cases_by_project_id.return_value = [SECT1, ]
+
+    with pytest.raises(TypeError) as exc:
+        list(client.cases(models.Project(client, PROJECT_DICT)))
+
+    assert 'suite_mode of 2' in str(exc)
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+    assert not client.api.cases_by_project_id.called
+
+
+def test_cases_by_project_exc_2(client):
+    """ Verify calling ``client.cases(Project, 'asdf')`` when the project
+        is a suite_mode of 2 raises an exception
+    """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 2}
+
+    client.api.project_by_id.return_value = PROJECT_DICT
+    client.api.cases_by_project_id.return_value = [CASE1, ]
+
+    with pytest.raises(TypeError) as exc:
+        list(client.cases(models.Project(client, PROJECT_DICT), 'asdf'))
+
+    assert 'models.Suite' in str(exc)
+    assert 'int ID of a suite in testrail' in str(exc)
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+    assert not client.api.cases_by_project_id.called
+
+
+def test_cases_by_project_exc_3(client):
+    """ Verify calling ``client.cases(Project, None, 'asdf')`` when the project
+        is a suite_mode of 2 raises an exception
+    """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 2}
+    SUITE_ID = 16
+
+    client.api.project_by_id.return_value = PROJECT_DICT
+    client.api.cases_by_project_id.return_value = [CASE1, ]
+
+    with pytest.raises(TypeError) as exc:
+        list(client.cases(models.Project(client, PROJECT_DICT), SUITE_ID, 'asdf'))
+
+    assert 'models.Section' in str(exc)
+    assert 'int ID of a section in testrail' in str(exc)
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+    assert not client.api.cases_by_project_id.called
+
+
+def test_cases_by_project_w_case_type(client):
+    """ Verify calling ``client.cases(Project)`` with case_type """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    ct = models.CaseType(client, {'id': 11})
+    list(client.cases(project, case_type=ct))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, type_id='11')
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_case_type_list(client):
+    """ Verify calling ``client.cases(Project)`` with case_type """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    ct1 = models.CaseType(client, {'id': 11})
+    ct2 = models.CaseType(client, {'id': 12})
+    list(client.cases(project, case_type=[ct1, ct2]))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, type_id='11,12')
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_case_type_id(client):
+    """ Verify calling ``client.cases(Project)`` with case_type """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    list(client.cases(project, case_type=11))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, type_id='11')
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_case_type_id_list(client):
+    """ Verify calling ``client.cases(Project)`` with case_type """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    list(client.cases(project, case_type=[11, 12]))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, type_id='11,12')
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_case_type_exc(client):
+    """ Verify calling ``client.cases(Project)`` with case_type exception """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    with pytest.raises(TypeError) as exc:
+        list(client.cases(project, case_type='asdf'))
+
+    assert 'asdf' in str(exc)
+    assert str(models.CaseType) in str(exc)
+    assert str(int) in str(exc)
+
+
+def test_cases_by_project_w_int_created_after(client):
+    """ Verify calling ``client.cases(Project)`` with created_after """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    list(client.cases(project, created_after=1112))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, created_after=1112)
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_float_created_after(client):
+    """ Verify calling ``client.cases(Project)`` with created_after """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    list(client.cases(project, created_after=11.12))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, created_after=11)
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_datetime_created_after(client):
+    """ Verify calling ``client.cases(Project)`` with created_after """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    ca_dt = dt.fromtimestamp(33.22)
+    list(client.cases(project, created_after=ca_dt))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, created_after=33)
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_created_after_exc(client):
+    """ Verify calling ``client.cases(Project)`` with created_after exception """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    with pytest.raises(TypeError) as exc:
+        list(client.cases(
+            models.Project(client, {'id': 1234}), created_after='asdf'))
+
+    assert 'created/updated after/before' in str(exc)
+    assert 'asdf' in str(exc)
+    assert not client.api.cases_by_project_id.called
+
+
+def test_cases_by_project_w_int_created_before(client):
+    """ Verify calling ``client.cases(Project)`` with created_before """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    list(client.cases(project, created_before=1112))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, created_before=1112)
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_float_created_before(client):
+    """ Verify calling ``client.cases(Project)`` with created_before """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    list(client.cases(project, created_before=11.12))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, created_before=11)
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_datetime_created_before(client):
+    """ Verify calling ``client.cases(Project)`` with created_before """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    ca_dt = dt.fromtimestamp(33.22)
+    list(client.cases(project, created_before=ca_dt))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, created_before=33)
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_created_before_exc(client):
+    """ Verify calling ``client.cases(Project)`` with created_before exception """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    with pytest.raises(TypeError) as exc:
+        list(client.cases(project, created_before='asdf'))
+
+    assert 'created/updated after/before' in str(exc)
+    assert 'asdf' in str(exc)
+    assert not client.api.cases_by_project_id.called
+
+
+def test_cases_by_project_w_created_by_user(client):
+    """ Verify calling ``client.cases(Project)`` with created_by """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    user = models.User(client, {'id': 11})
+    list(client.cases(project, created_by=user))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, created_by='11')
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_created_by_user_list(client):
+    """ Verify calling ``client.cases(Project)`` with created_by """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    user1 = models.User(client, {'id': 11})
+    user2 = models.User(client, {'id': 12})
+    list(client.cases(project, created_by=[user1, user2]))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, created_by='11,12')
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_created_by_user_id(client):
+    """ Verify calling ``client.cases(Project)`` with created_by """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    list(client.cases(project, created_by=11))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, created_by='11')
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_created_by_user_id_list(client):
+    """ Verify calling ``client.cases(Project)`` with created_by """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    list(client.cases(project, created_by=[11, 12]))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, created_by='11,12')
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_created_by_exc(client):
+    """ Verify calling ``client.cases(Project)`` with created_by exception """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    with pytest.raises(TypeError) as exc:
+        list(client.cases(project, created_by='asdf'))
+
+    assert 'asdf' in str(exc)
+    assert str(models.User) in str(exc)
+    assert str(int) in str(exc)
+
+
+def test_cases_by_project_w_milestone(client):
+    """ Verify calling ``client.cases(Project)`` with milestone """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    milestone = models.Milestone(client, {'id': 11})
+    list(client.cases(project, milestone=milestone))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, milestone_id='11')
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_milestone_list(client):
+    """ Verify calling ``client.cases(Project)`` with milestone """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    milestone1 = models.Milestone(client, {'id': 11})
+    milestone2 = models.Milestone(client, {'id': 12})
+    list(client.cases(project, milestone=[milestone1, milestone2]))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, milestone_id='11,12')
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_milestone_id(client):
+    """ Verify calling ``client.cases(Project)`` with milestone """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    list(client.cases(project, milestone=11))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, milestone_id='11')
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_milestone_id_list(client):
+    """ Verify calling ``client.cases(Project)`` with milestone """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    list(client.cases(project, milestone=[11, 12]))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, milestone_id='11,12')
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_milestone_exc(client):
+    """ Verify calling ``client.cases(Project)`` with milestone exception """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    with pytest.raises(TypeError) as exc:
+        list(client.cases(project, milestone='asdf'))
+
+    assert 'asdf' in str(exc)
+    assert str(models.Milestone) in str(exc)
+    assert str(int) in str(exc)
+
+
+def test_cases_by_project_w_sub_milestone(client):
+    """ Verify calling ``client.cases(Project)`` with sub-milestone """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    submilestone = models.SubMilestone(client, {'id': 11})
+    list(client.cases(project, milestone=submilestone))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, milestone_id='11')
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_sub_milestone_list(client):
+    """ Verify calling ``client.cases(Project)`` with sub-milestone """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    submilestone1 = models.SubMilestone(client, {'id': 11})
+    submilestone2 = models.SubMilestone(client, {'id': 12})
+    list(client.cases(project, milestone=[submilestone1, submilestone2]))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, milestone_id='11,12')
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_priority(client):
+    """ Verify calling ``client.cases(Project)`` with priority """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    priority = models.Priority(client, {'id': 11})
+    list(client.cases(project, priority=priority))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, priority_id='11')
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_priority_list(client):
+    """ Verify calling ``client.cases(Project)`` with priority """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    priority1 = models.Priority(client, {'id': 11})
+    priority2 = models.Priority(client, {'id': 12})
+    list(client.cases(project, priority=[priority1, priority2]))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, priority_id='11,12')
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_priority_id(client):
+    """ Verify calling ``client.cases(Project)`` with priority """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    list(client.cases(project, priority=11))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, priority_id='11')
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_priority_id_list(client):
+    """ Verify calling ``client.cases(Project)`` with priority """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    list(client.cases(project, priority=[11, 12]))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, priority_id='11,12')
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_priority_exc(client):
+    """ Verify calling ``client.cases(Project)`` with priority exception """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    with pytest.raises(TypeError) as exc:
+        list(client.cases(project, priority='asdf'))
+
+    assert 'asdf' in str(exc)
+    assert str(models.Priority) in str(exc)
+    assert str(int) in str(exc)
+
+
+def test_cases_by_project_w_template(client):
+    """ Verify calling ``client.cases(Project)`` with template """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    template = models.Template(client, {'id': 11})
+    list(client.cases(project, template=template))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, template_id='11')
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_template_list(client):
+    """ Verify calling ``client.cases(Project)`` with template """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    template1 = models.Template(client, {'id': 11})
+    template2 = models.Template(client, {'id': 12})
+    list(client.cases(project, template=[template1, template2]))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, template_id='11,12')
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_template_id(client):
+    """ Verify calling ``client.cases(Project)`` with template """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    list(client.cases(project, template=11))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, template_id='11')
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_template_id_list(client):
+    """ Verify calling ``client.cases(Project)`` with template """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    list(client.cases(project, template=[11, 12]))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, template_id='11,12')
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_template_exc(client):
+    """ Verify calling ``client.cases(Project)`` with template exception """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    with pytest.raises(TypeError) as exc:
+        list(client.cases(project, template='asdf'))
+
+    assert 'asdf' in str(exc)
+    assert str(models.Template) in str(exc)
+    assert str(int) in str(exc)
+
+
+def test_cases_by_project_w_int_updated_after(client):
+    """ Verify calling ``client.cases(Project)`` with updated_after """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    list(client.cases(project, updated_after=1112))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, updated_after=1112)
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_float_updated_after(client):
+    """ Verify calling ``client.cases(Project)`` with updated_after """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    list(client.cases(project, updated_after=11.12))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, updated_after=11)
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_datetime_updated_after(client):
+    """ Verify calling ``client.cases(Project)`` with updated_after """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    ca_dt = dt.fromtimestamp(33.22)
+    list(client.cases(project, updated_after=ca_dt))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, updated_after=33)
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_updated_after_exc(client):
+    """ Verify calling ``client.cases(Project)`` with updated_after exception """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    with pytest.raises(TypeError) as exc:
+        list(client.cases(
+            models.Project(client, {'id': 1234}), updated_after='asdf'))
+
+    assert 'created/updated after/before' in str(exc)
+    assert 'asdf' in str(exc)
+    assert not client.api.cases_by_project_id.called
+
+
+def test_cases_by_project_w_int_updated_before(client):
+    """ Verify calling ``client.cases(Project)`` with updated_before """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    list(client.cases(project, updated_before=1112))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, updated_before=1112)
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_float_updated_before(client):
+    """ Verify calling ``client.cases(Project)`` with updated_before """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    list(client.cases(project, updated_before=11.12))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, updated_before=11)
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_datetime_updated_before(client):
+    """ Verify calling ``client.cases(Project)`` with updated_before """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    ca_dt = dt.fromtimestamp(33.22)
+    list(client.cases(project, updated_before=ca_dt))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, updated_before=33)
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_updated_before_exc(client):
+    """ Verify calling ``client.cases(Project)`` with updated_before exception """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    with pytest.raises(TypeError) as exc:
+        list(client.cases(project, updated_before='asdf'))
+
+    assert 'created/updated after/before' in str(exc)
+    assert 'asdf' in str(exc)
+    assert not client.api.cases_by_project_id.called
+
+
+def test_cases_by_project_w_updated_by_user(client):
+    """ Verify calling ``client.cases(Project)`` with updated_by """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    user = models.User(client, {'id': 11})
+    list(client.cases(project, updated_by=user))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, updated_by='11')
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_updated_by_user_list(client):
+    """ Verify calling ``client.cases(Project)`` with updated_by """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    user1 = models.User(client, {'id': 11})
+    user2 = models.User(client, {'id': 12})
+    list(client.cases(project, updated_by=[user1, user2]))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, updated_by='11,12')
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_updated_by_user_id(client):
+    """ Verify calling ``client.cases(Project)`` with updated_by """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    list(client.cases(project, updated_by=11))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, updated_by='11')
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_updated_by_user_id_list(client):
+    """ Verify calling ``client.cases(Project)`` with updated_by """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    list(client.cases(project, updated_by=[11, 12]))
+
+    client.api.cases_by_project_id.assert_called_once_with(PROJECT_ID, updated_by='11,12')
+    client.api.project_by_id.assert_called_once_with(PROJECT_ID)
+
+
+def test_cases_by_project_w_updated_by_exc(client):
+    """ Verify calling ``client.cases(Project)`` with updated_by exception """
+    PROJECT_ID = 15
+    PROJECT_DICT = {'id': PROJECT_ID, 'suite_mode': 1}
+    project = models.Project(client, PROJECT_DICT)
+    client.api.project_by_id.return_value = PROJECT_DICT
+
+    with pytest.raises(TypeError) as exc:
+        list(client.cases(project, updated_by='asdf'))
+
+    assert 'asdf' in str(exc)
+    assert str(models.User) in str(exc)
+    assert str(int) in str(exc)
 
 
 def test_case_type_exc(client):
@@ -1671,21 +2513,21 @@ def test_runs_by_project_w_limit(client):
 
 
 def test_runs_by_project_w_int_created_after(client):
-    """ Verify calling ``client.runs(Project)`` with created_before """
+    """ Verify calling ``client.runs(Project)`` with created_after """
     list(client.runs(models.Project(client, {'id': 1234}), created_after=1112))
 
     client.api.runs_by_project_id.assert_called_once_with(1234, created_after=1112)
 
 
 def test_runs_by_project_w_float_created_after(client):
-    """ Verify calling ``client.runs(Project)`` with created_before """
+    """ Verify calling ``client.runs(Project)`` with created_after """
     list(client.runs(models.Project(client, {'id': 1234}), created_after=11.12))
 
     client.api.runs_by_project_id.assert_called_once_with(1234, created_after=11)
 
 
 def test_runs_by_project_w_datetime_created_after(client):
-    """ Verify calling ``client.runs(Project)`` with created_before """
+    """ Verify calling ``client.runs(Project)`` with created_after """
     ca_dt = dt.fromtimestamp(33.22)
     list(client.runs(models.Project(client, {'id': 1234}), created_after=ca_dt))
 
@@ -1693,12 +2535,12 @@ def test_runs_by_project_w_datetime_created_after(client):
 
 
 def test_runs_by_project_w_created_after_exc(client):
-    """ Verify calling ``client.runs(Project)`` with created_before exception """
+    """ Verify calling ``client.runs(Project)`` with created_after exception """
     with pytest.raises(TypeError) as exc:
         list(client.runs(
             models.Project(client, {'id': 1234}), created_after='asdf'))
 
-    assert 'created_after' in str(exc)
+    assert 'created/updated after/before' in str(exc)
     assert 'asdf' in str(exc)
     assert not client.api.runs_by_project_id.called
 
@@ -1731,7 +2573,7 @@ def test_runs_by_project_w_created_before_exc(client):
         list(client.runs(
             models.Project(client, {'id': 1234}), created_before='asdf'))
 
-    assert 'created_before' in str(exc)
+    assert 'created/updated after/before' in str(exc)
     assert 'asdf' in str(exc)
     assert not client.api.runs_by_project_id.called
 
@@ -1744,11 +2586,26 @@ def test_runs_by_project_w_created_by_user(client):
     client.api.runs_by_project_id.assert_called_once_with(1234, created_by='11')
 
 
+def test_runs_by_project_w_created_by_user_list(client):
+    """ Verify calling ``client.runs(Project)`` with created_by """
+    users = [models.User(client, {'id': 11}), models.User(client, {'id': 12})]
+    list(client.runs(models.Project(client, {'id': 1234}), created_by=users))
+
+    client.api.runs_by_project_id.assert_called_once_with(1234, created_by='11,12')
+
+
 def test_runs_by_project_w_created_by_user_id(client):
     """ Verify calling ``client.runs(Project)`` with created_by """
     list(client.runs(models.Project(client, {'id': 1234}), created_by=11))
 
     client.api.runs_by_project_id.assert_called_once_with(1234, created_by='11')
+
+
+def test_runs_by_project_w_created_by_user_id_list(client):
+    """ Verify calling ``client.runs(Project)`` with created_by """
+    list(client.runs(models.Project(client, {'id': 1234}), created_by=[11, 12]))
+
+    client.api.runs_by_project_id.assert_called_once_with(1234, created_by='11,12')
 
 
 def test_runs_by_project_w_created_by_exc(client):

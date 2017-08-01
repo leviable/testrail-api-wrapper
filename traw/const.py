@@ -34,7 +34,7 @@ API_PATH = {
     'delete_section': 'delete_section/{section_id}',
     'delete_suite': 'delete_suite/{suite_id}',
     'get_case': 'get_case/{case_id}',
-    'get_cases': 'get_cases/{project_id}/{suite_id}/{section_id}',
+    'get_cases': 'get_cases/{project_id}',
     'get_case_fields': 'get_case_fields',
     'get_case_types': 'get_case_types',
     'get_configs': 'get_configs/{project_id}',
