@@ -93,48 +93,109 @@ class Client(object):
 
     @dispatchmethod
     def cases(self, *args, **kwargs):  # pylint: disable=unused-argument
-        """ Return models.Case generator for the given models.Project object or project ID
+        """ Return models.Case generator for the given models.Project object
+            or project ID
 
-            `client.cases(project)` yields cases associated with the Project instance
-            `client.cases(1234)` yields cases associated with project id 1234
+        `client.cases(project)` yields cases associated with the Project instance
+        `client.cases(1234)` yields cases associated with project id 1234
 
-        :param project: models.Project object for a project that exists in TestRail
+        Optional filter examples:
+        `client.cases(1234, case_type=client.case_type(112))`  # by CaseType object
+        `client.cases(1234, case_type=112)`  # by CaseType ID
+        `client.cases(1234, case_type=[101, 102, 103])`  # by list of CaseType IDs
+        `client.cases(1234, created_after=datetime.now()-timedelta(days=1))`  # 1 day old
+        `client.cases(1234, created_before=1469726522)`  # using a timestamp
+        `client.cases(1234, created_by=client.user("automation@user.com"))`  # by User object
+        `client.cases(1234, created_by=client.user(15))`  # by User ID
+        `client.cases(1234, created_by=[12, 15, 34])`  # by list of User IDs
+        `client.cases(1234, is_completed=True)`
+        `client.cases(1234, limit=3500)`
+        `client.cases(1234, milestone=client.milestone(112))`  # by Milestone object
+        `client.cases(1234, milestone=112)`  # by Milestone ID
+        `client.cases(1234, milestone=[101, 102, 103])`  # by list of Milestone IDs
+        `client.cases(1234, priority=client.priority(4))`  # by Priority object
+        `client.cases(1234, priority=112)`  # by Priority ID
+        `client.cases(1234, priority=[101, 102, 103])`  # by list of Priority IDs
+        `client.cases(1234, section=client.section(223))`  # by Section object
+        `client.cases(1234, section=223)`  # by Section ID
+        `client.cases(1234, suite=client.suite(223))`  # by Suite object
+        `client.cases(1234, suite=223)`  # by Suite ID
+        `client.cases(1234, template=client.template(4))`  # by Template object
+        `client.cases(1234, template=112)`  # by Template ID
+        `client.cases(1234, template=[101, 102, 103])`  # by list of Template IDs
+        `client.cases(1234, updated_after=datetime.now()-timedelta(days=1))`  # 1 day old
+        `client.cases(1234, updated_before=1469726522)`  # using a timestamp
+        `client.cases(1234, updated_by=client.user("automation@user.com"))`  # by User object
+        `client.cases(1234, updated_by=client.user(15))`  # by User ID
+        `client.cases(1234, updated_by=[12, 15, 34])`  # by list of User IDs
+
+        :param project: models.Project object for a project in TestRail
         :param project_id: int, Project ID for a project that exists in TestRail
+        :param section: models.Section instance or int (Section ID)
+        :param suite: models.Suite instance or int (Suite ID)
 
-        :raiess: NotImplementedError if called with no parameters (`client.cases()`) or
-                 a parameter of an unsupported type (`client.cases(True)`)
+        :param case_type: models.CaseType instance(s) or int(s) (CaseType ID(s))
+        :param created_after: datetime.datetime object or timestamp
+        :param created_before: datetime.datetime object or timestamp
+        :param created_by: models.User instance(s) or int(s) (User ID(s))
+        :param milestone: models.(Sub)Milestone instance(s) or int(s) (Milestone ID(s))
+        :param priority: models.Priority instance(s) or int(s) (Priority ID(s))
+        :param template: models.Template instance(s) or int(s) (Template ID(s))
+        :param updated_after: datetime.datetime object or timestamp
+        :param updated_before: datetime.datetime object or timestamp
+        :param updated_by: models.User instance(s) or int(s) (User ID(s))
 
-        :yields: models.Case objects
+        :raiess: NotImplementedError if called with no parameters (`client.runs()`) or
+                 a parameter of an unsupported type (`client.runs(True)`)
+
+        :yields: models.Run objects
         """
         raise NotImplementedError(const.NOTIMP.format("models.Project or int"))
 
     @cases.register(int)
-    def _cases_by_project_id(self, project_id, suite=None, section=None):
+    def _cases_by_project_id(self, project_id, suite=None, section=None, **kwargs):
+
         project = self.project(project_id)
         if project.suite_mode != 1 and suite is None:
             msg = ("The project with ID {0} is set to a suite_mode of {1}, which "
                    "requires a valid suite or suite_id to retrieve cases")
             raise TypeError(msg.format(project, project.suite_mode))
 
-        if suite and not isinstance(suite, (int, models.Suite)):
-            msg = ("``suite`` must be a models.Suite object, or int ID of a "
-                   "suite in testrail. Found {0}")
-            raise TypeError(msg.format(suite))
+        params = dict()
+        if suite:
+            if not isinstance(suite, (int, models.Suite)):
+                msg = ("``suite`` must be a models.Suite object, or int ID of a "
+                       "suite in testrail. Found {0}")
+                raise TypeError(msg.format(suite))
 
-        if section and not isinstance(section, (int, models.Section)):
-            msg = ("``section`` must be a models.Section object, or int ID of a "
-                   "section in testrail. Found {0}")
-            raise TypeError(msg.format(section))
+            params['suite_id'] = suite.id if isinstance(suite, models.Suite) else suite
 
-        suite_id = suite.id if isinstance(suite, models.Suite) else suite
-        section_id = section.id if isinstance(section, models.Section) else section
+        if section:
+            if not isinstance(section, (int, models.Section)):
+                msg = ("``section`` must be a models.Section object, or int ID "
+                       "of a section in testrail. Found {0}")
+                raise TypeError(msg.format(section))
 
-        for case in self.api.cases_by_project_id(project_id, suite_id, section_id):
+            params['section_id'] = section.id if isinstance(section, models.Section) else section
+
+        normalize_dt_filter(kwargs, params, 'created_after')
+        normalize_dt_filter(kwargs, params, 'created_before')
+        normalize_param(kwargs, params, 'case_type', 'type_id', models.CaseType)
+        normalize_param(kwargs, params, 'created_by', 'created_by', models.User)
+        normalize_param(kwargs, params, 'milestone', 'milestone_id',
+                        models.Milestone, models.SubMilestone)
+        normalize_param(kwargs, params, 'priority', 'priority_id', models.Priority)
+        normalize_param(kwargs, params, 'template', 'template_id', models.Template)
+        normalize_param(kwargs, params, 'updated_by', 'updated_by', models.User)
+        normalize_dt_filter(kwargs, params, 'updated_after')
+        normalize_dt_filter(kwargs, params, 'updated_before')
+
+        for case in self.api.cases_by_project_id(project_id, **params):
             yield models.Case(self, case)
 
     @cases.register(models.Project)
-    def _cases_by_project(self, project, suite=None, section=None):
-        for case in self.cases(project.id, suite, section):
+    def _cases_by_project(self, project, suite=None, section=None, **kwargs):
+        for case in self.cases(project.id, suite, section, **kwargs):
             yield case
 
     # Case type related methods
@@ -538,12 +599,9 @@ class Client(object):
         params = dict()
         if limit:
             params['limit'] = int(limit)
-        if with_status is not None:
-            param_types = (int, models.Status, type(None), Iterable)
-            iter_types = (int, models.Status)
-            with_status = normalize_param('with_status', with_status,
-                                          param_types, iter_types)
-            params['status_id'] = with_status
+
+        ws_args = {'with_status': with_status}
+        normalize_param(ws_args, params, 'with_status', 'status_id', models.Status)
 
         for result in self.api.results_by_test_id(test_id, **params):
             yield models.Result(self, result)
@@ -633,37 +691,26 @@ class Client(object):
         raise NotImplementedError(const.NOTIMP.format("models.Project or int"))
 
     @runs.register(int)
-    def _runs_by_project_id(self, project_id, created_after=None, created_before=None,
-                            created_by=None, is_completed=None, limit=None,
-                            milestone=None, suite=None):
+    def _runs_by_project_id(self, project_id, **kwargs):
         params = dict()
-        if created_after:
-            params['created_after'] = normalize_created_filter(created_after)
-        if created_before:
-            params['created_before'] = normalize_created_filter(created_before)
-        if created_by:
-            us_param_types = (int, models.User, type(None), Iterable)
-            us_iter_types = (int, models.User)
-            params['created_by'] = normalize_param(
-                'created_by', created_by, us_param_types, us_iter_types)
+        normalize_dt_filter(kwargs, params, 'created_after')
+        normalize_dt_filter(kwargs, params, 'created_before')
+
+        is_completed = kwargs.get('is_completed', None)
         if is_completed is not None:
             if is_completed is not True and is_completed is not False:
                 msg = "`is_completed` can only be None, True, or False. Found '{0}'"
                 raise TypeError(msg.format(is_completed))
             params['is_completed'] = int(is_completed)
+
+        limit = kwargs.get('limit', None)
         if limit:
             params['limit'] = int(limit)
-        if milestone:
-            ms_param_types = (int, models.Milestone, models.SubMilestone,
-                              type(None), Iterable)
-            ms_iter_types = (int, models.Milestone, models.SubMilestone)
-            params['milestone_id'] = normalize_param(
-                'milestone', milestone, ms_param_types, ms_iter_types)
-        if suite:
-            su_param_types = (int, models.Suite, type(None), Iterable)
-            su_iter_types = (int, models.Suite)
-            params['suite_id'] = normalize_param(
-                'suite', suite, su_param_types, su_iter_types)
+
+        normalize_param(kwargs, params, 'created_by', 'created_by', models.User)
+        normalize_param(kwargs, params, 'milestone', 'milestone_id',
+                        models.Milestone, models.SubMilestone)
+        normalize_param(kwargs, params, 'suite', 'suite_id', models.Suite)
 
         for run in self.api.runs_by_project_id(project_id, **params):
             yield models.Run(self, run)
@@ -1234,36 +1281,46 @@ class Client(object):
         self.api.users.cache.clear()
 
 
-def normalize_created_filter(created_filter):
-    if not isinstance(created_filter, (int, float, dt)):
-        msg = ("`created_after/created_before` must be a datetime.datetime "
+def normalize_dt_filter(kwargs, params, key):
+    kw_val = kwargs.get(key, None)
+    if kw_val is None:
+        pass
+    elif kw_val and not isinstance(kw_val, (int, float, dt)):
+        msg = ("`created/updated after/before` must be a datetime.datetime "
                "object or UNIX timestamp (1469726522 or 1469726522.10. Found {0}")
-        raise TypeError(msg.format(created_filter))
-    elif isinstance(created_filter, (int, float)):
-        filter_timestamp = int(created_filter)
+        raise TypeError(msg.format(kw_val))
+    elif isinstance(kw_val, (int, float)):
+        filter_timestamp = int(kw_val)
     else:
-        filter_timestamp = int(time.mktime(created_filter.timetuple()))
+        filter_timestamp = int(time.mktime(kw_val.timetuple()))
 
-    return filter_timestamp
+    if kw_val:
+        params[key] = filter_timestamp
 
 
-def normalize_param(param_name, param_vals, param_types, iter_types):
+# def normalize_param(param_name, param_vals, param_types, iter_types):
+def normalize_param(kwargs, params, kw_key, param_key, *model_types):
+
+    param_types = (int, type(None), Iterable) + model_types
+    iter_types = (int, ) + model_types
+
     param_types_str = ' or '.join(map(str, param_types))
     iter_types_str = " or ".join(map(str, iter_types))
-    msg = ("`{param_name}` must be {param_types} types. "
-           "Each object returned from the `{param_name}` interable can "
-           " only be of type {iter_types}. Found '{param_vals}'")
+    kwarg_vals = kwargs.get(kw_key, None)
+    msg = ("`{kw_key}` must be {param_types} types. "
+           "Each object returned from the `{kw_key}` interable can "
+           " only be of type {iter_types}. Found '{kwarg_vals}'")
 
     msg = msg.format(param_types=param_types_str, iter_types=iter_types_str,
-                     param_name=param_name, param_vals=param_vals)
+                     kw_key=kw_key, kwarg_vals=kwarg_vals)
 
-    if not isinstance(param_vals, param_types):
+    if not isinstance(kwarg_vals, param_types):
         raise TypeError(msg)
-    elif isinstance(param_vals, ModelBase):
-        param_vals = param_vals.id
-    elif isinstance(param_vals, Iterable):
+    elif isinstance(kwarg_vals, ModelBase):
+        kwarg_vals = kwarg_vals.id
+    elif isinstance(kwarg_vals, Iterable):
         expanded_vals = list()
-        for val in param_vals:
+        for val in kwarg_vals:
             if not isinstance(val, iter_types):
                 raise TypeError(msg)
             elif isinstance(val, int):
@@ -1271,10 +1328,11 @@ def normalize_param(param_name, param_vals, param_types, iter_types):
             else:
                 expanded_vals.append(val.id)
 
-        param_vals = expanded_vals
+        kwarg_vals = expanded_vals
 
-    if param_vals is not None:
-        param_vals = param_vals if isinstance(param_vals, Iterable) else (param_vals, )
-        param_vals = ','.join([str(v) for v in param_vals])
+    if kwarg_vals is not None:
+        kwarg_vals = kwarg_vals if isinstance(kwarg_vals, Iterable) else (kwarg_vals, )
+        kwarg_vals = ','.join([str(v) for v in kwarg_vals])
 
-    return param_vals
+    if kwarg_vals:
+        params[param_key] = kwarg_vals

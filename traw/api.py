@@ -51,17 +51,11 @@ class API(object):
         return self._session.request(method=GET, path=path)
 
     @cacheable_generator(models.Case)
-    def cases_by_project_id(self, project_id, suite_id=None, section_id=None):
+    def cases_by_project_id(self, project_id, **params):
         """ Calls `get_cases` API endpoint
 
         :yields: case dictionaries from api
         """
-        params = dict()
-        if suite_id:
-            params['suite_id'] = suite_id
-        if section_id:
-            params['section_id'] = section_id
-
         path = API_PATH['get_cases'].format(project_id=project_id)
         for case in self._session.request(method=GET, path=path, params=params):
             yield case

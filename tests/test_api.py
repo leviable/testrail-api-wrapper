@@ -234,14 +234,15 @@ def test_cases_by_project_id(api):
     assert api._session.request.call_args == exp_call
 
 
-def test_cases_by_project_id_suite_id_section_id(api):
+def test_cases_by_project_id_w_params(api):
     """ Verify the ``cases_by_project_id`` method call """
     PROJECT_ID = 1234
     SUITE_ID = 2345
     SECTION_ID = 3456
+    params = {'suite_id': SUITE_ID, 'section_id': SECTION_ID}
     api._session.request.return_value = [CASE1, CASE2]
 
-    case = next(api.cases_by_project_id(PROJECT_ID, SUITE_ID, SECTION_ID))
+    case = next(api.cases_by_project_id(PROJECT_ID, **params))
 
     exp_call = mock.call(method=GET,
                          path=AP['get_cases'].format(project_id=PROJECT_ID),
