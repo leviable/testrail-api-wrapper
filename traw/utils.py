@@ -43,7 +43,7 @@ def cacheable_generator(obj_type):
                 for val in func(inst, *args, **kwargs):
                     returned_vals.append(val)
                     yield val
-                else:
+                else:  # pylint: disable=useless-else-on-loop
                     # Only cache results if the generator has been exhausted
                     cache[key] = dict()
                     cache[key]['value'] = returned_vals

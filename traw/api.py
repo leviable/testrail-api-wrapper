@@ -232,6 +232,17 @@ class API(object):
 
     @cacheable_generator(models.Result)
     @paginate
+    def results_by_run_id(self, run_id, **params):
+        """ Calls `get_results_for_run` API endpoint
+
+        :yields: result dictionaries from api
+        """
+        path = API_PATH['get_results_for_run'].format(run_id=run_id)
+        for result in self._session.request(method=GET, path=path, params=params):
+            yield result
+
+    @cacheable_generator(models.Result)
+    @paginate
     def results_by_test_id(self, test_id, **params):
         """ Calls `get_results` API endpoint
 
@@ -241,6 +252,7 @@ class API(object):
         for result in self._session.request(method=GET, path=path, params=params):
             yield result
 
+    @clear_cache(results_by_run_id)
     @clear_cache(results_by_test_id)
     def result_add(self, test_id, params):
         path = API_PATH['add_result'].format(test_id=test_id)

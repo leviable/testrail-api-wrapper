@@ -585,6 +585,38 @@ def test_result_add(api):
     assert api._session.request.call_args == exp_call
 
 
+def test_results_by_run_id_no_status_id(api):
+    """ Verify the ``results_by_run_id`` method call with no status_id"""
+    RUN_ID = 1234
+    api._session.request.return_value = [RESU1, RESU2]
+
+    result = next(api.results_by_run_id(RUN_ID))
+
+    exp_call = mock.call(method=GET,
+                         path=AP['get_results_for_run'].format(run_id=RUN_ID),
+                         params={'offset': 0})
+
+    assert result == RESU1
+    assert isinstance(result, dict)
+    assert api._session.request.call_args == exp_call
+
+
+def test_results_by_run_id_w_status_id(api):
+    """ Verify the ``results_by_run_id`` method call with status_id"""
+    RUN_ID = 1234
+    api._session.request.return_value = [RESU1, RESU2]
+
+    result = next(api.results_by_run_id(RUN_ID, status_id="111,222"))
+
+    exp_call = mock.call(method=GET,
+                         path=AP['get_results_for_run'].format(run_id=RUN_ID),
+                         params={'offset': 0, 'status_id': '111,222'})
+
+    assert result == RESU1
+    assert isinstance(result, dict)
+    assert api._session.request.call_args == exp_call
+
+
 def test_results_by_test_id_no_status_id(api):
     """ Verify the ``results_by_test_id`` method call with no status_id"""
     TEST_ID = 1234

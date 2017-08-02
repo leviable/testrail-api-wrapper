@@ -2256,8 +2256,62 @@ def test_results_exc(client):
     assert not client.api.results_by_test_id.called
 
 
+def test_results_by_run(client):
+    """ Verify calling ``client.results(123)`` with an ID returns result
+        generator
+    """
+    client.api.results_by_run_id.return_value = [RESU1, RESU2, RESU3]
+    results = client.results(models.Run(client, {'id': 1234}))
+
+    result1 = next(results)
+    assert isinstance(result1, models.Result)
+    assert result1.id == 771
+
+    result2 = next(results)
+    assert isinstance(result2, models.Result)
+    assert result2.id == 772
+
+    result3 = next(results)
+    assert isinstance(result3, models.Result)
+    assert result3.id == 773
+
+    client.api.results_by_run_id.assert_called_once_with(1234)
+
+
+def test_results_by_run_id(client):
+    """ Verify calling ``client.results(123, obj_type=models.Run)`` with
+        an ID returns result generator
+    """
+    client.api.results_by_run_id.return_value = [RESU1, RESU2]
+    results = client.results(1234, obj_type=models.Run, limit=2)
+
+    result1 = next(results)
+    assert isinstance(result1, models.Result)
+    assert result1.id == 771
+
+    result2 = next(results)
+    assert isinstance(result2, models.Result)
+    assert result2.id == 772
+
+    client.api.results_by_run_id.assert_called_once_with(1234, limit=2)
+
+
+def test_results_by_run_id_exc_1(client):
+    """ Verify calling ``client.results(123, obj_type='asdf')`` throws
+        an exception
+    """
+    with pytest.raises(TypeError) as exc:
+        next(client.results(1234, obj_type='asdf'))
+
+    assert str(models.Run) in str(exc)
+    assert str(models.Test) in str(exc)
+    assert 'asdf' in str(exc)
+
+
 def test_results_by_test_id(client):
-    """ Verify calling ``client.tests(123)`` with an ID returns test generator """
+    """ Verify calling ``client.results(123)`` with an ID returns result
+        generator
+    """
     client.api.results_by_test_id.return_value = [RESU1, RESU2]
     results = client.results(1234, limit=2)
 
@@ -2365,7 +2419,9 @@ def test_results_by_test_id_exc_2(client):
 
 
 def test_results_by_test(client):
-    """ Verify calling ``client.tests(123)`` with an ID returns test generator """
+    """ Verify calling ``client.results(123)`` with an ID returns result
+        generator
+    """
     client.api.results_by_test_id.return_value = [RESU1, RESU2, RESU3]
     results = client.results(models.Test(client, {'id': 1234}))
 
