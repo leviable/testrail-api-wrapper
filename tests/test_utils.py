@@ -114,69 +114,74 @@ def test_paginate_w_limit(api):
     assert api._session.request.call_args_list == [exp_call_1, exp_call_2, exp_call_3]
 
 
-def test_cacheable_caching(timedelta, dt, api):
+def test_cacheable_caching(timedelta, dt, full_client):
     dt.now.return_value = 1
     timedelta.return_value = 2
-    api.user_by_id.cache.clear()
+    full_client.api.user_by_id.cache.clear()
     for _ in range(20):
-        api.user_by_id(1)
+        full_client.user(1)
 
-    assert api._session.call_count == 1
+    assert full_client.api._session.call_count == 1
 
 
-def test_cacheable_generator_caching(timedelta, dt, api):
+def test_cacheable_generator_caching(timedelta, dt, full_client):
     dt.now.return_value = 1
     timedelta.return_value = 2
-    api.users.cache.clear()
+    full_client.api.users.cache.clear()
     for _ in range(20):
-        list(api.users())
+        list(full_client.users())
 
-    assert api._session.call_count == 1
+    assert full_client.api._session.call_count == 1
 
 
-def test_cacheable_caching_expire(timedelta, dt, api):
+def test_cacheable_caching_expire(timedelta, dt, full_client):
     dt.now.side_effect = [0, 1, 2, 3, 3, 4, 5, 6, 6, 7, 8, 9, 9]
     timedelta.return_value = 3
-    api._session.request.side_effect = range(3)
-    api.user_by_id.cache.clear()
+    full_client.api._session.request.side_effect = [{'id': 0}, {'id': 1}, {'id': 2}]
+    full_client.api.user_by_id.cache.clear()
     vals = list()
     for _ in range(11):
-        vals.append(api.user_by_id(1))
+        vals.append(full_client.user(1).id)
 
-    assert api._session.request.call_count == 3
+    assert full_client.api._session.request.call_count == 3
     assert vals == [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2]
 
 
-def test_cacheable_generator_caching_expire(timedelta, dt, api):
+def test_cacheable_generator_caching_expire(timedelta, dt, full_client):
     dt.now.side_effect = [0, 1, 2, 3, 3, 4, 5, 6, 6, 7, 8, 9, 9]
     timedelta.return_value = 3
-    api._session.request.side_effect = [[0], [1], [2]]
-    api.users.cache.clear()
+    user_dicts = [[{'id': 0}], [{'id': 1}], [{'id': 2}]]
+    full_client.api._session.request.side_effect = user_dicts
+    full_client.api.users.cache.clear()
     vals = list()
     for _ in range(11):
-        vals.extend(api.users())
+        vals.append(list(full_client.users())[0].id)
 
-    assert api._session.request.call_count == 3
+    assert full_client.api._session.request.call_count == 3
     assert vals == [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2]
 
 
-def test_cacheable_clear_cache(timedelta, dt, api):
+def test_cacheable_clear_cache(timedelta, dt, full_client):
     dt.now.return_value = 1
     timedelta.return_value = 2
-    api._session.request.side_effect = [3, [4], 5]
-    api.milestone_by_id.cache.clear()
-    api.milestones.cache.clear()
+    side_effects = [{'id': 3},    # full_client.milestone(1)
+                    [{'id': 4}],  # full_client.milestones(123)
+                    {'id': 5},    # full_client.add -> milestone.project.id
+                    {'id': 6}]    # full_client.add -> response
+    full_client.api._session.request.side_effect = side_effects
+    full_client.api.milestone_by_id.cache.clear()
+    full_client.api.milestones.cache.clear()
 
-    api.milestone_by_id(1)
-    list(api.milestones(123))
+    full_client.milestone(1)
+    list(full_client.milestones(123))
 
-    assert len(api.milestone_by_id.cache) == 1
-    assert len(api.milestones.cache) == 1
+    assert len(full_client.api.milestone_by_id.cache) == 1
+    assert len(full_client.api.milestones.cache) == 1
 
-    api.milestone_add(123, dict())
+    full_client.add(traw.models.Milestone(full_client, {'id': 456, 'project_id': 5}))
 
-    assert len(api.milestone_by_id.cache) == 0
-    assert len(api.milestones.cache) == 0
+    assert len(full_client.api.milestone_by_id.cache) == 0
+    assert len(full_client.api.milestones.cache) == 0
 
 
 def test_dispatchmethod_default(dm):

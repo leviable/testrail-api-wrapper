@@ -33,8 +33,6 @@ class Run(Addable, Closeable, Deleteable, Updatable, ModelBase):
 
         if fields['case_ids'] is None or fields['case_ids'] == list():
             fields.pop('case_ids')
-        else:
-            fields['case_ids'] = ','.join(map(str, fields['case_ids']))
 
         return fields
 

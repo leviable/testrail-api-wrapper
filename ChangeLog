@@ -1,8 +1,15 @@
 CHANGES
 =======
 
+0.1.0
+-----
+
 * Add get cases filters
 * Add get cases support
+
+0.0.14
+------
+
 * Add section support for client and API
 * Add Section model
 * Add/update case model

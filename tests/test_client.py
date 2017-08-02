@@ -251,7 +251,7 @@ def test_add_run_with_case_ids(client):
     assert response.id == RUN_ID
     assert client.api.run_add.called
     assert 'mock name' in str(client.api.run_add.call_args)
-    assert '1,2,3,4' in str(client.api.run_add.call_args)
+    assert '[1, 2, 3, 4]' in str(client.api.run_add.call_args)
     assert 'extra' not in str(client.api.run_add.call_args)
 
 
