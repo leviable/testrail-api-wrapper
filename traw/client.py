@@ -598,7 +598,7 @@ class Client(object):
         raise NotImplementedError(const.NOTIMP.format("models.Test or int"))
 
     @results.register(int)
-    def _results_by_obj_id(self, obj_id, obj_type=models.Test, limit=None, with_status=None):
+    def _results_by_obj_id(self, obj_id, obj_type=models.Test, with_status=None, limit=None):
         API_METHODS = {models.Run: self.api.results_by_run_id,
                        models.Test: self.api.results_by_test_id}
         if obj_type not in API_METHODS:
@@ -619,14 +619,14 @@ class Client(object):
             yield models.Result(self, result)
 
     @results.register(models.Run)
-    def _results_by_run(self, run, limit=None, with_status=None):
-        params = dict(limit=limit, with_status=with_status, obj_type=models.Run)
+    def _results_by_run(self, run, with_status=None, limit=None):
+        params = dict(obj_type=models.Run, with_status=with_status, limit=limit)
         for result in self.results(run.id, **params):
             yield result
 
     @results.register(models.Test)
-    def _results_by_test(self, test, limit=None, with_status=None):
-        for result in self.results(test.id, limit=limit, with_status=with_status):
+    def _results_by_test(self, test, with_status=None, limit=None):
+        for result in self.results(test.id, with_status=with_status, limit=limit):
             yield result
 
     # Run related methods
@@ -735,13 +735,13 @@ class Client(object):
 
     @runs.register(models.Project)
     def _runs_by_project(self, project, created_after=None, created_before=None,
-                         created_by=None, is_completed=None, limit=None,
-                         milestone=None, suite=None):
+                         created_by=None, is_completed=None, milestone=None,
+                         suite=None, limit=None):
 
         for run in self.runs(project.id, created_after=created_after,
                              created_before=created_before, created_by=created_by,
-                             is_completed=is_completed, limit=limit,
-                             milestone=milestone, suite=suite):
+                             is_completed=is_completed,
+                             milestone=milestone, suite=suite, limit=limit):
             yield run
 
     # Section related methods
