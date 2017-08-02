@@ -37,13 +37,17 @@ def cacheable_generator(obj_type):
         def cacheable_func(inst, *args, **kwargs):
             key = str(args) + str(kwargs)
             if key not in cache or cache[key]['expires'] < dt.now():
-                timeout = inst.cache_timeouts[inst][obj_type]  # pylint: disable=protected-access
-                cache[key] = dict()
-                cache[key]['value'] = list()
-                cache[key]['expires'] = dt.now() + timedelta(seconds=timeout)
+                returned_vals = list()
+                timeout = inst.cache_timeouts[inst][obj_type]
+                expires = dt.now() + timedelta(seconds=timeout)
                 for val in func(inst, *args, **kwargs):
-                    cache[key]['value'].append(val)
+                    returned_vals.append(val)
                     yield val
+                else:
+                    # Only cache results if the generator has been exhausted
+                    cache[key] = dict()
+                    cache[key]['value'] = returned_vals
+                    cache[key]['expires'] = expires
             else:
                 for val in cache[key]['value']:
                     yield val
@@ -80,7 +84,7 @@ def cacheable(obj_type):
         def _cacheable_func(inst, *args, **kwargs):
             key = str(args) + str(kwargs)
             if key not in cache or cache[key]['expires'] < dt.now():
-                timeout = inst.cache_timeouts[inst][obj_type]  # pylint: disable=protected-access
+                timeout = inst.cache_timeouts[inst][obj_type]
                 cache[key] = dict()
                 cache[key]['value'] = func(inst, *args, **kwargs)
                 cache[key]['expires'] = dt.now() + timedelta(seconds=timeout)

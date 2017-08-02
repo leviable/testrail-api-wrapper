@@ -232,7 +232,7 @@ class Client(object):
         :yields: models.CaseType Objects
 
         """
-        for case_type in self.api.case_types():
+        for case_type in list(self.api.case_types()):
             yield models.CaseType(self, case_type)
 
     # Config related methods
@@ -499,7 +499,7 @@ class Client(object):
 
         :yields: models.Priority Objects
         """
-        for priority in self.api.priorities():
+        for priority in list(self.api.priorities()):
             yield models.Priority(self, priority)
 
     # Project related methods
@@ -557,7 +557,7 @@ class Client(object):
         else:
             is_completed = None
 
-        for project in self.api.projects(is_completed):
+        for project in list(self.api.projects(is_completed)):
             yield models.Project(self, project)
 
     # Result related methods
@@ -915,7 +915,7 @@ class Client(object):
 
         :yields: models.Status Objects
         """
-        for status in self.api.statuses():
+        for status in list(self.api.statuses()):
             yield models.Status(self, status)
 
     # Suite related methods
@@ -1029,7 +1029,7 @@ class Client(object):
 
     @templates.register(int)
     def _templates_by_project_id(self, project_id):
-        for template in self.api.templates(project_id):
+        for template in list(self.api.templates(project_id)):
             yield models.Template(self, template)
 
     @templates.register(models.Project)
@@ -1091,7 +1091,7 @@ class Client(object):
             with_status = with_status if isinstance(with_status, Iterable) else (with_status, )
             with_status = ','.join([str(s.id) for s in with_status])
 
-        for test in self.api.tests_by_run_id(run_id, with_status):
+        for test in list(self.api.tests_by_run_id(run_id, with_status)):
             yield models.Test(self, test)
 
     @tests.register(models.Run)
@@ -1138,7 +1138,7 @@ class Client(object):
 
         :yields: models.User Objects
         """
-        for user in self.api.users():
+        for user in list(self.api.users()):
             yield models.User(self, user)
 
     # Cache control related methods
@@ -1201,6 +1201,7 @@ class Client(object):
     def _clear_cache_case(self, _):
         """ Clear cache for models.Case related API methods """
         self.api.case_by_id.cache.clear()
+        self.api.cases_by_project_id.cache.clear()
 
     @clear_cache.register(models.CaseType)
     def _clear_cache_case_types(self, _):

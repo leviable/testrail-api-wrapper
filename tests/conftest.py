@@ -28,3 +28,11 @@ def client():
         api_mock.return_value = api_mock
 
         yield traw.Client(username=USER, password=PASS, url=URL)
+
+
+@pytest.fixture()
+def full_client():
+    with mock.patch('traw.api.Session') as sess_mock:
+        sess_mock.return_value = sess_mock
+
+        yield traw.Client(username=USER, password=PASS, url=URL)
