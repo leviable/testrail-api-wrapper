@@ -581,11 +581,14 @@ class Client(object):
     def results(self, *args, **kwargs):  # pylint: disable=unused-argument
         """ Return models.Result generator for the given models.Test object or test ID
 
-            `client.results(test)` yields resultss associated with the Test instance
-            `client.results(1234)` yields resultss associated with test id 1234
+        `client.results(test)` yields results for Test instance
+        `client.results(1234)` yields results for test with id 1234
+        `client.results(run)` yields results for Run instance
+        `client.results(1234, obj_type=models.Run)` yields results for Run with id 1234
 
         :param test: models.Test object for a test that exists in TestRail
-        :param test_id: int, Test ID for a test that exists in TestRail
+        :param run: models.Run object for a run that exists in TestRail
+        :param obj_id: int, Run ID or Test ID for a Run/Test that exists in TestRail
 
         :raiess: NotImplementedError if called with no parameters (`client.results()`) or
                  a parameter of an unsupported type (`client.results(True)`)
@@ -595,7 +598,16 @@ class Client(object):
         raise NotImplementedError(const.NOTIMP.format("models.Test or int"))
 
     @results.register(int)
-    def _results_by_test_id(self, test_id, limit=None, with_status=None):
+    def _results_by_obj_id(self, obj_id, obj_type=models.Test, limit=None, with_status=None):
+        API_METHODS = {models.Run: self.api.results_by_run_id,
+                       models.Test: self.api.results_by_test_id}
+        if obj_type not in API_METHODS:
+            msg = "Unknown obj_type. Must be {0}. Found {1}"
+            msg = msg.format(" or ".join([str(models.Run), str(models.Test)]), obj_type)
+            raise TypeError(msg)
+
+        api_method = API_METHODS[obj_type]
+
         params = dict()
         if limit:
             params['limit'] = int(limit)
@@ -603,8 +615,14 @@ class Client(object):
         ws_args = {'with_status': with_status}
         normalize_param(ws_args, params, 'with_status', 'status_id', models.Status)
 
-        for result in self.api.results_by_test_id(test_id, **params):
+        for result in api_method(obj_id, **params):
             yield models.Result(self, result)
+
+    @results.register(models.Run)
+    def _results_by_run(self, run, limit=None, with_status=None):
+        params = dict(limit=limit, with_status=with_status, obj_type=models.Run)
+        for result in self.results(run.id, **params):
+            yield result
 
     @results.register(models.Test)
     def _results_by_test(self, test, limit=None, with_status=None):
@@ -1238,6 +1256,7 @@ class Client(object):
     @clear_cache.register(models.Result)
     def _clear_cache_result(self, _):
         """ Clear cache for models.Result related API methods """
+        self.api.results_by_run_id.cache.clear()
         self.api.results_by_test_id.cache.clear()
 
     @clear_cache.register(models.Run)
