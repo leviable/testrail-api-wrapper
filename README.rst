@@ -90,7 +90,7 @@ The TRAW Client can pull in credentials in three ways:
       $ # export TRAW_USER_API_KEY="userapikey"  # (Optional) - in place of TRAW_PASSWORD
       $ export TRAW_URL="https://example.testrail.net"
 
-* Writing them to a configuration file in the user's home dir
+* Writing them to a configuration file in the user's home directory
 
   .. code-block:: bash
 
@@ -111,7 +111,7 @@ You can create multiple clients to access different TestRail installations:
 Creating/Adding/Closing/Deleting/Updating TestRail Objects
 ----------------------------------------------------------
 
-TRAW using the same pattern for creating new TestRail objects and adding them to TestRail:
+TRAW uses a consistent pattern for creating new TestRail objects and adding them to TestRail:
 
 * Call the relevant client method without any parameters, and a new/empty object is returned:
 
@@ -123,7 +123,7 @@ TRAW using the same pattern for creating new TestRail objects and adding them to
       new_milestone = client.milestone()
       # etc
       
-* Configure the new object. Note most addable objects require at least one reference object in order for them to be added to TestRail. For instance, run objects require a reference to a project, result objects require a reference to a test, and sections objects required a reference to a project AND a suite if the project is not in single-suite mode:
+* Configure the new object. Note most addable objects require at least one reference object in order for them to be added to TestRail. For instance, run objects require a reference to a project, result objects require a reference to a test, and sections objects require a reference to a project AND a suite if the project is not in single-suite mode:
 
   .. code-block:: python
 
@@ -138,7 +138,7 @@ TRAW using the same pattern for creating new TestRail objects and adding them to
       new_section.project = client.project(15)  # Project with Project ID 15, with suite-mode of 2
       new_section.suite = client.suite(456)  # Suite with Suite ID 456
       
-* At this point the objects only exist locally, and have not been added to TestRail. To do so, call ``client.add()`` with the new object. TRAW will add the new object to TestRail, and upon success the TestRail API will return the created object:
+* At this point the objects only exist locally, and have not been added to TestRail. To do so, call ``client.add()`` with the new object. TRAW will add the new object to TestRail, and upon success the TestRail API will return a new object:
 
   .. code-block:: python
 
@@ -175,9 +175,9 @@ TRAW using the same pattern for creating new TestRail objects and adding them to
 
       closed_run = client.close(run)
       
-      print("Run Complete: '{0}'".format(closed_run.is_completed))     # "Run Completed: 'False'"
+      print("Run Complete: '{0}'".format(closed_run.is_completed))     # "Run Completed: 'True'"
       
-* Objects that can be deleted (runs, plans, cases, etc) can be deleted through the TRAW Client. Note that no object is returned with after calling ``client.delete()``. Also note that some things (runs, plans) can either be closed or deleted, but not both, while other things (projects) can be deleted after they have been closed (assuming your user has admin privileges):
+* Objects that can be deleted (runs, plans, cases, etc) can be deleted through the TRAW Client. Note that no object is returned after calling ``client.delete()``. Also note that some things (runs, plans) can either be closed or deleted, but not both, while other things (projects) can be deleted after they have been closed (assuming your user has admin privileges):
 
   .. code-block:: python
 
