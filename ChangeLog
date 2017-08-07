@@ -1,6 +1,18 @@
 CHANGES
 =======
 
+* Add readthedocs support
+* Update README.rst
+* Update README.rst
+
+0.2.1
+-----
+
+* Update parameter order for some methods
+
+0.2.0
+-----
+
 * Add get results by run support
 
 0.1.2
