@@ -25,8 +25,20 @@ def session():
 
 
 @pytest.fixture()
-def response():
-    yield mock.create_autospec(requests.models.Response)
+def request():
+    req = mock.create_autospec(requests.models.Request)
+    req.path_url = 'mock path url'
+    req.body = {'mock': 'stuff'}
+    yield req
+
+
+@pytest.fixture()
+def response(request):
+    resp = mock.create_autospec(requests.models.Response)
+    resp.request = request
+    resp.content = '{"error": "Error reason"}'
+    resp.reason = 'Response Reason'
+    yield resp
 
 
 def test___init__():
@@ -209,10 +221,10 @@ def test_req_w_retries_service_unavailable(make_req_mock, session, response):
     response.status_code = codes['service_unavailable']
     make_req_mock.return_value = response, None
 
-    with pytest.raises(exceptions.ServerError):
+    with pytest.raises(exceptions.ServiceUnavailableError):
         session._request_with_retries()
 
-    assert make_req_mock.call_count == 3
+    assert make_req_mock.call_count == 17
 
 
 @mock.patch.object(Session, '_make_request')
