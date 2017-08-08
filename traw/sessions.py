@@ -9,7 +9,8 @@ from requests.exceptions import ChunkedEncodingError, ConnectionError
 
 from .const import BASE_API_PATH, TIMEOUT
 from .exceptions import (BadRequest, Conflict, Forbidden, NotFound, RateLimited,
-                         Redirect, ServerError, TooLarge, UnknownStatusCode)
+                         Redirect, ServerError, ServiceUnavailableError,
+                         TooLarge, UnknownStatusCode)
 
 log = logging.getLogger(__package__)
 
@@ -27,7 +28,7 @@ class Session(object):
                          codes['internal_server_error']: ServerError,
                          codes['not_found']: NotFound,
                          codes['request_entity_too_large']: TooLarge,
-                         codes['service_unavailable']: ServerError,
+                         codes['service_unavailable']: ServiceUnavailableError,
                          codes['unauthorized']: Forbidden}
     SUCCESS_STATUSES = {codes['created'], codes['ok']}
 
@@ -66,6 +67,7 @@ class Session(object):
         else:
             return response, None
 
+    @retry(ServiceUnavailableError, tries=17, delay=1, backoff=2)
     @retry(RETRY_EXCEPTIONS, tries=3, delay=1, backoff=2)
     def _request_with_retries(self, *args, **kwargs):
         """  """

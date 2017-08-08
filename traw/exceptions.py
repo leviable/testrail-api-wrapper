@@ -55,9 +55,17 @@ class ResponseException(TRAWException):
         :param response: A requests.response instance.
 
         """
+        msg = ('Received {0} ({1}) HTTP response\n'
+               'With message: {2}\n'
+               'For request: {3}')
+        msg = msg.format(response.status_code, response.reason,
+                         response.content, response.request.path_url)
+
+        if hasattr(response.request, 'body') and response.request.body:
+            msg += '\nWith Request Body: {0}'.format(response.request.body)
+
         self.response = response
-        super(ResponseException, self).__init__('received {} HTTP response'
-                                                .format(response.status_code))
+        super(ResponseException, self).__init__(msg)
 
 
 class BadRequest(ResponseException):
@@ -126,6 +134,10 @@ class Redirect(ResponseException):
 
 
 class ServerError(ResponseException):
+    """Indicate issues on the server end preventing request fulfillment."""
+
+
+class ServiceUnavailableError(ResponseException):
     """Indicate issues on the server end preventing request fulfillment."""
 
 
