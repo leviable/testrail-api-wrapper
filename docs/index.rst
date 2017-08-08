@@ -6,11 +6,25 @@
 Welcome to TRAW's documentation!
 ================================
 
+:pypi:`TRAW`, the TestRail Api Wrapper, aims to be a feature complete python
+interface to TestRail's RESTful API.
+
+Contents
+--------
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
+   quick-reference
    credentials
+   adding-updating
+
+.. seealso::
+
+    * `TRAW Examples`_: TRAW examples scripts
+
+.. _TRAW Examples: https://github.com/levi-rs/traw/tree/master/examples
 
 
 

@@ -75,8 +75,10 @@ class Session(object):
         response, _ = self._make_request(*args, **kwargs)
 
         if response.status_code in self.STATUS_EXCEPTIONS:
+            log.warning('Caught a ServerError ({0})'.format(response.status_code))
             raise self.STATUS_EXCEPTIONS[response.status_code](response)
         elif response.status_code == codes['no_content']:
+            log.warning('Received a response with no content')
             return
         elif response.status_code == self.RATE_LIMIT_STATUS:
             retry_after = int(response.headers['Retry-After'])
@@ -85,6 +87,8 @@ class Session(object):
             time.sleep(retry_after)
             raise RateLimited(response)
         elif response.status_code not in self.SUCCESS_STATUSES:
+            msg = 'Received an unknown response status: {0}'
+            log.warning(msg.format(response.status_code))
             raise UnknownStatusCode(response)
 
         if response.headers.get('content-length') == '0':
