@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# traw documentation build configuration file, created by
-# sphinx-quickstart on Mon Aug  7 18:36:34 2017.
+# TRAW documentation build configuration file, created by
+# sphinx-quickstart on Tue Aug  8 14:11:40 2017.
 #
 # This file is execfile()d with the current directory set to its
 # containing dir.
@@ -31,11 +31,7 @@
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc',
-    'sphinx.ext.doctest',
-    'sphinx.ext.todo',
-    'sphinx.ext.coverage',
-    'sphinx.ext.viewcode']
+extensions = []
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -50,7 +46,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'traw'
+project = 'TRAW'
 copyright = '2017, Levi Noecker'
 author = 'Levi Noecker'
 
@@ -73,13 +69,13 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
-exclude_patterns = []
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
-todo_include_todos = True
+todo_include_todos = False
 
 
 # -- Options for HTML output ----------------------------------------------
@@ -119,7 +115,7 @@ html_sidebars = {
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'trawdoc'
+htmlhelp_basename = 'TRAWdoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -146,7 +142,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'traw.tex', 'traw Documentation',
+    (master_doc, 'TRAW.tex', 'TRAW Documentation',
      'Levi Noecker', 'manual'),
 ]
 
@@ -156,7 +152,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'traw', 'traw Documentation',
+    (master_doc, 'traw', 'TRAW Documentation',
      [author], 1)
 ]
 
@@ -167,8 +163,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'traw', 'traw Documentation',
-     author, 'traw', 'One line description of project.',
+    (master_doc, 'TRAW', 'TRAW Documentation',
+     author, 'TRAW', 'One line description of project.',
      'Miscellaneous'),
 ]
 
