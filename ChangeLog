@@ -1,6 +1,13 @@
 CHANGES
 =======
 
+* Update RTFD pages
+* Fix ReadTheDocs generation
+
+0.2.2
+-----
+
+* Update exception raising and handling
 * Add readthedocs support
 * Update README.rst
 * Update README.rst

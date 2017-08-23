@@ -58,21 +58,19 @@ class Session(object):
     def _make_request(self, *args, **kwargs):
         kwargs['timeout'] = TIMEOUT
         kwargs['auth'] = self._auth
-        try:
-            response = self._http.request(*args, **kwargs)
-            log.debug('Response: {} ({} bytes)'.format(
-                response.status_code, response.headers.get('content-length')))
-        except Exception as exc:
-            return None, exc
-        else:
-            return response, None
+        response = self._http.request(*args, **kwargs)
+
+        log.debug('Response: {} ({} bytes)'.format(
+            response.status_code, response.headers.get('content-length')))
+
+        return response
 
     @retry(ServiceUnavailableError, tries=17, delay=1, backoff=2)
     @retry(RETRY_EXCEPTIONS, tries=3, delay=1, backoff=2)
     def _request_with_retries(self, *args, **kwargs):
         """  """
         self._log_request(**kwargs)
-        response, _ = self._make_request(*args, **kwargs)
+        response = self._make_request(*args, **kwargs)
 
         if response.status_code in self.STATUS_EXCEPTIONS:
             log.warning('Caught a ServerError ({0})'.format(response.status_code))
