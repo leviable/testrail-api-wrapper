@@ -1,6 +1,10 @@
 CHANGES
 =======
 
+0.2.3
+-----
+
+* Remove extraneous exception handling
 * Update RTFD pages
 * Fix ReadTheDocs generation
 

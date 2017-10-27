@@ -5,7 +5,7 @@ import time
 import requests
 from retry import retry
 from requests.status_codes import codes
-from requests.exceptions import ChunkedEncodingError, ConnectionError
+from requests.exceptions import ChunkedEncodingError, ConnectionError, ReadTimeout
 
 from .const import BASE_API_PATH, TIMEOUT
 from .exceptions import (BadRequest, Conflict, Forbidden, NotFound, RateLimited,
@@ -18,7 +18,8 @@ log = logging.getLogger(__package__)
 class Session(object):
     """  """
     RATE_LIMIT_STATUS = 429
-    RETRY_EXCEPTIONS = (ChunkedEncodingError, ConnectionError, RateLimited, ServerError)
+    RETRY_EXCEPTIONS = (ChunkedEncodingError, ConnectionError, RateLimited,
+                        ServerError, ReadTimeout)
     STATUS_EXCEPTIONS = {codes['bad_gateway']: ServerError,
                          codes['bad_request']: BadRequest,
                          codes['conflict']: Conflict,
