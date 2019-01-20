@@ -1,7 +1,0 @@
-pylint:
-  disable:
-    - too-many-arguments
-    - logging-format-interpolation
-    - too-many-locals
-ignore-paths:
-  - examples
