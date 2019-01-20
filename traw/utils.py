@@ -183,11 +183,11 @@ def duration_to_timedelta(duration):
         return int(segment.group(0)[:-1]) if segment else 0
 
     timedelta_map = {
-        'weeks': timespan(re.search('\d+w', duration)),
-        'days': timespan(re.search('\d+d', duration)),
-        'hours': timespan(re.search('\d+h', duration)),
-        'minutes': timespan(re.search('\d+m', duration)),
-        'seconds': timespan(re.search('\d+s', duration))
+        'weeks': timespan(re.search(r'\d+w', duration)),
+        'days': timespan(re.search(r'\d+d', duration)),
+        'hours': timespan(re.search(r'\d+h', duration)),
+        'minutes': timespan(re.search(r'\d+m', duration)),
+        'seconds': timespan(re.search(r'\d+s', duration))
     }
     return timedelta(**timedelta_map)
 

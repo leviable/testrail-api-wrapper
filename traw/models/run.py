@@ -90,7 +90,7 @@ class Run(Addable, Closeable, Deleteable, Updatable, ModelBase):
             (only present if run is a part of a test plan with configurations)
         """
         if self.project is None:
-            raise StopIteration
+            return
 
         for config_id in self._content.get('config_ids', list()):
             yield self.client.config(self.project, config_id)
