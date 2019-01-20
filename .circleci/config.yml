@@ -1,0 +1,131 @@
+version: 2.1
+# ################################
+#
+# NOTE: "foo: &foo" and "run: *foo" are YAML anchors.
+#       See the following for more info: https://blog.daemonl.com/2016/02/yaml.html
+#
+# ################################
+build-filters: &build-filters
+  tags:
+    ignore: /.*/
+  branches:
+    only: /.*/
+
+latest-filters: &latest-filters
+  tags:
+    ignore: /.*/
+  branches:
+    only: master
+
+tag-filters: &tag-filters
+  tags:
+    only: /.*/
+  branches:
+    ignore: /.*/
+
+# ############################################
+#
+# Set Circle CI Reusable Commands
+#
+# For more information, see the documentation:
+# https://circleci.com/docs/2.0/reusing-config
+#
+# ############################################
+commands:
+  run-tox:
+    description: "Run Tox based Python tests"
+    parameters:
+      tox-env:
+        type: string
+    steps:
+      - checkout
+      - run:
+          name: Install Test Dependencies
+          command: |
+            sudo pip install --upgrade pip setuptools
+            sudo pip install --upgrade tox codecov
+      - run:
+          name: Run tests
+          command: tox -e << parameters.tox-env >>
+      - run:
+          name: Report Coverage
+          command: codecov --commit=$CIRCLE_SHA1
+
+# ###############################
+#
+# CircleCI 2.1 Jobs
+#
+# ###############################
+jobs:
+  tests-passed:
+    docker:
+      - image: bash:latest
+    steps:
+      - run: echo "All tests passed"
+  lint:
+    docker:
+      - image: circleci/python:3.7
+    steps:
+      - run-tox:
+          tox-env: "lint"
+  py27:
+    docker:
+      - image: circleci/python:2.7
+    steps:
+      - run-tox:
+          tox-env: "py27"
+  py34:
+    docker:
+      - image: circleci/python:3.4
+    steps:
+      - run-tox:
+          tox-env: "py34"
+  py35:
+    docker:
+      - image: circleci/python:3.5
+    steps:
+      - run-tox:
+          tox-env: "py35"
+  py36:
+    docker:
+      - image: circleci/python:3.6
+    steps:
+      - run-tox:
+          tox-env: "py36"
+  py37:
+    docker:
+      - image: circleci/python:3.7
+    steps:
+      - run-tox:
+          tox-env: "py37"
+
+# ####################
+#
+# CircleCI Workflow
+#
+# ####################
+workflows:
+  version: 2
+  traw-workflow:
+    jobs:
+      - lint:
+          filters: *build-filters
+      - py27:
+          filters: *build-filters
+      - py34:
+          filters: *build-filters
+      - py35:
+          filters: *build-filters
+      - py36:
+          filters: *build-filters
+      - py37:
+          filters: *build-filters
+      - tests-passed:
+          requires:
+              - lint
+              - py27
+              - py34
+              - py35
+              - py36
+              - py37
+          filters: *build-filters

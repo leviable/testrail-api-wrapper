@@ -19,6 +19,11 @@ from os.path import dirname, join, realpath
 from .client import Client  # NOQA
 
 try:
+    FileNotFoundError
+except NameError:
+    FileNotFoundError = IOError
+
+try:
     with open(join(dirname(realpath(__file__)), 'VERSION'), 'r') as r:
         version = r.read()
 except FileNotFoundError:

@@ -5,6 +5,11 @@ from os.path import dirname, join, realpath
 HERE = dirname(realpath(__file__))
 
 try:
+    FileNotFoundError
+except NameError:
+    FileNotFoundError = IOError
+
+try:
     with open(join(HERE, 'traw', 'VERSION'), 'r') as r:
         version = r.read()
 except FileNotFoundError:
@@ -25,7 +30,7 @@ setup(
     include_package_data=True,
     version=version,
     install_requires=['click', 'requests', 'retry', 'singledispatch', 'six'],
-    keywords = "testrail client api wrapper traw",
+    keywords="testrail client api wrapper traw",
     classifiers=[
         "Development Status :: 4 - Beta",
         "Environment :: Console",
