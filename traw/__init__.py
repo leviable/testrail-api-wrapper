@@ -14,13 +14,18 @@ The intended way to begin is to instantiate the TRAW Client:
 See the Client help documentation (`help(traw.Client)`) for more information
 """
 import logging
-
-from pbr.version import VersionInfo
+from os.path import dirname, join, realpath
 
 from .client import Client  # NOQA
 
+try:
+    with open(join(dirname(realpath(__file__)), 'VERSION'), 'r') as r:
+        version = r.read()
+except FileNotFoundError:
+    version = '0.0.0'
 
-__version__ = VersionInfo('traw').semantic_version().release_string()
+
+__version__ = version
 __all__ = ('__version__', 'Client')
 
 logging.getLogger(__package__).addHandler(logging.NullHandler())
