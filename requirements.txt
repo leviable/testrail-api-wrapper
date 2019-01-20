@@ -1,5 +1,0 @@
-pbr>=3.0
-requests >=2.6.0, <3.0
-retry
-singledispatch>=3.4.0.0
-six

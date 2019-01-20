@@ -1,23 +1,19 @@
 TRAW: TestRail API Wrapper
 ==========================
 
-|PyPIVersion| |TravisCI| |CoverageStatus| |CodeHealth| |PythonVersions| |PyPIDownloads|
+|PyPIVersion| |CircleCI| |CoverageStatus| |PythonVersions| |PyPIDownloads|
 
-.. |TravisCI| image:: https://travis-ci.org/levi-rs/traw.svg?branch=master
-    :target: https://travis-ci.org/levi-rs/traw
-.. |CoverageStatus| image:: https://coveralls.io/repos/github/levi-rs/traw/badge.svg
-   :target: https://coveralls.io/github/levi-rs/traw
-.. |CodeHealth| image:: https://landscape.io/github/levi-rs/traw/master/landscape.svg?style=flat
-   :target: https://landscape.io/github/levi-rs/traw/master
 .. |PyPIVersion| image:: https://badge.fury.io/py/traw.svg
     :target: https://badge.fury.io/py/traw
+.. |CircleCI| image:: https://circleci.com/gh/levi-rs/testrail-api-wrapper/tree/master.svg?style=svg
+    :target: https://circleci.com/gh/levi-rs/testrail-api-wrapper/tree/master
+.. |CoverageStatus| image:: https://codecov.io/gh/levi-rs/testrail-api-wrapper/branch/master/graph/badge.svg
+    :target: https://codecov.io/gh/levi-rs/testrail-api-wrapper
 .. |PythonVersions| image:: https://img.shields.io/pypi/pyversions/traw.svg
     :target: https://wiki.python.org/moin/Python2orPython3
 .. |PyPIDownloads| image:: https://pepy.tech/badge/traw/month
     :target: https://pepy.tech/project/traw
 
-    
-(This project is now in beta testing: APIs will not change without a deprecation warning)
 
 TRAW aims to be a feature complete python library for accessing TestRail's RESTful API.
 
