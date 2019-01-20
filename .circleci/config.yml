@@ -99,6 +99,26 @@ jobs:
       - run-tox:
           tox-env: "py37"
 
+  push-package:
+    docker:
+      - image: circleci/python:3
+    steps:
+      - checkout
+      - run:
+          name: Install Dependencies
+          command: |
+            sudo pip install --upgrade pip setuptools
+            sudo pip install --upgrade wheel twine
+      - run:
+          name: Write version file
+          command: echo -n $(git describe --tags --exact-match) > traw/VERSION
+      - run:
+          name: Create Package
+          command: python setup.py sdist bdist_wheel
+      - run:
+          name: Upload Package
+          command: twine upload dist/*
+
 # ####################
 #
 # CircleCI Workflow
@@ -129,3 +149,7 @@ workflows:
               - py36
               - py37
           filters: *build-filters
+      - push-package:
+          requires:
+              - tests-passed
+          filters: *tag-filters
