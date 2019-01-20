@@ -25,7 +25,7 @@ except NameError:
 
 try:
     with open(join(dirname(realpath(__file__)), 'VERSION'), 'r') as r:
-        version = r.read()
+        version = r.read()  # pragma: no cover
 except FileNotFoundError:
     version = '0.0.0'
 
