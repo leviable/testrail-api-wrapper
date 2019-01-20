@@ -1,6 +1,11 @@
 CHANGES
 =======
 
+0.2.4
+-----
+
+* Add ReadTimeout exception to retry list
+
 0.2.3
 -----
 
@@ -126,11 +131,11 @@ CHANGES
 -----
 
 * Add get\_project support and bug fixes
-* Update encrypted deploy password
 
 0.0.2
 -----
 
+* Update encrypted deploy password
 * Add Client, API, and Sessions
 * Add project model and tests
 * Add method support for singledispatch

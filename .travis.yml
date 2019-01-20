@@ -1,5 +1,6 @@
 language: python
 sudo: false
+dist: xenial
 os:
 - linux
 python:
@@ -7,6 +8,7 @@ python:
 - '3.4'
 - '3.5'
 - '3.6'
+- '3.7'
 install:
 - pip install -U pip
 - pip install -U setuptools
@@ -27,4 +29,4 @@ deploy:
   on:
     branch: master
     tags: true
-    python: '3.6'
+    python: '3.7'
