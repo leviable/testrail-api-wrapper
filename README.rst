@@ -1,7 +1,7 @@
 TRAW: TestRail API Wrapper
 ==========================
 
-|PyPIVersion| |TravisCI| |CoverageStatus| |CodeHealth| |PythonVersions|
+|PyPIVersion| |TravisCI| |CoverageStatus| |CodeHealth| |PythonVersions| |PyPIDownloads
 
 .. |TravisCI| image:: https://travis-ci.org/levi-rs/traw.svg?branch=master
     :target: https://travis-ci.org/levi-rs/traw
@@ -13,6 +13,9 @@ TRAW: TestRail API Wrapper
     :target: https://badge.fury.io/py/traw
 .. |PythonVersions| image:: https://img.shields.io/pypi/pyversions/traw.svg
     :target: https://wiki.python.org/moin/Python2orPython3
+.. |PyPIDownloads| image:: https://pepy.tech/badge/traw/month
+    :target: https://pepy.tech/project/traw
+
     
 (This project is now in beta testing: APIs will not change without a deprecation warning)
 
