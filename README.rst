@@ -1,7 +1,7 @@
 TRAW: TestRail API Wrapper
 ==========================
 
-|PyPIVersion| |TravisCI| |CoverageStatus| |CodeHealth| |PythonVersions| |PyPIDownloads
+|PyPIVersion| |TravisCI| |CoverageStatus| |CodeHealth| |PythonVersions| |PyPIDownloads|
 
 .. |TravisCI| image:: https://travis-ci.org/levi-rs/traw.svg?branch=master
     :target: https://travis-ci.org/levi-rs/traw
