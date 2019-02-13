@@ -162,19 +162,19 @@ def test_show_announcement_set_exc(empty_proj):
 
 def test_suite_mode_get(empty_proj, in_progress_proj, complete_proj):
     assert empty_proj.suite_mode is None
-    assert in_progress_proj.suite_mode is 1
-    assert complete_proj.suite_mode is 2
+    assert in_progress_proj.suite_mode == 1
+    assert complete_proj.suite_mode == 2
 
 
 def test_suite_mode_set(empty_proj, in_progress_proj, complete_proj):
     empty_proj.suite_mode = 2
-    assert empty_proj.suite_mode is 2
+    assert empty_proj.suite_mode == 2
 
     in_progress_proj.suite_mode = 3
-    assert in_progress_proj.suite_mode is 3
+    assert in_progress_proj.suite_mode == 3
 
     complete_proj.suite_mode = 1
-    assert complete_proj.suite_mode is 1
+    assert complete_proj.suite_mode == 1
 
 
 def test_suite_mode_typeerror_exc(empty_proj):
